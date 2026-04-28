@@ -1,0 +1,14 @@
+smt==2.13.0
+smt-design-space-ext==0.5.1
+ConfigSpace==1.2.2
+adsg-core==1.4.0
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+xgboost
+openturns
+ipython
+pydantic
+numba
