@@ -4,22 +4,9 @@ PROJECT_ROOT = Path("/Users/benjamin/files/Repositories/Sensitivity_analysis_MAE
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "analysis" / "web_runs"
 DEFAULT_TARGETS = ["N_lixi", "dCorg", "rdt"]
 
-AGRI_FEATURES = [
-    "n_ferti", "has_prepa", "nb_prepa", "prepa_1", "prepa_2",
-    "nb_f1", "type_f1_1", "type_f1_2",
-    "nb_f2", "type_f2_1", "type_f2_2",
-    "nb_f3", "type_f3_1", "type_f3_2",
-    "Jour_Semis", "Jours_av_PREPA", "Jours_semis_F1",
-    "Jours_F1_F2", "Jours_F2_F3", "Jours_op_recolte",
-    "Dose_F1_1", "Dose_F1_2", "Dose_F2_1", "Dose_F2_2", "Dose_F3_1", "Dose_F3_2",
-]
+AGRI_FEATURES = ['n_ferti', 'has_prepa', 'nb_prepa', 'prepa_1', 'nb_f1', 'type_f1_1', 'nb_f2', 'type_f2_1', 'nb_f3', 'type_f3_1', 'prepa_2', 'type_f1_2', 'type_f2_2', 'type_f3_2', 'Date_Semis', 'Delta_PREPA_Semis', 'Date_F1', 'Date_F2', 'Date_F3', 'Date_Recolte', 'Dose_F1_1', 'Dose_F1_2', 'Dose_F2_1', 'Dose_F2_2', 'Dose_F3_1', 'Dose_F3_2']
 
-AGRI_CATEGORICAL = [
-    "n_ferti", "has_prepa", "nb_prepa", "prepa_1", "prepa_2",
-    "nb_f1", "type_f1_1", "type_f1_2",
-    "nb_f2", "type_f2_1", "type_f2_2",
-    "nb_f3", "type_f3_1", "type_f3_2",
-]
+AGRI_CATEGORICAL = ['n_ferti', 'has_prepa', 'nb_prepa', 'prepa_1', 'nb_f1', 'type_f1_1', 'nb_f2', 'type_f2_1', 'nb_f3', 'type_f3_1', 'prepa_2', 'type_f1_2', 'type_f2_2', 'type_f3_2']
 
 FEATURE_LABELS = {
     "n_ferti": "Nombre d'apports N",
@@ -36,12 +23,12 @@ FEATURE_LABELS = {
     "nb_f3": "Produits apport 3",
     "type_f3_1": "Type N 3.1",
     "type_f3_2": "Type N 3.2",
-    "Jour_Semis": "Date de semis",
-    "Jours_av_PREPA": "Délai préparation-semis",
-    "Jours_semis_F1": "Délai semis-apport 1",
-    "Jours_F1_F2": "Délai apport 1-2",
-    "Jours_F2_F3": "Délai apport 2-3",
-    "Jours_op_recolte": "Délai dernière op.-récolte",
+    "Date_Semis": "Date de semis",
+    "Delta_PREPA_Semis": "Décalage préparation-semis",
+    "Date_F1": "Date apport 1",
+    "Date_F2": "Date apport 2",
+    "Date_F3": "Date apport 3",
+    "Date_Recolte": "Date de récolte",
     "Dose_F1_1": "Dose N 1.1",
     "Dose_F1_2": "Dose N 1.2",
     "Dose_F2_1": "Dose N 2.1",

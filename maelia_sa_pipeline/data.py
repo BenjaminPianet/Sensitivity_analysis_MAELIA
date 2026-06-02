@@ -39,6 +39,31 @@ def count_log_runs(log_dir: Path) -> int:
     return sum(1 for p in log_dir.iterdir() if p.is_dir() and (p / "sorties_CN.csv").exists())
 
 
+def latest_log_mtime(log_dir: Path) -> float | None:
+    if not log_dir.exists():
+        return None
+    mtimes = [p.stat().st_mtime for p in log_dir.iterdir() if p.is_dir() and (p / "sorties_CN.csv").exists()]
+    return max(mtimes) if mtimes else None
+
+
+def _validate_smt_feature_scale(df: pd.DataFrame, dataset_path: Path) -> None:
+    if "feat_14" not in df.columns:
+        return
+    date_semis = pd.to_numeric(df["feat_14"], errors="coerce").dropna()
+    if date_semis.empty:
+        return
+    vmin = float(date_semis.min())
+    vmax = float(date_semis.max())
+    if vmax > 150 or vmin < 35:
+        raise ValueError(
+            "Le dataset_metamodel.csv semble provenir de l'ancien plan d'expérience. "
+            f"La colonne feat_14, maintenant interprétée comme Date_Semis, vaut [{vmin:.1f}, {vmax:.1f}], "
+            "alors que le nouveau plan attend environ [45, 106] en jours de campagne. "
+            "Régénère les fichiers dateDose, relance GAMA, puis ré-exporte dataset_metamodel.csv. "
+            f"Dataset concerné : {dataset_path}"
+        )
+
+
 def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = None) -> tuple[pd.DataFrame, list[str], list[str], list[str], list[str]]:
     warnings: list[str] = []
     if requested_features:
@@ -94,7 +119,17 @@ def load_dataset(
             f"Chemins testés :\n{tried_text}"
         )
 
+    log_mtime = latest_log_mtime(log_path)
+    if log_mtime is not None and found_path.stat().st_mtime + 60 < log_mtime:
+        raise ValueError(
+            "Le dataset_metamodel.csv est plus ancien que les derniers logs détectés. "
+            "Il risque de ne pas correspondre aux simulations actuellement analysées. "
+            "Relance la cellule d'export du dataset après la collecte des résultats. "
+            f"Dataset : {found_path}"
+        )
+
     df_raw = pd.read_csv(found_path)
+    _validate_smt_feature_scale(df_raw, found_path)
     missing_targets = [c for c in target_columns if c not in df_raw.columns]
     if missing_targets:
         raise ValueError(f"Sorties absentes du dataset {found_path}: {missing_targets}")
