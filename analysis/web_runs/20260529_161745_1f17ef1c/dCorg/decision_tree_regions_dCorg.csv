@@ -1,0 +1,14 @@
+region,leaf_id,n,part_des_points,moyenne_observee,prediction_moyenne,ecart_a_la_moyenne,regles
+Région 2,15,1860,0.186,-334.69803548387097,-334.69203576537836,-116.14240868387094,n_ferti n'est pas 0.0 ; Jours_op_recolte > 95.49 ; Jours_semis_F1 > 152.1 ; Jours_op_recolte > 125.4
+Région 9,20,546,0.0546,-116.37950915750916,-116.40539423076928,102.17611764249087,n_ferti est 0.0 ; Jour_Semis > 268.2 ; Jour_Semis ≤ 294.5 ; has_prepa n'est pas 0.0
+Région 8,21,555,0.0555,-118.58468828828828,-118.55263551401859,99.97093851171175,n_ferti est 0.0 ; Jour_Semis > 268.2 ; Jour_Semis ≤ 294.5 ; has_prepa est 0.0
+Région 11,23,486,0.0486,-119.13322633744855,-119.10311405835552,99.42240046255148,n_ferti est 0.0 ; Jour_Semis > 268.2 ; Jour_Semis > 294.5 ; has_prepa n'est pas 0.0
+Région 10,24,540,0.054,-121.82632222222223,-121.83310617283973,96.7293045777778,n_ferti est 0.0 ; Jour_Semis > 268.2 ; Jour_Semis > 294.5 ; has_prepa est 0.0
+Région 13,17,314,0.0314,-123.25950955414012,-123.27560176991139,95.2961172458599,n_ferti est 0.0 ; Jour_Semis ≤ 268.2
+Région 3,14,782,0.0782,-304.1539539641944,-302.6699472759224,-85.59832716419436,n_ferti n'est pas 0.0 ; Jours_op_recolte > 95.49 ; Jours_semis_F1 > 152.1 ; Jours_op_recolte ≤ 125.4
+Région 4,12,758,0.0758,-289.80611609498686,-290.87693454545484,-71.25048929498683,n_ferti n'est pas 0.0 ; Jours_op_recolte > 95.49 ; Jours_semis_F1 ≤ 152.1 ; Jours_op_recolte > 141.5
+Région 1,4,1915,0.1915,-149.98651697127937,-150.14528027210923,68.56910982872066,n_ferti n'est pas 0.0 ; Jours_op_recolte ≤ 95.49 ; Jours_semis_F1 ≤ 197 ; Jours_F2_F3 ≤ 31.08
+Région 5,8,680,0.068,-285.11233529411766,-284.75196819085505,-66.55670849411763,n_ferti n'est pas 0.0 ; Jours_op_recolte ≤ 95.49 ; Jours_semis_F1 > 197 ; Jours_op_recolte > 45.29
+Région 6,11,615,0.0615,-211.78535284552842,-211.14363796909524,6.770273954471605,n_ferti n'est pas 0.0 ; Jours_op_recolte > 95.49 ; Jours_semis_F1 ≤ 152.1 ; Jours_op_recolte ≤ 141.5
+Région 7,7,590,0.059,-211.93540338983053,-212.46670270270306,6.620223410169501,n_ferti n'est pas 0.0 ; Jours_op_recolte ≤ 95.49 ; Jours_semis_F1 > 197 ; Jours_op_recolte ≤ 45.29
+Région 12,5,359,0.0359,-215.48714206128136,-213.29784674329508,3.0684847387186664,n_ferti n'est pas 0.0 ; Jours_op_recolte ≤ 95.49 ; Jours_semis_F1 ≤ 197 ; Jours_F2_F3 > 31.08

@@ -1,0 +1,28 @@
+|--- cont__Jours_av_PREPA <= 5.0362
+|   |--- cont__Jours_op_recolte <= 93.0926
+|   |   |--- value: [3.7131]
+|   |--- cont__Jours_op_recolte >  93.0926
+|   |   |--- value: [3.5536]
+|--- cont__Jours_av_PREPA >  5.0362
+|   |--- cat__n_ferti_0.0 <= 0.5000
+|   |   |--- cat__prepa_1_0.0 <= 0.5000
+|   |   |   |--- cont__Jour_Semis <= 283.4914
+|   |   |   |   |--- value: [3.7030]
+|   |   |   |--- cont__Jour_Semis >  283.4914
+|   |   |   |   |--- value: [3.8067]
+|   |   |--- cat__prepa_1_0.0 >  0.5000
+|   |   |   |--- cont__Dose_F2_1 <= 83.8491
+|   |   |   |   |--- value: [3.6936]
+|   |   |   |--- cont__Dose_F2_1 >  83.8491
+|   |   |   |   |--- value: [3.8023]
+|   |--- cat__n_ferti_0.0 >  0.5000
+|   |   |--- cont__Jour_Semis <= 285.2801
+|   |   |   |--- cont__Jours_op_recolte <= 101.8595
+|   |   |   |   |--- value: [3.8182]
+|   |   |   |--- cont__Jours_op_recolte >  101.8595
+|   |   |   |   |--- value: [3.6903]
+|   |   |--- cont__Jour_Semis >  285.2801
+|   |   |   |--- cont__Jours_op_recolte <= 138.5266
+|   |   |   |   |--- value: [3.7834]
+|   |   |   |--- cont__Jours_op_recolte >  138.5266
+|   |   |   |   |--- value: [3.8948]

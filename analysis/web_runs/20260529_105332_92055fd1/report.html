@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rapport d'analyse de sensibilité MAELIA</title>
+  <style>
+    :root { color-scheme: light; --ink:#263238; --muted:#667085; --line:#E5E7EB; --paper:#FAFBFC; --accent:#2A9D8F; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:white; }
+    header { padding:40px clamp(24px,6vw,80px) 24px; border-bottom:1px solid var(--line); background:var(--paper); }
+    main { padding:28px clamp(24px,6vw,80px) 56px; }
+    h1 { margin:0 0 8px; font-size:clamp(28px,4vw,44px); }
+    h2 { margin:44px 0 18px; font-size:28px; }
+    h3 { margin:0 0 12px; font-size:18px; }
+    p, li { color:var(--muted); line-height:1.55; }
+    code { background:#EEF2F7; padding:2px 6px; border-radius:4px; }
+    .figure-card { margin:18px 0 30px; padding:18px; border:1px solid var(--line); border-radius:8px; background:white; }
+    img { max-width:100%; height:auto; display:block; border-radius:6px; }
+    .meta { display:grid; gap:6px; margin-top:14px; }
+    .pill { display:inline-block; background:#E6F4F1; color:#17685E; padding:5px 9px; border-radius:999px; font-size:13px; }
+  </style>
+</head>
+<body>
+<header>
+  <span class="pill">MAELIA Sensitivity Analysis</span>
+  <h1>Rapport d'analyse de sensibilité</h1>
+  <p>Dataset : <code>/tmp/maelia_ui_route_test/log_terrainSA/dataset_metamodel.csv</code></p>
+  <div class="meta">
+    <p>Lignes analysées : 60 · Paramètres : 26 · Run : <code>20260529_105332_92055fd1</code></p>
+  </div>
+  <ul><li>Les colonnes feat_0...feat_25 ont été renommées avec des libellés agronomiques pour l'affichage. Les valeurs restent celles du plan SMT exporté.</li></ul>
+</header>
+<main>
+  <h2>Azote lixivié (kg N/ha)</h2><section class="figure-card"><h3>ANOVA à un facteur</h3><img src="N_lixi/anova_1facteur_N_lixi.png" alt="ANOVA à un facteur - Azote lixivié (kg N/ha)"></section><section class="figure-card"><h3>Interactions à deux facteurs</h3><img src="N_lixi/anova_2facteurs_R2_interaction_N_lixi.png" alt="Interactions à deux facteurs - Azote lixivié (kg N/ha)"></section><section class="figure-card"><h3>Performance du métamodèle</h3><img src="N_lixi/metamodel_performance_N_lixi.png" alt="Performance du métamodèle - Azote lixivié (kg N/ha)"></section><section class="figure-card"><h3>Indices de Sobol total</h3><img src="N_lixi/sobol_total_N_lixi.png" alt="Indices de Sobol total - Azote lixivié (kg N/ha)"></section><section class="figure-card"><h3>Régions sensibles</h3><img src="N_lixi/decision_tree_regions_N_lixi.png" alt="Régions sensibles - Azote lixivié (kg N/ha)"></section><section class="figure-card"><h3>Arbre de décision</h3><img src="N_lixi/decision_tree_N_lixi.png" alt="Arbre de décision - Azote lixivié (kg N/ha)"></section>
+</main>
+</body>
+</html>

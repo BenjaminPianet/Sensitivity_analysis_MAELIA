@@ -1,0 +1,12 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:pyenv",
+    "python-envs.defaultPackageManager": "ms-python.python:pip",
+    "python.defaultInterpreterPath": "/Users/benjamin/.pyenv/versions/MAELIA_SA/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "jupyter.kernels.excludePythonEnvironments": [
+        "/opt/homebrew/opt/python@3.10/bin/python3.10",
+        "/opt/homebrew/bin/python3.10",
+        "/Users/benjamin/miniconda3/bin/python",
+        "/Users/benjamin/miniconda3/bin/python3"
+    ]
+}

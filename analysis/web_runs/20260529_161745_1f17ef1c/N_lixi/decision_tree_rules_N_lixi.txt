@@ -1,0 +1,43 @@
+|--- cont__Jour_Semis <= 286.0224
+|   |--- cont__Jours_op_recolte <= 127.8261
+|   |   |--- cont__Jour_Semis <= 270.7618
+|   |   |   |--- cont__Jour_Semis <= 264.5933
+|   |   |   |   |--- value: [2.5794]
+|   |   |   |--- cont__Jour_Semis >  264.5933
+|   |   |   |   |--- value: [2.8831]
+|   |   |--- cont__Jour_Semis >  270.7618
+|   |   |   |--- cat__n_ferti_0.0 <= 0.5000
+|   |   |   |   |--- value: [3.1684]
+|   |   |   |--- cat__n_ferti_0.0 >  0.5000
+|   |   |   |   |--- value: [3.5621]
+|   |--- cont__Jours_op_recolte >  127.8261
+|   |   |--- cont__Jours_semis_F1 <= 175.5938
+|   |   |   |--- cont__Jour_Semis <= 269.0932
+|   |   |   |   |--- value: [3.0310]
+|   |   |   |--- cont__Jour_Semis >  269.0932
+|   |   |   |   |--- value: [3.4209]
+|   |   |--- cont__Jours_semis_F1 >  175.5938
+|   |   |   |--- cat__has_prepa_0.0 <= 0.5000
+|   |   |   |   |--- value: [3.7384]
+|   |   |   |--- cat__has_prepa_0.0 >  0.5000
+|   |   |   |   |--- value: [4.1663]
+|--- cont__Jour_Semis >  286.0224
+|   |--- cont__Jours_op_recolte <= 132.4510
+|   |   |--- cat__n_ferti_0.0 <= 0.5000
+|   |   |   |--- cont__Jours_av_PREPA <= 16.9784
+|   |   |   |   |--- value: [3.9151]
+|   |   |   |--- cont__Jours_av_PREPA >  16.9784
+|   |   |   |   |--- value: [3.5512]
+|   |   |--- cat__n_ferti_0.0 >  0.5000
+|   |   |   |--- cont__Jour_Semis <= 309.7236
+|   |   |   |   |--- value: [4.5161]
+|   |   |   |--- cont__Jour_Semis >  309.7236
+|   |   |   |   |--- value: [4.2782]
+|   |--- cont__Jours_op_recolte >  132.4510
+|   |   |--- cont__Jours_semis_F1 <= 150.6881
+|   |   |   |--- value: [3.9806]
+|   |   |--- cont__Jours_semis_F1 >  150.6881
+|   |   |   |--- cont__Jours_av_PREPA <= 15.5025
+|   |   |   |   |--- value: [4.6543]
+|   |   |   |--- cont__Jours_av_PREPA >  15.5025
+|   |   |   |   |--- value: [4.1303]
