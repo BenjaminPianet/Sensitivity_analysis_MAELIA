@@ -1,16 +1,18 @@
 # Analyse de sensibilité MAELIA
 
-Ce dépôt regroupe les notebooks, scripts et figures utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit trois étapes :
+Ce dépôt regroupe les notebooks, scripts, figures et une app web utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit trois étapes :
 
 1. analyser les premiers résultats lorsque le sol et le climat varient ;
 2. isoler les opérations techniques avec `terrainSA` et entraîner un métamodèle ;
-3. identifier des valeurs seuils locales avec des arbres de décision.
+3. identifier des régions sensibles locales avec des arbres de décision.
 
-## Partie 1 — Premières analyses : sol et climat variables
+Les figures terrainSA les plus récentes proviennent du run web `analysis/web_runs/20260602_170718_66253e83`, calculé sur `10000` points du plan SMT.
 
-Les premières analyses sont réalisées sur un terrain où le climat et le type de sol changent entre parcelles. Dans ce cadre, les sorties sont très fortement structurées par le contexte pédoclimatique. Les paramètres techniques existent bien dans le signal, mais leur contribution est largement masquée par les contrastes entre zones météo et types de sol.
+## Partie 1 - Premières analyses : sol et climat variables
 
-Ce résultat est central pour l'interprétation : lorsque le sol et le climat varient, l'analyse de sensibilité répond d'abord à une question spatiale, pas seulement agronomique. Elle montre quelles zones et quels sols expliquent les variations, mais elle ne permet pas encore d'isoler proprement les effets des itinéraires techniques.
+Les premières analyses sont réalisées sur un terrain où le climat et le type de sol changent entre parcelles. Dans ce cadre, les sorties sont fortement structurées par le contexte pédoclimatique. Les paramètres techniques existent bien dans le signal, mais leur contribution est largement masquée par les contrastes entre zones météo et types de sol.
+
+Ce résultat est central pour l'interprétation : lorsque le sol et le climat varient, l'analyse de sensibilité répond d'abord à une question spatiale, pas seulement agronomique. Elle montre quelles zones et quels sols expliquent les variations, mais ne permet pas encore d'isoler proprement les effets des itinéraires techniques.
 
 ![ANOVA terrainTest](figs/ANOVA.png)
 
@@ -18,7 +20,7 @@ Ce résultat est central pour l'interprétation : lorsque le sol et le climat va
 
 ![Sobol S1 terrainTest](figs/SOBOL_S1.png)
 
-Les figures par groupes sol-climat confirment cette lecture : les distributions des sorties sont fortement séparées par les contextes environnementaux.
+Les figures par groupes sol-climat confirment cette lecture : les distributions des sorties sont nettement séparées par les contextes environnementaux.
 
 ![Rendement selon sol et climat](figs/rdt_sol_climat.png)
 
@@ -26,94 +28,115 @@ Les figures par groupes sol-climat confirment cette lecture : les distributions 
 
 ![Carbone organique selon sol et climat](figs/Corg_sol_climat.png)
 
-L'entraînement d'un métamodèle XGBoost n'a pas donné de résultats suffisamment satisfaisant pour réaliser une analyse de sensibilité plus approfondie sur ces données.
+L'entraînement d'un métamodèle XGBoost n'a pas donné de résultats suffisamment satisfaisants sur ces données pédoclimatiques variables. D'où la construction de `terrainSA`.
 
-## Partie 2 — terrainSA : opérations techniques et métamodèle
+## Partie 2 - terrainSA : opérations techniques et métamodèle
 
-Pour isoler les leviers techniques, `terrainSA` clone la parcelle `beauce_5_1`. Les simulations comparent alors des itinéraires techniques dans un contexte constant : même sol, même géométrie et même zone météo. Cette construction réduit fortement le bruit lié au milieu et rend les effets agronomiques plus lisibles.
+Pour isoler les leviers techniques, `terrainSA` clone la parcelle `beauce_5_1`. Les simulations comparent alors des itinéraires techniques dans un contexte constant : même sol, même géométrie et même zone météo. Cette construction réduit le bruit lié au milieu et rend les effets agronomiques plus lisibles.
 
-Dans cette partie, plusieurs métamodèles sont comparés afin d'approximer les sorties MAELIA à partir des paramètres techniques. Le meilleur modèle retenu est `ExtraTrees` pour les trois sorties. Il sert ensuite de support aux indices globaux de Sobol et de Shapley.
+Le plan SMT actuel encode les dates en jours de campagne, avec `1 = 1er août`. Les principaux paramètres calendaires sont donc `Date_Semis`, `Delta_PREPA_Semis`, `Date_F1`, `Date_F2`, `Date_F3` et `Date_Recolte`.
 
-| Sortie | Métamodèle retenu | Q2 test |
-|---|---:|---:|
-| `N_lixi` | ExtraTrees | 0.863 |
-| `dCorg` | ExtraTrees | 0.991 |
-| `rdt` | ExtraTrees | 0.959 |
+Le métamodèle utilisé par l'app web généralise bien sur le jeu de test :
 
-L'ANOVA/Kruskal à un facteur fait ressortir des leviers cohérents avec les mécanismes agronomiques attendus :
+| Sortie | R2 entraînement | Q2 test | MAE test |
+|---|---:|---:|---:|
+| `N_lixi` | 0.929 | 0.923 | 0.085 |
+| `dCorg` | 0.994 | 0.993 | 1.968 |
+| `rdt` | 0.919 | 0.910 | 0.029 |
 
-| Sortie | Paramètres dominants |
+![Performance N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/metamodel_performance_N_lixi.png)
+
+![Performance dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/metamodel_performance_dCorg.png)
+
+![Performance rdt](analysis/web_runs/20260602_170718_66253e83/rdt/metamodel_performance_rdt.png)
+
+### ANOVA à un facteur
+
+L'ANOVA/Kruskal à un facteur met en évidence des leviers différents selon les sorties :
+
+| Sortie | Paramètres dominants | Lecture rapide |
+|---|---|---|
+| `N_lixi` | `Date_Semis`, `Delta_PREPA_Semis`, `has_prepa`, `prepa_1`, `Date_Recolte` | la lixiviation est d'abord gouvernée par le calendrier semis-préparation-récolte ; |
+| `dCorg` | `Date_Recolte`, `Date_Semis` | le carbone organique dépend surtout de la durée et du positionnement du cycle ; |
+| `rdt` | `Delta_PREPA_Semis`, `has_prepa`, `prepa_1`, `Date_Recolte`, `Date_Semis` | le rendement est sensible au délai préparation-semis et au calendrier de fin de cycle. |
+
+![ANOVA N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/anova_1facteur_N_lixi.png)
+
+![ANOVA dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/anova_1facteur_dCorg.png)
+
+![ANOVA rdt](analysis/web_runs/20260602_170718_66253e83/rdt/anova_1facteur_rdt.png)
+
+### Interactions à deux facteurs
+
+Les heatmaps affichent uniquement le `R2_interaction`. Les interactions les plus lisibles concernent surtout les couples qui combinent préparation du sol, délai préparation-semis, date de semis et date de récolte. Pour `N_lixi`, le couple `has_prepa x Delta_PREPA_Semis` ressort nettement. Pour `dCorg`, l'interaction reste dominée par le couple `Date_Semis x Date_Recolte`. Pour `rdt`, les interactions confirment que le délai de préparation module les effets du calendrier.
+
+![Interactions ANOVA N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/anova_2facteurs_R2_interaction_N_lixi.png)
+
+![Interactions ANOVA dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/anova_2facteurs_R2_interaction_dCorg.png)
+
+![Interactions ANOVA rdt](analysis/web_runs/20260602_170718_66253e83/rdt/anova_2facteurs_R2_interaction_rdt.png)
+
+### Sobol total
+
+Les indices de Sobol d'ordre total, estimés via le métamodèle, confirment les mêmes tendances globales :
+
+| Sortie | Principaux indices Sobol total |
 |---|---|
-| `N_lixi` | `Jour_Semis`, `Jours_op_recolte`, préparation du sol et calendrier de fertilisation |
-| `dCorg` | `n_ferti`, `Jours_semis_F1`, doses et organisation des apports |
-| `rdt` | `n_ferti`, `Jours_semis_F1`, `Dose_F1_1`, nombre/type d'apports |
+| `N_lixi` | `Date_Semis` ≈ 0.675, `has_prepa` ≈ 0.175, `Date_Recolte` ≈ 0.109, `Delta_PREPA_Semis` ≈ 0.078 |
+| `dCorg` | `Date_Recolte` ≈ 0.718, `Date_Semis` ≈ 0.291 |
+| `rdt` | `has_prepa` ≈ 0.301, `Date_Semis` ≈ 0.297, `Date_Recolte` ≈ 0.289, `Delta_PREPA_Semis` ≈ 0.140 |
 
-![ANOVA terrainSA à un facteur](analysis/terrainSA_results/anova_1facteur_top.png)
+![Sobol total N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/sobol_total_N_lixi.png)
 
-Les interactions à deux facteurs restent plus faibles que les effets principaux, mais elles ne sont pas nulles. Elles concernent surtout les combinaisons entre dates d'intervention, récolte et fertilisation. Les heatmaps ci-dessous ne montrent que le `R2_interaction`.
+![Sobol total dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/sobol_total_dCorg.png)
 
-![Interactions ANOVA N_lixi](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_N_lixi.png)
+![Sobol total rdt](analysis/web_runs/20260602_170718_66253e83/rdt/sobol_total_rdt.png)
 
-![Interactions ANOVA dCorg](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_dCorg.png)
+## Partie 3 - Régions sensibles par arbres de décision
 
-![Interactions ANOVA rdt](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_rdt.png)
+Les arbres de décision cherchent des seuils et des régions locales compréhensibles. Ils ne remplacent pas le métamodèle global ; ils servent à formuler des règles du type : dans telle zone du plan, la réponse change de régime.
 
-Les indices de Sobol d'ordre total et les valeurs de Shapley confirment cette lecture : la lixiviation est surtout sensible à la date de semis et au calendrier de récolte, tandis que le rendement et le carbone organique sont davantage structurés par la fertilisation.
+Les résultats récents montrent une lecture plus cohérente avec le nouveau plan de campagne : les seuils portent principalement sur `Date_Semis`, `Date_Recolte`, `Delta_PREPA_Semis` et `has_prepa`.
 
-![Sobol total terrainSA](analysis/terrainSA_results/sobol_total_top.png)
+### Régions locales principales
 
-![Shapley terrainSA](analysis/terrainSA_results/shapley_top.png)
+Pour `N_lixi`, les régions les plus contrastées sont structurées par `Date_Semis`, `Date_Recolte` et `Delta_PREPA_Semis`. Les faibles lixiviations apparaissent notamment pour des semis plus précoces et des récoltes non trop tardives, tandis que certaines combinaisons de semis tardifs et de préparation moins anticipée augmentent la lixiviation moyenne.
 
-## Partie 3 — Seuils locaux par arbres de décision
+Pour `dCorg`, la séparation est très nette autour du couple `Date_Recolte` / `Date_Semis`. Les récoltes tardives combinées à certains semis précoces conduisent aux pertes de carbone les plus fortes, tandis que des cycles plus courts ou mieux positionnés réduisent ces pertes.
 
-Le notebook `analysis/Analyse_seuils_decision_tree.ipynb` prolonge l'analyse en cherchant des seuils interprétables. L'objectif n'est pas de battre le métamodèle ExtraTrees en précision, mais d'obtenir des règles locales du type : au-delà de tel seuil, la réponse change de régime.
+Pour `rdt`, les régions sensibles articulent surtout `Delta_PREPA_Semis`, `Date_Recolte`, `Date_Semis` et `has_prepa`. Les meilleures régions combinent une préparation suffisamment anticipée, une récolte tardive et un calendrier de semis favorable.
 
-Des arbres de régression contraints sont entraînés sur les mêmes données `terrainSA`. Les performances restent suffisantes pour une lecture qualitative des régimes, surtout pour `dCorg` et `rdt`.
+![Régions sensibles N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/decision_tree_regions_N_lixi.png)
 
-| Sortie | Q2 test arbre | Paramètres principalement utilisés |
-|---|---:|---|
-| `N_lixi` | 0.596 | `Jour_Semis`, `Jours_op_recolte`, `Jours_semis_F1`, `n_ferti` |
-| `dCorg` | 0.863 | `n_ferti`, `Jours_op_recolte`, `Jours_semis_F1` |
-| `rdt` | 0.813 | `n_ferti`, `Jours_semis_F1`, `Jours_op_recolte`, `Jour_Semis` |
+![Régions sensibles dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/decision_tree_regions_dCorg.png)
 
-### Seuils principaux
+![Régions sensibles rdt](analysis/web_runs/20260602_170718_66253e83/rdt/decision_tree_regions_rdt.png)
 
-Pour `N_lixi`, le premier seuil global porte sur `Jour_Semis` autour de `284.3` : les semis plus tardifs conduisent à une lixiviation moyenne plus élevée dans l'arbre. Des seuils locaux sur `Jours_op_recolte` autour de `67`, `124` et `175` jours structurent ensuite des régimes plus fins.
+Les arbres complets restent disponibles pour inspecter les règles exactes :
 
-Pour `dCorg`, le seuil le plus net est catégoriel : `n_ferti == 0` sépare fortement les régimes. Les situations sans fertilisation sont moins négatives en moyenne pour `dCorg`, tandis que les régimes fertilisés combinés à des récoltes tardives et à certains délais de fertilisation conduisent aux pertes de carbone les plus fortes.
+![Decision tree N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/decision_tree_N_lixi.png)
 
-Pour `rdt`, `n_ferti == 0` est également le premier embranchement fort : l'absence de fertilisation tire le rendement vers le bas. Les meilleurs régimes apparaissent lorsque `n_ferti != 0`, avec des seuils secondaires sur `Jours_semis_F1`, `Jours_op_recolte` et `Jour_Semis`.
+![Decision tree dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/decision_tree_dCorg.png)
 
-| Sortie | Exemple de seuil/règle | Moyennes séparées par la règle |
-|---|---|---:|
-| `N_lixi` | `Jour_Semis <= 284.3` vs `> 284.3` | 3.21 vs 4.09 |
-| `N_lixi` | `Jours_op_recolte <= 67.34` vs `> 67.34` | 2.66 vs 3.82 |
-| `dCorg` | `n_ferti != 0` vs `n_ferti == 0` | -251 vs -120 |
-| `dCorg` | `Jours_op_recolte <= 97.76` vs `> 97.76` | -196 vs -303 |
-| `rdt` | `n_ferti != 0` vs `n_ferti == 0` | 4.27 vs 3.67 |
-| `rdt` | `Jours_semis_F1 <= 169.2` vs `> 169.2` | 3.81 vs 4.31 |
+![Decision tree rdt](analysis/web_runs/20260602_170718_66253e83/rdt/decision_tree_rdt.png)
 
-![Decision tree N_lixi](analysis/decision_tree_thresholds/decision_tree_N_lixi.png)
+## App web
 
-![Decision tree dCorg](analysis/decision_tree_thresholds/decision_tree_dCorg.png)
+L'app web permet de lancer la même analyse depuis une interface locale :
 
-![Decision tree rdt](analysis/decision_tree_thresholds/decision_tree_rdt.png)
+```bash
+/Users/benjamin/.pyenv/versions/MAELIA_SA/bin/python -m uvicorn maelia_sa_pipeline.api:app --host 127.0.0.1 --port 8000
+```
 
-Les importances internes aux arbres confirment les seuils précédents : `Jour_Semis` domine pour `N_lixi`, tandis que `n_ferti` domine très nettement pour `dCorg` et `rdt`.
+Puis ouvrir : `http://127.0.0.1:8000`.
 
-![Importance arbre N_lixi](analysis/decision_tree_thresholds/decision_tree_importance_N_lixi.png)
-
-![Importance arbre dCorg](analysis/decision_tree_thresholds/decision_tree_importance_dCorg.png)
-
-![Importance arbre rdt](analysis/decision_tree_thresholds/decision_tree_importance_rdt.png)
-
-Une analyse complémentaire entraîne aussi des arbres sur les résidus d'un modèle additif. Elle montre qu'il reste des structures locales non linéaires, en particulier pour `dCorg` (`Q2` résiduel ≈ 0.591) et plus modérément pour `rdt` (`Q2` résiduel ≈ 0.298). Pour `N_lixi`, le signal résiduel est plus faible (`Q2` résiduel ≈ 0.172), ce qui suggère que les principaux effets sont déjà largement captés par les seuils directs et les effets principaux.
+L'app attend un dossier de logs et un `dataset_metamodel.csv` compatible avec le plan SMT courant. Elle refuse maintenant les datasets issus de l'ancien plan, notamment lorsque `feat_14` ne correspond pas à `Date_Semis` dans l'intervalle attendu `[45, 106]`.
 
 ## Fichiers utiles
 
 - Analyse terrainSA et métamodèles : `analysis/Analyse_terrainSA.ipynb`
-- Analyse des seuils : `analysis/Analyse_seuils_decision_tree.ipynb`
-- Résultats terrainSA : `analysis/terrainSA_results/`
-- Résultats arbres de décision : `analysis/decision_tree_thresholds/`
+- Analyse des seuils historique : `analysis/Analyse_seuils_decision_tree.ipynb`
+- Dernier run web terrainSA : `analysis/web_runs/20260602_170718_66253e83/`
+- Résultats terrainSA historiques : `analysis/terrainSA_results/`
 - Notebook de lancement terrainSA : `simulations/batch_simulations_smt_terrainSA.ipynb`
 - Figures historiques terrainTest : `figs/`
