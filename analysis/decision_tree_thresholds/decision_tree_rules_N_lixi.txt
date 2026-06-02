@@ -1,94 +1,91 @@
-|--- cont__Jour_Semis <= 286.0224
-|   |--- cont__Jours_op_recolte <= 127.8261
-|   |   |--- cont__Jour_Semis <= 270.7618
-|   |   |   |--- cont__Jour_Semis <= 264.5933
-|   |   |   |   |--- cont__Jours_op_recolte <= 79.2176
-|   |   |   |   |   |--- value: [2.4649]
-|   |   |   |   |--- cont__Jours_op_recolte >  79.2176
-|   |   |   |   |   |--- value: [2.7944]
-|   |   |   |--- cont__Jour_Semis >  264.5933
-|   |   |   |   |--- cont__Jours_semis_F1 <= 209.8432
-|   |   |   |   |   |--- value: [2.8079]
-|   |   |   |   |--- cont__Jours_semis_F1 >  209.8432
-|   |   |   |   |   |--- value: [3.1757]
-|   |   |--- cont__Jour_Semis >  270.7618
-|   |   |   |--- cat__n_ferti_0.0 <= 0.5000
-|   |   |   |   |--- cont__Jours_av_PREPA <= 15.6835
-|   |   |   |   |   |--- value: [3.2664]
-|   |   |   |   |--- cont__Jours_av_PREPA >  15.6835
-|   |   |   |   |   |--- value: [2.9069]
-|   |   |   |--- cat__n_ferti_0.0 >  0.5000
-|   |   |   |   |--- cont__Jour_Semis <= 279.0564
-|   |   |   |   |   |--- value: [3.3646]
-|   |   |   |   |--- cont__Jour_Semis >  279.0564
-|   |   |   |   |   |--- value: [3.7953]
-|   |--- cont__Jours_op_recolte >  127.8261
-|   |   |--- cont__Jours_semis_F1 <= 175.5938
-|   |   |   |--- cat__n_ferti_1.0 <= 0.5000
-|   |   |   |   |--- cont__Jour_Semis <= 277.8210
-|   |   |   |   |   |--- value: [3.2928]
-|   |   |   |   |--- cont__Jour_Semis >  277.8210
-|   |   |   |   |   |--- value: [3.6827]
-|   |   |   |--- cat__n_ferti_1.0 >  0.5000
-|   |   |   |   |--- cont__Jours_semis_F1 <= 138.3733
-|   |   |   |   |   |--- value: [2.5471]
-|   |   |   |   |--- cont__Jours_semis_F1 >  138.3733
-|   |   |   |   |   |--- value: [3.1703]
-|   |   |--- cont__Jours_semis_F1 >  175.5938
-|   |   |   |--- cont__Jours_av_PREPA <= 15.5465
-|   |   |   |   |--- cat__has_prepa_1.0 <= 0.5000
-|   |   |   |   |   |--- value: [4.1663]
-|   |   |   |   |--- cat__has_prepa_1.0 >  0.5000
-|   |   |   |   |   |--- value: [3.9481]
-|   |   |   |--- cont__Jours_av_PREPA >  15.5465
-|   |   |   |   |--- cont__Jours_av_PREPA <= 24.4460
-|   |   |   |   |   |--- value: [3.6076]
-|   |   |   |   |--- cont__Jours_av_PREPA >  24.4460
-|   |   |   |   |   |--- value: [3.3458]
-|--- cont__Jour_Semis >  286.0224
-|   |--- cont__Jours_op_recolte <= 132.4510
-|   |   |--- cat__n_ferti_0.0 <= 0.5000
-|   |   |   |--- cont__Jours_av_PREPA <= 16.9784
-|   |   |   |   |--- cont__Jours_semis_F1 <= 228.2126
-|   |   |   |   |   |--- value: [3.8630]
-|   |   |   |   |--- cont__Jours_semis_F1 >  228.2126
-|   |   |   |   |   |--- value: [4.2216]
-|   |   |   |--- cont__Jours_av_PREPA >  16.9784
-|   |   |   |   |--- cont__Jour_Semis <= 293.9194
-|   |   |   |   |   |--- value: [3.1733]
-|   |   |   |   |--- cont__Jour_Semis >  293.9194
-|   |   |   |   |   |--- value: [3.6695]
-|   |   |--- cat__n_ferti_0.0 >  0.5000
-|   |   |   |--- cont__Jour_Semis <= 314.7827
-|   |   |   |   |--- cont__Jour_Semis <= 290.2440
-|   |   |   |   |   |--- value: [4.2491]
-|   |   |   |   |--- cont__Jour_Semis >  290.2440
-|   |   |   |   |   |--- value: [4.5359]
-|   |   |   |--- cont__Jour_Semis >  314.7827
+|--- cont__Date_Semis <= 73.2324
+|   |--- cont__Date_Recolte <= 369.6586
+|   |   |--- cont__Delta_PREPA_Semis <= -29.3944
+|   |   |   |--- cont__Date_Semis <= 56.3233
+|   |   |   |   |--- cont__Date_Semis <= 50.0646
+|   |   |   |   |   |--- value: [1.5905]
+|   |   |   |   |--- cont__Date_Semis >  50.0646
+|   |   |   |   |   |--- value: [1.8605]
+|   |   |   |--- cont__Date_Semis >  56.3233
+|   |   |   |   |--- cont__Date_Semis <= 63.0423
+|   |   |   |   |   |--- value: [2.1740]
+|   |   |   |   |--- cont__Date_Semis >  63.0423
+|   |   |   |   |   |--- value: [2.4129]
+|   |   |--- cont__Delta_PREPA_Semis >  -29.3944
+|   |   |   |--- cont__Date_Semis <= 57.4371
+|   |   |   |   |--- cont__Date_Recolte <= 337.4450
+|   |   |   |   |   |--- value: [2.1670]
+|   |   |   |   |--- cont__Date_Recolte >  337.4450
+|   |   |   |   |   |--- value: [2.4327]
+|   |   |   |--- cont__Date_Semis >  57.4371
 |   |   |   |   |--- cat__has_prepa_0.0 <= 0.5000
-|   |   |   |   |   |--- value: [3.9866]
+|   |   |   |   |   |--- value: [2.4711]
 |   |   |   |   |--- cat__has_prepa_0.0 >  0.5000
-|   |   |   |   |   |--- value: [4.2402]
-|   |--- cont__Jours_op_recolte >  132.4510
-|   |   |--- cont__Jours_semis_F1 <= 150.6881
-|   |   |   |--- cont__Jours_F1_F2 <= 30.5740
-|   |   |   |   |--- cont__Jours_op_recolte <= 165.3717
-|   |   |   |   |   |--- value: [3.4668]
-|   |   |   |   |--- cont__Jours_op_recolte >  165.3717
-|   |   |   |   |   |--- value: [4.0841]
-|   |   |   |--- cont__Jours_F1_F2 >  30.5740
-|   |   |   |   |--- cont__Jour_Semis <= 299.5824
-|   |   |   |   |   |--- value: [4.0448]
-|   |   |   |   |--- cont__Jour_Semis >  299.5824
-|   |   |   |   |   |--- value: [4.5863]
-|   |   |--- cont__Jours_semis_F1 >  150.6881
-|   |   |   |--- cont__Jours_av_PREPA <= 15.5025
-|   |   |   |   |--- cont__Jour_Semis <= 299.4946
-|   |   |   |   |   |--- value: [4.4931]
-|   |   |   |   |--- cont__Jour_Semis >  299.4946
-|   |   |   |   |   |--- value: [4.7540]
-|   |   |   |--- cont__Jours_av_PREPA >  15.5025
-|   |   |   |   |--- cont__Jour_Semis <= 299.8050
-|   |   |   |   |   |--- value: [3.9543]
-|   |   |   |   |--- cont__Jour_Semis >  299.8050
-|   |   |   |   |   |--- value: [4.2548]
+|   |   |   |   |   |--- value: [2.7280]
+|   |--- cont__Date_Recolte >  369.6586
+|   |   |--- cont__Delta_PREPA_Semis <= -27.7807
+|   |   |   |--- cont__Date_Semis <= 52.7676
+|   |   |   |   |--- value: [1.9761]
+|   |   |   |--- cont__Date_Semis >  52.7676
+|   |   |   |   |--- cont__Delta_PREPA_Semis <= -35.5134
+|   |   |   |   |   |--- value: [2.5655]
+|   |   |   |   |--- cont__Delta_PREPA_Semis >  -35.5134
+|   |   |   |   |   |--- value: [2.7230]
+|   |   |--- cont__Delta_PREPA_Semis >  -27.7807
+|   |   |   |--- cont__Date_Recolte <= 375.5749
+|   |   |   |   |--- cat__has_prepa_1.0 <= 0.5000
+|   |   |   |   |   |--- value: [2.8458]
+|   |   |   |   |--- cat__has_prepa_1.0 >  0.5000
+|   |   |   |   |   |--- value: [2.6794]
+|   |   |   |--- cont__Date_Recolte >  375.5749
+|   |   |   |   |--- cat__has_prepa_1.0 <= 0.5000
+|   |   |   |   |   |--- value: [3.1568]
+|   |   |   |   |--- cat__has_prepa_1.0 >  0.5000
+|   |   |   |   |   |--- value: [2.9834]
+|--- cont__Date_Semis >  73.2324
+|   |--- cont__Delta_PREPA_Semis <= -24.2404
+|   |   |--- cont__Date_Semis <= 90.0659
+|   |   |   |--- cont__Date_Recolte <= 372.3016
+|   |   |   |   |--- cont__Date_Recolte <= 331.3285
+|   |   |   |   |   |--- value: [2.7486]
+|   |   |   |   |--- cont__Date_Recolte >  331.3285
+|   |   |   |   |   |--- value: [2.5188]
+|   |   |   |--- cont__Date_Recolte >  372.3016
+|   |   |   |   |--- cont__Date_Recolte <= 379.4150
+|   |   |   |   |   |--- value: [2.6907]
+|   |   |   |   |--- cont__Date_Recolte >  379.4150
+|   |   |   |   |   |--- value: [2.7778]
+|   |   |--- cont__Date_Semis >  90.0659
+|   |   |   |--- cont__Date_Recolte <= 331.4983
+|   |   |   |   |--- cont__Delta_PREPA_Semis <= -33.7321
+|   |   |   |   |   |--- value: [3.1303]
+|   |   |   |   |--- cont__Delta_PREPA_Semis >  -33.7321
+|   |   |   |   |   |--- value: [3.3358]
+|   |   |   |--- cont__Date_Recolte >  331.4983
+|   |   |   |   |--- cont__Delta_PREPA_Semis <= -34.9082
+|   |   |   |   |   |--- value: [2.7013]
+|   |   |   |   |--- cont__Delta_PREPA_Semis >  -34.9082
+|   |   |   |   |   |--- value: [2.8792]
+|   |--- cont__Delta_PREPA_Semis >  -24.2404
+|   |   |--- cont__Date_Recolte <= 332.2987
+|   |   |   |--- cont__Date_Semis <= 81.0896
+|   |   |   |   |--- cont__Date_Semis <= 76.6522
+|   |   |   |   |   |--- value: [2.9144]
+|   |   |   |   |--- cont__Date_Semis >  76.6522
+|   |   |   |   |   |--- value: [3.1985]
+|   |   |   |--- cont__Date_Semis >  81.0896
+|   |   |   |   |--- cont__Date_Semis <= 89.2948
+|   |   |   |   |   |--- value: [3.4454]
+|   |   |   |   |--- cont__Date_Semis >  89.2948
+|   |   |   |   |   |--- value: [3.6767]
+|   |   |--- cont__Date_Recolte >  332.2987
+|   |   |   |--- cat__has_prepa_0.0 <= 0.5000
+|   |   |   |   |--- cont__Date_Semis <= 90.6525
+|   |   |   |   |   |--- value: [2.9097]
+|   |   |   |   |--- cont__Date_Semis >  90.6525
+|   |   |   |   |   |--- value: [3.1299]
+|   |   |   |--- cat__has_prepa_0.0 >  0.5000
+|   |   |   |   |--- cont__Date_Semis <= 78.4463
+|   |   |   |   |   |--- value: [3.0363]
+|   |   |   |   |--- cont__Date_Semis >  78.4463
+|   |   |   |   |   |--- value: [3.2521]

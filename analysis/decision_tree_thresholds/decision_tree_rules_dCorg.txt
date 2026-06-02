@@ -1,82 +1,94 @@
-|--- cat__n_ferti_0.0 <= 0.5000
-|   |--- cont__Jours_op_recolte <= 95.4914
-|   |   |--- cont__Jours_semis_F1 <= 197.0179
-|   |   |   |--- cont__Jours_F2_F3 <= 31.0829
-|   |   |   |   |--- cont__Jours_semis_F1 <= 158.0968
-|   |   |   |   |   |--- value: [-134.9450]
-|   |   |   |   |--- cont__Jours_semis_F1 >  158.0968
-|   |   |   |   |   |--- value: [-174.0087]
-|   |   |   |--- cont__Jours_F2_F3 >  31.0829
-|   |   |   |   |--- cont__Jours_semis_F1 <= 147.1297
-|   |   |   |   |   |--- value: [-179.9051]
-|   |   |   |   |--- cont__Jours_semis_F1 >  147.1297
-|   |   |   |   |   |--- value: [-253.7653]
-|   |   |--- cont__Jours_semis_F1 >  197.0179
-|   |   |   |--- cont__Jours_op_recolte <= 45.2925
-|   |   |   |   |--- cont__Jours_F1_F2 <= 31.6976
-|   |   |   |   |   |--- value: [-190.9520]
-|   |   |   |   |--- cont__Jours_F1_F2 >  31.6976
-|   |   |   |   |   |--- value: [-269.2513]
-|   |   |   |--- cont__Jours_op_recolte >  45.2925
-|   |   |   |   |--- cat__n_ferti_1.0 <= 0.5000
-|   |   |   |   |   |--- value: [-305.3264]
-|   |   |   |   |--- cat__n_ferti_1.0 >  0.5000
-|   |   |   |   |   |--- value: [-244.4503]
-|   |--- cont__Jours_op_recolte >  95.4914
-|   |   |--- cont__Jours_semis_F1 <= 152.1065
-|   |   |   |--- cont__Jours_op_recolte <= 141.4571
-|   |   |   |   |--- cat__n_ferti_1.0 <= 0.5000
-|   |   |   |   |   |--- value: [-232.7797]
-|   |   |   |   |--- cat__n_ferti_1.0 >  0.5000
-|   |   |   |   |   |--- value: [-166.1053]
-|   |   |   |--- cont__Jours_op_recolte >  141.4571
-|   |   |   |   |--- cat__n_ferti_1.0 <= 0.5000
-|   |   |   |   |   |--- value: [-309.7499]
-|   |   |   |   |--- cat__n_ferti_1.0 >  0.5000
-|   |   |   |   |   |--- value: [-250.7718]
-|   |   |--- cont__Jours_semis_F1 >  152.1065
-|   |   |   |--- cont__Jours_op_recolte <= 125.4298
-|   |   |   |   |--- cont__Jours_semis_F1 <= 189.9732
-|   |   |   |   |   |--- value: [-265.3580]
-|   |   |   |   |--- cont__Jours_semis_F1 >  189.9732
-|   |   |   |   |   |--- value: [-327.8006]
-|   |   |   |--- cont__Jours_op_recolte >  125.4298
-|   |   |   |   |--- cont__Jours_av_PREPA <= 15.5844
-|   |   |   |   |   |--- value: [-340.3487]
-|   |   |   |   |--- cont__Jours_av_PREPA >  15.5844
-|   |   |   |   |   |--- value: [-316.6720]
-|--- cat__n_ferti_0.0 >  0.5000
-|   |--- cont__Jour_Semis <= 266.5043
-|   |   |--- cont__Jours_av_PREPA <= 15.0290
-|   |   |   |--- value: [-121.6210]
-|   |   |--- cont__Jours_av_PREPA >  15.0290
-|   |   |   |--- cont__Jour_Semis <= 264.3885
-|   |   |   |   |--- cont__Jour_Semis <= 262.4957
-|   |   |   |   |   |--- value: [-125.2809]
-|   |   |   |   |--- cont__Jour_Semis >  262.4957
-|   |   |   |   |   |--- value: [-124.5042]
-|   |   |   |--- cont__Jour_Semis >  264.3885
-|   |   |   |   |--- value: [-123.3075]
-|   |--- cont__Jour_Semis >  266.5043
-|   |   |--- cont__Jour_Semis <= 294.5185
-|   |   |   |--- cont__Jour_Semis <= 271.4382
-|   |   |   |   |--- cont__Jour_Semis <= 270.4606
-|   |   |   |   |   |--- value: [-120.8695]
-|   |   |   |   |--- cont__Jour_Semis >  270.4606
-|   |   |   |   |   |--- value: [-119.2798]
-|   |   |   |--- cont__Jour_Semis >  271.4382
-|   |   |   |   |--- cat__has_prepa_0.0 <= 0.5000
-|   |   |   |   |   |--- value: [-115.8788]
-|   |   |   |   |--- cat__has_prepa_0.0 >  0.5000
-|   |   |   |   |   |--- value: [-118.2060]
-|   |   |--- cont__Jour_Semis >  294.5185
-|   |   |   |--- cat__has_prepa_0.0 <= 0.5000
-|   |   |   |   |--- cont__Jour_Semis <= 314.4700
-|   |   |   |   |   |--- value: [-118.7850]
-|   |   |   |   |--- cont__Jour_Semis >  314.4700
-|   |   |   |   |   |--- value: [-120.4740]
-|   |   |   |--- cat__has_prepa_0.0 >  0.5000
-|   |   |   |   |--- cont__Jour_Semis <= 306.5099
-|   |   |   |   |   |--- value: [-120.9248]
-|   |   |   |   |--- cont__Jour_Semis >  306.5099
-|   |   |   |   |   |--- value: [-122.5969]
+|--- cont__Date_Recolte <= 352.6238
+|   |--- cont__Date_Semis <= 64.9802
+|   |   |--- cont__Date_Recolte <= 336.1828
+|   |   |   |--- cont__Date_Semis <= 54.0976
+|   |   |   |   |--- cont__Date_Recolte <= 329.9460
+|   |   |   |   |   |--- value: [-197.5650]
+|   |   |   |   |--- cont__Date_Recolte >  329.9460
+|   |   |   |   |   |--- value: [-209.1918]
+|   |   |   |--- cont__Date_Semis >  54.0976
+|   |   |   |   |--- cont__Date_Recolte <= 329.5498
+|   |   |   |   |   |--- value: [-181.9766]
+|   |   |   |   |--- cont__Date_Recolte >  329.5498
+|   |   |   |   |   |--- value: [-194.8214]
+|   |   |--- cont__Date_Recolte >  336.1828
+|   |   |   |--- cont__Date_Semis <= 55.5639
+|   |   |   |   |--- cont__Date_Recolte <= 344.9062
+|   |   |   |   |   |--- value: [-225.7786]
+|   |   |   |   |--- cont__Date_Recolte >  344.9062
+|   |   |   |   |   |--- value: [-241.2024]
+|   |   |   |--- cont__Date_Semis >  55.5639
+|   |   |   |   |--- cont__Date_Recolte <= 342.5032
+|   |   |   |   |   |--- value: [-207.6211]
+|   |   |   |   |--- cont__Date_Recolte >  342.5032
+|   |   |   |   |   |--- value: [-221.0434]
+|   |--- cont__Date_Semis >  64.9802
+|   |   |--- cont__Date_Recolte <= 337.0144
+|   |   |   |--- cont__Date_Semis <= 85.4343
+|   |   |   |   |--- cont__Date_Recolte <= 331.6659
+|   |   |   |   |   |--- value: [-168.5379]
+|   |   |   |   |--- cont__Date_Recolte >  331.6659
+|   |   |   |   |   |--- value: [-180.2459]
+|   |   |   |--- cont__Date_Semis >  85.4343
+|   |   |   |   |--- cont__Date_Recolte <= 328.5352
+|   |   |   |   |   |--- value: [-152.1181]
+|   |   |   |   |--- cont__Date_Recolte >  328.5352
+|   |   |   |   |   |--- value: [-161.9724]
+|   |   |--- cont__Date_Recolte >  337.0144
+|   |   |   |--- cont__Date_Semis <= 84.4960
+|   |   |   |   |--- cont__Date_Recolte <= 344.8443
+|   |   |   |   |   |--- value: [-193.7731]
+|   |   |   |   |--- cont__Date_Recolte >  344.8443
+|   |   |   |   |   |--- value: [-205.7678]
+|   |   |   |--- cont__Date_Semis >  84.4960
+|   |   |   |   |--- cont__Date_Recolte <= 346.4432
+|   |   |   |   |   |--- value: [-176.9795]
+|   |   |   |   |--- cont__Date_Recolte >  346.4432
+|   |   |   |   |   |--- value: [-189.3752]
+|--- cont__Date_Recolte >  352.6238
+|   |--- cont__Date_Semis <= 64.6892
+|   |   |--- cont__Date_Recolte <= 367.5040
+|   |   |   |--- cont__Date_Semis <= 55.3758
+|   |   |   |   |--- cont__Date_Recolte <= 360.2497
+|   |   |   |   |   |--- value: [-253.2599]
+|   |   |   |   |--- cont__Date_Recolte >  360.2497
+|   |   |   |   |   |--- value: [-267.1099]
+|   |   |   |--- cont__Date_Semis >  55.3758
+|   |   |   |   |--- cont__Date_Recolte <= 361.3913
+|   |   |   |   |   |--- value: [-236.4036]
+|   |   |   |   |--- cont__Date_Recolte >  361.3913
+|   |   |   |   |   |--- value: [-249.4004]
+|   |   |--- cont__Date_Recolte >  367.5040
+|   |   |   |--- cont__Date_Semis <= 54.1404
+|   |   |   |   |--- cont__Date_Recolte <= 376.0605
+|   |   |   |   |   |--- value: [-284.1325]
+|   |   |   |   |--- cont__Date_Recolte >  376.0605
+|   |   |   |   |   |--- value: [-297.7414]
+|   |   |   |--- cont__Date_Semis >  54.1404
+|   |   |   |   |--- cont__Date_Recolte <= 375.6833
+|   |   |   |   |   |--- value: [-264.8408]
+|   |   |   |   |--- cont__Date_Recolte >  375.6833
+|   |   |   |   |   |--- value: [-278.4322]
+|   |--- cont__Date_Semis >  64.6892
+|   |   |--- cont__Date_Recolte <= 369.2045
+|   |   |   |--- cont__Date_Semis <= 82.7965
+|   |   |   |   |--- cont__Date_Recolte <= 361.0225
+|   |   |   |   |   |--- value: [-218.1657]
+|   |   |   |   |--- cont__Date_Recolte >  361.0225
+|   |   |   |   |   |--- value: [-231.5683]
+|   |   |   |--- cont__Date_Semis >  82.7965
+|   |   |   |   |--- cont__Date_Recolte <= 361.5604
+|   |   |   |   |   |--- value: [-199.4369]
+|   |   |   |   |--- cont__Date_Recolte >  361.5604
+|   |   |   |   |   |--- value: [-212.4949]
+|   |   |--- cont__Date_Recolte >  369.2045
+|   |   |   |--- cont__Date_Semis <= 84.6714
+|   |   |   |   |--- cont__Date_Recolte <= 375.4134
+|   |   |   |   |   |--- value: [-243.5467]
+|   |   |   |   |--- cont__Date_Recolte >  375.4134
+|   |   |   |   |   |--- value: [-257.5898]
+|   |   |   |--- cont__Date_Semis >  84.6714
+|   |   |   |   |--- cont__Date_Recolte <= 376.7722
+|   |   |   |   |   |--- value: [-225.6305]
+|   |   |   |   |--- cont__Date_Recolte >  376.7722
+|   |   |   |   |   |--- value: [-239.6656]
