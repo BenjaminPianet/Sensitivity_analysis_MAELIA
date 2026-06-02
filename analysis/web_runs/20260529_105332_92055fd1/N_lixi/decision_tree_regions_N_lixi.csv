@@ -1,4 +1,0 @@
-region,leaf_id,n,part_des_points,moyenne_observee,prediction_moyenne,ecart_a_la_moyenne,regles
-Région 3,2,18,0.3,-0.8504774943920714,-0.8431203550141516,-1.068362165205441,Jour_Semis ≤ 0.424 ; Jour_Semis ≤ -0.4144
-Région 1,4,24,0.4,1.1436242565725083,1.2042052603767324,0.9257395857591388,Jour_Semis > 0.424
-Région 2,3,18,0.3,0.051927388339958185,0.07034203514093323,-0.16595728247341127,Jour_Semis ≤ 0.424 ; Jour_Semis > -0.4144

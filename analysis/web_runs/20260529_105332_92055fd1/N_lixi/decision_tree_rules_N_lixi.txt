@@ -1,7 +1,0 @@
-|--- cont__Jour_Semis <= 0.4240
-|   |--- cont__Jour_Semis <= -0.4144
-|   |   |--- value: [-0.8431]
-|   |--- cont__Jour_Semis >  -0.4144
-|   |   |--- value: [0.0703]
-|--- cont__Jour_Semis >  0.4240
-|   |--- value: [1.2042]
