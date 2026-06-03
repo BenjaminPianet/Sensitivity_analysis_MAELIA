@@ -1,12 +1,12 @@
 # Analyse de sensibilité MAELIA
 
-Ce dépôt regroupe les notebooks, scripts, figures et une app web utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit trois étapes :
+Ce dépôt regroupe les notebooks, scripts et figures utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit trois étapes :
 
 1. analyser les premiers résultats lorsque le sol et le climat varient ;
 2. isoler les opérations techniques avec `terrainSA` et entraîner un métamodèle ;
-3. identifier des régions sensibles locales avec des arbres de décision.
+3. identifier des seuils locaux avec des arbres de décision.
 
-Les figures terrainSA les plus récentes proviennent du run web `analysis/web_runs/20260602_170718_66253e83`, calculé sur `10000` points du plan SMT.
+Les figures présentées ci-dessous sont celles générées par les notebooks et présentes dans le dépôt GitHub.
 
 ## Partie 1 - Premières analyses : sol et climat variables
 
@@ -20,7 +20,7 @@ Ce résultat est central pour l'interprétation : lorsque le sol et le climat va
 
 ![Sobol S1 terrainTest](figs/SOBOL_S1.png)
 
-Les figures par groupes sol-climat confirment cette lecture : les distributions des sorties sont nettement séparées par les contextes environnementaux.
+Les distributions par groupes sol-climat confirment cette lecture : les sorties sont nettement séparées par les contextes environnementaux.
 
 ![Rendement selon sol et climat](figs/rdt_sol_climat.png)
 
@@ -34,21 +34,19 @@ L'entraînement d'un métamodèle XGBoost n'a pas donné de résultats suffisamm
 
 Pour isoler les leviers techniques, `terrainSA` clone la parcelle `beauce_5_1`. Les simulations comparent alors des itinéraires techniques dans un contexte constant : même sol, même géométrie et même zone météo. Cette construction réduit le bruit lié au milieu et rend les effets agronomiques plus lisibles.
 
-Le plan SMT actuel encode les dates en jours de campagne, avec `1 = 1er août`. Les principaux paramètres calendaires sont donc `Date_Semis`, `Delta_PREPA_Semis`, `Date_F1`, `Date_F2`, `Date_F3` et `Date_Recolte`.
+Le plan SMT actuel encode les dates en jours de campagne, avec `1 = 1er août`. Les principaux paramètres calendaires sont `Date_Semis`, `Delta_PREPA_Semis`, `Date_F1`, `Date_F2`, `Date_F3` et `Date_Recolte`.
 
-Le métamodèle utilisé par l'app web généralise bien sur le jeu de test :
+### Métamodèle
 
-| Sortie | R2 entraînement | Q2 test | MAE test |
-|---|---:|---:|---:|
-| `N_lixi` | 0.929 | 0.923 | 0.085 |
-| `dCorg` | 0.994 | 0.993 | 1.968 |
-| `rdt` | 0.919 | 0.910 | 0.029 |
+Le notebook compare ExtraTrees, XGBoost et Gaussian Process. Les meilleurs modèles retenus sont :
 
-![Performance N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/metamodel_performance_N_lixi.png)
+| Sortie | Métamodèle retenu | Q2 test | R2 entraînement effectif |
+|---|---|---:|---:|
+| `N_lixi` | ExtraTrees | 0.987 | 0.999 |
+| `dCorg` | XGBoost | 0.999 | 0.999 |
+| `rdt` | ExtraTrees | 0.985 | 0.999 |
 
-![Performance dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/metamodel_performance_dCorg.png)
-
-![Performance rdt](analysis/web_runs/20260602_170718_66253e83/rdt/metamodel_performance_rdt.png)
+Ces scores indiquent que le métamodèle est suffisamment fidèle pour soutenir les analyses globales sur `terrainSA`. Les performances très élevées sont cohérentes avec le fait que le terrain est volontairement homogénéisé : le signal provient principalement des opérations techniques et de leur calendrier.
 
 ### ANOVA à un facteur
 
@@ -60,69 +58,63 @@ L'ANOVA/Kruskal à un facteur met en évidence des leviers différents selon les
 | `dCorg` | `Date_Recolte`, `Date_Semis` | le carbone organique dépend surtout de la durée et du positionnement du cycle ; |
 | `rdt` | `Delta_PREPA_Semis`, `has_prepa`, `prepa_1`, `Date_Recolte`, `Date_Semis` | le rendement est sensible au délai préparation-semis et au calendrier de fin de cycle. |
 
-![ANOVA N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/anova_1facteur_N_lixi.png)
-
-![ANOVA dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/anova_1facteur_dCorg.png)
-
-![ANOVA rdt](analysis/web_runs/20260602_170718_66253e83/rdt/anova_1facteur_rdt.png)
+![ANOVA terrainSA à un facteur](analysis/terrainSA_results/anova_1facteur_top.png)
 
 ### Interactions à deux facteurs
 
-Les heatmaps affichent uniquement le `R2_interaction`. Les interactions les plus lisibles concernent surtout les couples qui combinent préparation du sol, délai préparation-semis, date de semis et date de récolte. Pour `N_lixi`, le couple `has_prepa x Delta_PREPA_Semis` ressort nettement. Pour `dCorg`, l'interaction reste dominée par le couple `Date_Semis x Date_Recolte`. Pour `rdt`, les interactions confirment que le délai de préparation module les effets du calendrier.
+Les heatmaps ci-dessous affichent uniquement le `R2_interaction`. Les interactions sont plus faibles que les effets principaux, mais elles précisent les zones où un paramètre dépend du niveau d'un autre. Pour `N_lixi`, les interactions concernent surtout la préparation du sol et le délai préparation-semis. Pour `dCorg` et `rdt`, les couples autour de `Date_Semis`, `Date_Recolte` et `Delta_PREPA_Semis` sont les plus interprétables.
 
-![Interactions ANOVA N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/anova_2facteurs_R2_interaction_N_lixi.png)
+![Interactions ANOVA N_lixi](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_N_lixi.png)
 
-![Interactions ANOVA dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/anova_2facteurs_R2_interaction_dCorg.png)
+![Interactions ANOVA dCorg](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_dCorg.png)
 
-![Interactions ANOVA rdt](analysis/web_runs/20260602_170718_66253e83/rdt/anova_2facteurs_R2_interaction_rdt.png)
+![Interactions ANOVA rdt](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_rdt.png)
 
-### Sobol total
+### Sobol et Shapley
 
-Les indices de Sobol d'ordre total, estimés via le métamodèle, confirment les mêmes tendances globales :
+Les indices de Sobol d'ordre total et les valeurs de Shapley confirment que les dates de campagne dominent les sorties :
 
-| Sortie | Principaux indices Sobol total |
+| Sortie | Principaux facteurs Sobol total |
 |---|---|
-| `N_lixi` | `Date_Semis` ≈ 0.675, `has_prepa` ≈ 0.175, `Date_Recolte` ≈ 0.109, `Delta_PREPA_Semis` ≈ 0.078 |
-| `dCorg` | `Date_Recolte` ≈ 0.718, `Date_Semis` ≈ 0.291 |
-| `rdt` | `has_prepa` ≈ 0.301, `Date_Semis` ≈ 0.297, `Date_Recolte` ≈ 0.289, `Delta_PREPA_Semis` ≈ 0.140 |
+| `N_lixi` | `Date_Semis`, `Date_Recolte`, `has_prepa`, `Delta_PREPA_Semis` |
+| `dCorg` | `Date_Recolte`, `Date_Semis` |
+| `rdt` | `Date_Recolte`, `Date_Semis`, `has_prepa`, `Delta_PREPA_Semis` |
 
-![Sobol total N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/sobol_total_N_lixi.png)
+![Sobol total terrainSA](analysis/terrainSA_results/sobol_total_top.png)
 
-![Sobol total dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/sobol_total_dCorg.png)
+![Shapley terrainSA](analysis/terrainSA_results/shapley_top.png)
 
-![Sobol total rdt](analysis/web_runs/20260602_170718_66253e83/rdt/sobol_total_rdt.png)
+## Partie 3 - Seuils locaux par arbres de décision
 
-## Partie 3 - Régions sensibles par arbres de décision
+Le notebook `analysis/Analyse_seuils_decision_tree.ipynb` prolonge l'analyse en cherchant des seuils interprétables. L'objectif n'est pas de remplacer le métamodèle global, mais d'obtenir des règles locales : au-delà de tel seuil, la réponse change de régime.
 
-Les arbres de décision cherchent des seuils et des régions locales compréhensibles. Ils ne remplacent pas le métamodèle global ; ils servent à formuler des règles du type : dans telle zone du plan, la réponse change de régime.
+Les arbres de régression contraints obtiennent les performances suivantes :
 
-Les résultats récents montrent une lecture plus cohérente avec le nouveau plan de campagne : les seuils portent principalement sur `Date_Semis`, `Date_Recolte`, `Delta_PREPA_Semis` et `has_prepa`.
+| Sortie | Q2 test arbre | Paramètres principalement utilisés |
+|---|---:|---|
+| `N_lixi` | 0.887 | `Date_Semis`, `Delta_PREPA_Semis`, `Date_Recolte`, `has_prepa` |
+| `dCorg` | 0.966 | `Date_Recolte`, `Date_Semis` |
+| `rdt` | 0.879 | `Delta_PREPA_Semis`, `Date_Recolte`, `Date_Semis`, `has_prepa` |
 
-### Régions locales principales
+Pour `N_lixi`, les premiers seuils portent sur `Date_Semis` autour de 73 jours de campagne, puis sur `Date_Recolte` et `Delta_PREPA_Semis`. Pour `dCorg`, le couple `Date_Recolte` / `Date_Semis` structure fortement les régimes. Pour `rdt`, les seuils combinent surtout délai préparation-semis, date de récolte et date de semis.
 
-Pour `N_lixi`, les régions les plus contrastées sont structurées par `Date_Semis`, `Date_Recolte` et `Delta_PREPA_Semis`. Les faibles lixiviations apparaissent notamment pour des semis plus précoces et des récoltes non trop tardives, tandis que certaines combinaisons de semis tardifs et de préparation moins anticipée augmentent la lixiviation moyenne.
+![Decision tree N_lixi](analysis/decision_tree_thresholds/decision_tree_N_lixi.png)
 
-Pour `dCorg`, la séparation est très nette autour du couple `Date_Recolte` / `Date_Semis`. Les récoltes tardives combinées à certains semis précoces conduisent aux pertes de carbone les plus fortes, tandis que des cycles plus courts ou mieux positionnés réduisent ces pertes.
+![Decision tree dCorg](analysis/decision_tree_thresholds/decision_tree_dCorg.png)
 
-Pour `rdt`, les régions sensibles articulent surtout `Delta_PREPA_Semis`, `Date_Recolte`, `Date_Semis` et `has_prepa`. Les meilleures régions combinent une préparation suffisamment anticipée, une récolte tardive et un calendrier de semis favorable.
+![Decision tree rdt](analysis/decision_tree_thresholds/decision_tree_rdt.png)
 
-![Régions sensibles N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/decision_tree_regions_N_lixi.png)
+Les importances internes aux arbres résument ces règles : les dates de campagne dominent, tandis que les doses et types d'engrais ont ici un effet secondaire dans le contexte homogénéisé `terrainSA`.
 
-![Régions sensibles dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/decision_tree_regions_dCorg.png)
+![Importance arbre N_lixi](analysis/decision_tree_thresholds/decision_tree_importance_N_lixi.png)
 
-![Régions sensibles rdt](analysis/web_runs/20260602_170718_66253e83/rdt/decision_tree_regions_rdt.png)
+![Importance arbre dCorg](analysis/decision_tree_thresholds/decision_tree_importance_dCorg.png)
 
-Les arbres complets restent disponibles pour inspecter les règles exactes :
-
-![Decision tree N_lixi](analysis/web_runs/20260602_170718_66253e83/N_lixi/decision_tree_N_lixi.png)
-
-![Decision tree dCorg](analysis/web_runs/20260602_170718_66253e83/dCorg/decision_tree_dCorg.png)
-
-![Decision tree rdt](analysis/web_runs/20260602_170718_66253e83/rdt/decision_tree_rdt.png)
+![Importance arbre rdt](analysis/decision_tree_thresholds/decision_tree_importance_rdt.png)
 
 ## App web
 
-L'app web permet de lancer la même analyse depuis une interface locale :
+L'app web permet de relancer une analyse complète depuis une interface locale. La synthèse ci-dessus reste toutefois fondée sur les figures générées par les notebooks et versionnées dans le dépôt.
 
 ```bash
 /Users/benjamin/.pyenv/versions/MAELIA_SA/bin/python -m uvicorn maelia_sa_pipeline.api:app --host 127.0.0.1 --port 8000
@@ -130,13 +122,11 @@ L'app web permet de lancer la même analyse depuis une interface locale :
 
 Puis ouvrir : `http://127.0.0.1:8000`.
 
-L'app attend un dossier de logs et un `dataset_metamodel.csv` compatible avec le plan SMT courant. Elle refuse maintenant les datasets issus de l'ancien plan, notamment lorsque `feat_14` ne correspond pas à `Date_Semis` dans l'intervalle attendu `[45, 106]`.
-
 ## Fichiers utiles
 
 - Analyse terrainSA et métamodèles : `analysis/Analyse_terrainSA.ipynb`
-- Analyse des seuils historique : `analysis/Analyse_seuils_decision_tree.ipynb`
-- Dernier run web terrainSA : `analysis/web_runs/20260602_170718_66253e83/`
-- Résultats terrainSA historiques : `analysis/terrainSA_results/`
+- Analyse des seuils : `analysis/Analyse_seuils_decision_tree.ipynb`
+- Résultats terrainSA notebook : `analysis/terrainSA_results/`
+- Résultats arbres de décision notebook : `analysis/decision_tree_thresholds/`
 - Notebook de lancement terrainSA : `simulations/batch_simulations_smt_terrainSA.ipynb`
 - Figures historiques terrainTest : `figs/`
