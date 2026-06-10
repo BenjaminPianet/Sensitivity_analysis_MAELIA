@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MAELIA Sensitivity Studio</title>
-  <link rel="stylesheet" href="/ui/static/styles.css">
+  <link rel="stylesheet" href="/ui/static/styles.css?v=base7">
 </head>
 <body>
   <div class="shell">
@@ -19,45 +19,45 @@
 
       <form id="analysis-form" class="control-panel">
         <label>
-          Répertoire des logs
+          <span class="helpable" data-help-key="log_dir">Répertoire des logs</span>
           <input id="log-dir" name="log_dir" type="text" autocomplete="off" spellcheck="false"
             value="/Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA/simulations/log_terrainSA"
             placeholder="/chemin/vers/log_terrainSA" required>
         </label>
 
         <label>
-          Dataset exporté (optionnel)
+          <span class="helpable" data-help-key="dataset_path">Dataset exporté (optionnel)</span>
           <input id="dataset-path" name="dataset_path" type="text" autocomplete="off" spellcheck="false"
             placeholder="Laisser vide si dataset_metamodel.csv est dans le dossier de logs">
         </label>
 
         <div class="field-grid">
           <label>
-            Classes ANOVA
+            <span class="helpable" data-help-key="n_bins">Classes ANOVA</span>
             <input id="n-bins" name="n_bins" type="number" min="2" max="8" value="4">
           </label>
           <label>
-            Sobol MC
+            <span class="helpable" data-help-key="sobol_n_mc">Sobol MC</span>
             <input id="sobol-n-mc" name="sobol_n_mc" type="number" min="200" max="50000" step="100" value="2000">
           </label>
           <label>
-            Profondeur arbre
+            <span class="helpable" data-help-key="tree_max_depth">Profondeur arbre</span>
             <input id="tree-max-depth" name="tree_max_depth" type="number" min="1" max="8" value="4">
           </label>
           <label>
-            Graine
+            <span class="helpable" data-help-key="random_state">Graine</span>
             <input id="random-state" name="random_state" type="number" value="42">
           </label>
         </div>
 
         <fieldset>
-          <legend>Sorties à analyser</legend>
-          <label class="check"><input type="checkbox" name="targets" value="N_lixi" checked> Azote lixivié</label>
-          <label class="check"><input type="checkbox" name="targets" value="dCorg" checked> Carbone organique</label>
-          <label class="check"><input type="checkbox" name="targets" value="rdt" checked> Rendement</label>
+          <legend><span class="helpable" data-help-key="targets">Sorties à analyser</span></legend>
+          <label class="check"><input type="checkbox" name="targets" value="N_lixi" checked> <span class="helpable" data-help-key="target_N_lixi">Azote lixivié</span></label>
+          <label class="check"><input type="checkbox" name="targets" value="dCorg" checked> <span class="helpable" data-help-key="target_dCorg">Carbone organique</span></label>
+          <label class="check"><input type="checkbox" name="targets" value="rdt" checked> <span class="helpable" data-help-key="target_rdt">Rendement</span></label>
         </fieldset>
 
-        <button id="run-button" type="submit">
+        <button id="run-button" type="button">
           <span class="button-icon">▶</span>
           Lancer l'analyse
         </button>
@@ -92,6 +92,6 @@
     </main>
   </div>
 
-  <script src="/ui/static/app.js"></script>
+  <script src="/ui/static/app.js?v=base7"></script>
 </body>
 </html>

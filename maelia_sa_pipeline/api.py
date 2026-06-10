@@ -16,7 +16,10 @@ UI_DIR = Path(__file__).parent / "ui"
 
 app = FastAPI(
     title="MAELIA Sensitivity Analysis API",
-    description="Pipeline web pour ANOVA, Sobol total et régions sensibles par arbres de décision.",
+    description=(
+        "Pipeline web pour ANOVA, Sobol total, régions sensibles par arbres de décision, "
+        "suivi temporel des sorties et courbes PDP/ICE finales."
+    ),
     version="0.1.0",
 )
 
@@ -42,7 +45,13 @@ app.mount("/ui/static", StaticFiles(directory=UI_DIR), name="maelia-ui")
 
 @app.get("/", response_class=HTMLResponse)
 def home() -> FileResponse:
-    return FileResponse(UI_DIR / "index.html")
+    return FileResponse(
+        UI_DIR / "index.html",
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+        },
+    )
 
 
 @app.get("/health")

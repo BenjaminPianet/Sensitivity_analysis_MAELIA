@@ -169,6 +169,10 @@ button:disabled {
   transform: none;
 }
 
+button.helpable {
+  text-decoration: none;
+}
+
 .button-icon {
   font-size: 13px;
 }
@@ -361,7 +365,7 @@ code {
 
 .score-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
   gap: 14px;
 }
 
@@ -386,6 +390,10 @@ code {
 
 .score.train strong { color: var(--blue); }
 .score.test strong { color: var(--amber); }
+.score.model strong {
+  color: var(--teal-dark);
+  font-size: 24px;
+}
 
 .figure-grid {
   display: grid;
@@ -403,6 +411,37 @@ code {
 
 .figure-panel.wide {
   grid-column: 1 / -1;
+}
+
+.figure-panel.hero-figure {
+  padding: 18px;
+  background: linear-gradient(180deg, #ffffff, #f8fbfa);
+}
+
+.figure-panel.pdp-panel {
+  background: #fffefa;
+}
+
+.subsection-title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  padding: 8px 2px 0;
+}
+
+.subsection-title p {
+  margin: 0 0 4px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.subsection-title h3 {
+  margin: 0;
+  font-size: 20px;
 }
 
 .figure-panel h3 {
@@ -442,6 +481,26 @@ code {
   border-color: var(--teal);
   background: #eaf7f4;
   color: var(--teal-dark);
+}
+
+.helpable {
+  text-decoration: underline dotted rgba(31, 117, 108, 0.38);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.help-tooltip {
+  position: fixed;
+  z-index: 1000;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 12px 14px;
+  background: #1f2d33;
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(19, 33, 38, 0.22);
+  font-size: 13px;
+  line-height: 1.45;
+  pointer-events: none;
 }
 
 @media (max-width: 1080px) {

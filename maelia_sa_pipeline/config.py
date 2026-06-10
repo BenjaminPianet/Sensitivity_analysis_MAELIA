@@ -3,6 +3,7 @@ from pathlib import Path
 PROJECT_ROOT = Path("/Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA")
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "analysis" / "web_runs"
 DEFAULT_TARGETS = ["N_lixi", "dCorg", "rdt"]
+DEFAULT_PDP_ICE_FEATURES = ["Date_Semis", "Date_Recolte", "Delta_PREPA_Semis"]
 
 AGRI_FEATURES = ['n_ferti', 'has_prepa', 'nb_prepa', 'prepa_1', 'nb_f1', 'type_f1_1', 'nb_f2', 'type_f2_1', 'nb_f3', 'type_f3_1', 'prepa_2', 'type_f1_2', 'type_f2_2', 'type_f3_2', 'Date_Semis', 'Delta_PREPA_Semis', 'Date_F1', 'Date_F2', 'Date_F3', 'Date_Recolte', 'Dose_F1_1', 'Dose_F1_2', 'Dose_F2_1', 'Dose_F2_2', 'Dose_F3_1', 'Dose_F3_2']
 

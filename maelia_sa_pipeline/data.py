@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+import re
 
 import pandas as pd
 
@@ -94,6 +95,120 @@ def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = 
     categorical = [c for c in feature_columns if c in AGRI_CATEGORICAL]
     continuous = [c for c in feature_columns if c not in categorical]
     return X, feature_columns, categorical, continuous, warnings
+
+
+
+def parse_sim_idx(name: str) -> int | None:
+    match = re.search(r"smt_(\d+)", name)
+    return int(match.group(1)) if match else None
+
+
+def first_dynamic_file(folder: Path) -> Path | None:
+    matches = sorted(folder.glob("sorties_dynamiques_SA*.csv"))
+    return matches[0] if matches else None
+
+
+def load_dynamic_outputs(log_dir: str | Path, metadata: pd.DataFrame | None = None) -> tuple[pd.DataFrame, list[str]]:
+    """Load MAELIA daily outputs and align them with point_idx when possible."""
+    warnings: list[str] = []
+    log_path = Path(log_dir).expanduser()
+    frames: list[pd.DataFrame] = []
+    for folder in sorted(log_path.iterdir() if log_path.exists() else []):
+        if not folder.is_dir():
+            continue
+        dynamic_file = first_dynamic_file(folder)
+        sim_idx = parse_sim_idx(folder.name)
+        if dynamic_file is None or sim_idx is None:
+            continue
+        df = pd.read_csv(dynamic_file, sep=";")
+        df["sim_idx"] = sim_idx
+        df["source_folder"] = folder.name
+        frames.append(df)
+
+    if not frames:
+        return pd.DataFrame(), [
+            f"Aucun fichier sorties_dynamiques_SA*.csv trouvé dans {log_path}. "
+            "Les courbes temporelles et PDP/ICE dynamiques ne seront pas affichées."
+        ]
+
+    dyn = pd.concat(frames, ignore_index=True)
+    rename = {}
+    if "DeltaCorg" in dyn.columns:
+        rename["DeltaCorg"] = "dCorg"
+    if "Yield" in dyn.columns:
+        rename["Yield"] = "rdt"
+    dyn = dyn.rename(columns=rename)
+
+    required = ["annee", "jour", "parcelle", "sim_idx"]
+    missing = [c for c in required if c not in dyn.columns]
+    if missing:
+        return pd.DataFrame(), [f"Colonnes dynamiques manquantes: {missing}"]
+
+    dyn["date"] = pd.to_datetime(
+        dict(year=dyn["annee"].astype(int), month=1, day=1),
+        errors="coerce",
+    ) + pd.to_timedelta(dyn["jour"].astype(int) - 1, unit="D")
+    dyn["time_index"] = (dyn["date"] - dyn["date"].min()).dt.days.astype(int) + 1
+
+    if metadata is not None and {"point_idx", "parcelle"}.issubset(metadata.columns):
+        meta_cols = ["point_idx", "parcelle"]
+        meta = metadata.copy()
+        if "sim_idx" not in meta.columns:
+            clones_per_run = max(1, meta["parcelle"].nunique())
+            meta["sim_idx"] = (pd.to_numeric(meta["point_idx"], errors="coerce") // clones_per_run).astype("Int64")
+        meta = meta[["sim_idx", "parcelle", "point_idx"]].dropna().drop_duplicates(["sim_idx", "parcelle"])
+        dyn = dyn.merge(meta, on=["sim_idx", "parcelle"], how="left")
+        if dyn["point_idx"].isna().all():
+            warnings.append("Les sorties dynamiques n'ont pas pu être alignées avec point_idx; affichage au niveau sim_idx.")
+    else:
+        warnings.append("Le dataset ne contient pas point_idx/parcelle; affichage temporel au niveau sim_idx seulement.")
+
+    return dyn, warnings
+
+
+def final_dynamic_dataset(
+    dynamic: pd.DataFrame,
+    metadata: pd.DataFrame,
+    feature_columns: list[str],
+    target_columns: list[str],
+) -> tuple[pd.DataFrame, list[str]]:
+    warnings: list[str] = []
+    if dynamic.empty:
+        return pd.DataFrame(), ["Aucune sortie dynamique disponible pour reconstruire les sorties finales."]
+    if "point_idx" not in dynamic.columns or dynamic["point_idx"].isna().all():
+        return pd.DataFrame(), ["Les sorties dynamiques ne sont pas alignées avec point_idx; impossible de reconstruire le dataset final dynamique."]
+    missing_targets = [target for target in target_columns if target not in dynamic.columns]
+    if missing_targets:
+        return pd.DataFrame(), [f"Sorties absentes des logs dynamiques: {missing_targets}"]
+    missing_features = [feature for feature in feature_columns if feature not in metadata.columns]
+    if missing_features:
+        return pd.DataFrame(), [f"Paramètres absents du dataset de référence: {missing_features}"]
+
+    id_cols = [col for col in ["point_idx", "sim_idx", "parcelle", "simulation"] if col in metadata.columns]
+    if "point_idx" not in id_cols:
+        return pd.DataFrame(), ["Le dataset de référence ne contient pas point_idx; impossible de fusionner les sorties finales dynamiques."]
+
+    final = metadata[id_cols + feature_columns].drop_duplicates("point_idx").copy()
+    for target in target_columns:
+        tmp = (
+            dynamic[["point_idx", "time_index", target]]
+            .replace([float("inf"), float("-inf")], pd.NA)
+            .dropna(subset=["point_idx", "time_index", target])
+            .sort_values(["point_idx", "time_index"])
+            .groupby("point_idx", as_index=False)
+            .tail(1)[["point_idx", target]]
+        )
+        final = final.merge(tmp, on="point_idx", how="inner")
+
+    final = final.dropna(subset=target_columns).reset_index(drop=True)
+    if final.empty:
+        warnings.append("La reconstruction des sorties finales dynamiques a produit un dataset vide.")
+    else:
+        warnings.append(
+            "Les sorties finales utilisées pour les métamodèles proviennent des derniers pas des logs dynamiques, "
+            "afin d'aligner l'application avec le notebook PDP/ICE."
+        )
+    return final, warnings
 
 
 def load_dataset(

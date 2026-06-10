@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
@@ -120,6 +120,140 @@ def train_metamodel(
         "n_test": int(len(X_test)),
     }
     return model, metrics
+
+
+def _metamodel_candidates(n_train: int, random_state: int) -> list[tuple[str, object]]:
+    min_leaf = max(5, int(0.01 * n_train))
+    candidates: list[tuple[str, object]] = [
+        ("ExtraTrees", ExtraTreesRegressor(
+            n_estimators=500,
+            min_samples_leaf=min_leaf,
+            random_state=random_state,
+            n_jobs=-1,
+        )),
+        ("RandomForest", RandomForestRegressor(
+            n_estimators=300,
+            min_samples_leaf=min_leaf,
+            random_state=random_state,
+            n_jobs=-1,
+        )),
+        ("HistGradientBoosting", HistGradientBoostingRegressor(
+            max_iter=450,
+            learning_rate=0.04,
+            l2_regularization=0.05,
+            min_samples_leaf=min_leaf,
+            random_state=random_state,
+        )),
+    ]
+    try:
+        from xgboost import XGBRegressor
+        candidates.append(("XGBoost", XGBRegressor(
+            n_estimators=450,
+            max_depth=4,
+            learning_rate=0.04,
+            subsample=0.85,
+            colsample_bytree=0.85,
+            objective="reg:squarederror",
+            random_state=random_state,
+            n_jobs=-1,
+        )))
+    except Exception:
+        pass
+    return candidates
+
+
+def _regression_metrics(y_train, pred_train, y_test, pred_test) -> dict[str, float]:
+    r2_train = float(r2_score(y_train, pred_train))
+    q2_test = float(r2_score(y_test, pred_test))
+    rmse = float(np.sqrt(mean_squared_error(y_test, pred_test)))
+    overfit_gap = max(0.0, r2_train - q2_test)
+    return {
+        "R2_train": r2_train,
+        "Q2_test": q2_test,
+        "MAE_test": float(mean_absolute_error(y_test, pred_test)),
+        "RMSE_test": rmse,
+        "overfit_gap": float(overfit_gap),
+        "selection_score": float(q2_test - 0.05 * overfit_gap),
+        "n_train": int(len(y_train)),
+        "n_test": int(len(y_test)),
+    }
+
+
+def select_best_metamodel(
+    df: pd.DataFrame,
+    target: str,
+    features: list[str],
+    categorical: list[str],
+    continuous: list[str],
+    random_state: int = 42,
+) -> tuple[Pipeline, dict[str, float | str], pd.DataFrame]:
+    X = prepare_X(df, features, categorical, continuous)
+    y = pd.to_numeric(df[target], errors="coerce")
+    mask = y.notna()
+    X = X.loc[mask]
+    y = y.loc[mask]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=random_state)
+
+    rows = []
+    fitted: dict[str, Pipeline] = {}
+    for name, estimator in _metamodel_candidates(len(X_train), random_state):
+        pipe = Pipeline([
+            ("preprocess", build_preprocessor(categorical, continuous)),
+            ("model", estimator),
+        ])
+        try:
+            pipe.fit(X_train, y_train)
+            pred_train = pipe.predict(X_train)
+            pred_test = pipe.predict(X_test)
+            metrics = _regression_metrics(y_train, pred_train, y_test, pred_test)
+            rows.append({"model": name, "status": "ok", "error": "", **metrics})
+            fitted[name] = pipe
+        except Exception as exc:
+            rows.append({"model": name, "status": "error", "error": str(exc)})
+
+    comparison = pd.DataFrame(rows)
+    ok = comparison[comparison["status"] == "ok"].copy()
+    if ok.empty:
+        errors = "; ".join(f"{row.model}: {row.error}" for row in comparison.itertuples())
+        raise ValueError(f"Aucun métamodèle candidat n'a pu être entraîné pour {target}. {errors}")
+
+    ok = ok.sort_values(["selection_score", "Q2_test", "RMSE_test"], ascending=[False, False, True])
+    best_name = str(ok.iloc[0]["model"])
+    best_row = ok.iloc[0]
+    best_metrics: dict[str, float | str | int] = {
+        "model_name": best_name,
+        "R2_train": float(best_row["R2_train"]),
+        "Q2_test": float(best_row["Q2_test"]),
+        "MAE_test": float(best_row["MAE_test"]),
+        "RMSE_test": float(best_row["RMSE_test"]),
+        "overfit_gap": float(best_row["overfit_gap"]),
+        "selection_score": float(best_row["selection_score"]),
+        "n_train": int(best_row["n_train"]),
+        "n_test": int(best_row["n_test"]),
+    }
+    return fitted[best_name], best_metrics, comparison
+
+
+def metamodel_feature_importance(model: Pipeline, categorical: list[str]) -> pd.DataFrame:
+    preprocessor = model.named_steps["preprocess"]
+    estimator = model.named_steps["model"]
+    importances = getattr(estimator, "feature_importances_", None)
+    if importances is None:
+        return pd.DataFrame(columns=["parametre", "importance", "kind"])
+
+    rows = []
+    for transformed_name, importance in zip(transformed_feature_names(preprocessor), importances):
+        feature, kind, _ = parse_transformed_feature(transformed_name, categorical)
+        rows.append({"parametre": feature, "importance": float(importance), "kind": kind})
+    if not rows:
+        return pd.DataFrame(columns=["parametre", "importance", "kind"])
+    return (
+        pd.DataFrame(rows)
+        .groupby(["parametre", "kind"], as_index=False)["importance"]
+        .sum()
+        .sort_values("importance", ascending=False)
+        .reset_index(drop=True)
+    )
 
 
 def sobol_total_from_metamodel(

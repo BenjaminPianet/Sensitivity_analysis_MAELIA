@@ -1,12 +1,22 @@
 # Analyse de sensibilité MAELIA
 
-Ce dépôt regroupe les notebooks, scripts et figures utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit trois étapes :
+Ce dépôt regroupe les notebooks, scripts et figures utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit quatre étapes :
 
 1. analyser les premiers résultats lorsque le sol et le climat varient ;
 2. isoler les opérations techniques avec `terrainSA` et entraîner un métamodèle ;
-3. identifier des seuils locaux avec des arbres de décision.
+3. identifier des seuils locaux avec des arbres de décision ;
+4. visualiser les effets moyens et individuels des principaux paramètres temporels par courbes PDP/ICE.
 
 Les figures présentées ci-dessous sont celles générées par les notebooks et présentes dans le dépôt GitHub.
+
+## Organisation rapide
+
+- `analysis/terrainSA_results/` : résultats globaux terrainSA, ANOVA, Sobol, Shapley et comparaison des métamodèles.
+- `analysis/decision_tree_thresholds/` : arbres de décision, règles de seuil et régimes locaux.
+- `analysis/pdp_ice_dynamic/` : dataset dynamique final, trajectoires temporelles et courbes PDP/ICE.
+- `figs/` : figures historiques issues des premières analyses avec sol et climat variables.
+- `simulations/` : notebooks de génération du plan SMT et de lancement des expériences GAMA.
+- `maelia_sa_pipeline/` : application web locale pour relancer la pipeline d'analyse.
 
 ## Partie 1 - Premières analyses : sol et climat variables
 
@@ -112,6 +122,62 @@ Les importances internes aux arbres résument ces règles : les dates de campagn
 
 ![Importance arbre rdt](analysis/decision_tree_thresholds/decision_tree_importance_rdt.png)
 
+## Partie 4 - PDP/ICE sur les paramètres temporels principaux
+
+Le notebook `analysis/Analyse_PDP_ICE_terrainSA.ipynb` prolonge l'analyse en reconstruisant les sorties finales à partir des logs dynamiques. Le fichier central est `analysis/pdp_ice_dynamic/final_dynamic_dataset.csv` : il associe chaque point du plan SMT aux valeurs finales observées de `N_lixi`, `DeltaCorg` et `Yield`.
+
+Les courbes PDP/ICE sont volontairement limitées aux paramètres non catégoriels les plus interprétables :
+
+| Colonne SMT | Paramètre agronomique | Lecture |
+|---|---|---|
+| `feat_14` | `Date_Semis` | date de semis en jour de campagne |
+| `feat_15` | `Delta_PREPA_Semis` | délai entre préparation du sol et semis |
+| `feat_19` | `Date_Recolte` | date de récolte en jour de campagne |
+
+Les paramètres catégoriels, comme la présence ou le type de préparation du sol, sont exclus de cette lecture PDP/ICE principale. Ils restent importants pour les seuils locaux et certaines analyses globales, mais leurs courbes partielles sont moins naturelles à lire qu'une variation continue de date ou de délai.
+
+Le métamodèle final du notebook obtient de bons scores de généralisation sur le dataset dynamique final :
+
+| Sortie | Q2 test | Lecture rapide |
+|---|---:|---|
+| `N_lixi` | 0.985 | les courbes PDP/ICE peuvent être interprétées avec une bonne confiance globale |
+| `DeltaCorg` | 0.959 | le signal temporel est bien capturé malgré une variabilité résiduelle plus marquée |
+| `Yield` | 0.970 | le rendement final est correctement reproduit par le métamodèle |
+
+![Importances finales PDP ICE](analysis/pdp_ice_dynamic/final_feature_importances.png)
+
+### Date de semis
+
+La date de semis agit comme un paramètre structurant du cycle cultural. Les courbes ICE montrent la dispersion entre scénarios, tandis que la courbe noire résume l'effet moyen prédit. Pour le carbone organique, la tendance moyenne indique notamment que le positionnement du semis modifie fortement la valeur finale simulée, ce qui confirme l'importance du calendrier dans `terrainSA`.
+
+![PDP ICE N_lixi Date Semis](analysis/pdp_ice_dynamic/pdp_ice_final_N_lixi_feat_14.png)
+
+![PDP ICE DeltaCorg Date Semis](analysis/pdp_ice_dynamic/pdp_ice_final_DeltaCorg_feat_14.png)
+
+![PDP ICE Yield Date Semis](analysis/pdp_ice_dynamic/pdp_ice_final_Yield_feat_14.png)
+
+### Délai préparation-semis
+
+`Delta_PREPA_Semis` permet d'observer comment l'espacement entre la préparation du sol et le semis influence les sorties. Ce paramètre est particulièrement utile pour interpréter les régimes mis en évidence par les arbres de décision : il combine une opération technique et son positionnement temporel.
+
+![PDP ICE N_lixi Delta Prepa Semis](analysis/pdp_ice_dynamic/pdp_ice_final_N_lixi_feat_15.png)
+
+![PDP ICE DeltaCorg Delta Prepa Semis](analysis/pdp_ice_dynamic/pdp_ice_final_DeltaCorg_feat_15.png)
+
+![PDP ICE Yield Delta Prepa Semis](analysis/pdp_ice_dynamic/pdp_ice_final_Yield_feat_15.png)
+
+### Date de récolte
+
+La date de récolte contrôle la durée effective du cycle. Elle est donc naturellement liée à la dynamique du carbone organique et au rendement. Les courbes PDP/ICE permettent ici de distinguer l'effet moyen d'une modification de date et la diversité des réponses individuelles selon le reste de l'itinéraire technique.
+
+![PDP ICE N_lixi Date Recolte](analysis/pdp_ice_dynamic/pdp_ice_final_N_lixi_feat_19.png)
+
+![PDP ICE DeltaCorg Date Recolte](analysis/pdp_ice_dynamic/pdp_ice_final_DeltaCorg_feat_19.png)
+
+![PDP ICE Yield Date Recolte](analysis/pdp_ice_dynamic/pdp_ice_final_Yield_feat_19.png)
+
+Des trajectoires temporelles interactives sont également disponibles dans `analysis/pdp_ice_dynamic/` au format HTML. Elles servent à vérifier si les différences finales observées par PDP/ICE correspondent à des divergences progressives ou à des transitions plus localisées dans le temps.
+
 ## App web
 
 L'app web permet de relancer une analyse complète depuis une interface locale. La synthèse ci-dessus reste toutefois fondée sur les figures générées par les notebooks et versionnées dans le dépôt.
@@ -126,7 +192,9 @@ Puis ouvrir : `http://127.0.0.1:8000`.
 
 - Analyse terrainSA et métamodèles : `analysis/Analyse_terrainSA.ipynb`
 - Analyse des seuils : `analysis/Analyse_seuils_decision_tree.ipynb`
+- Analyse PDP/ICE et trajectoires dynamiques : `analysis/Analyse_PDP_ICE_terrainSA.ipynb`
 - Résultats terrainSA notebook : `analysis/terrainSA_results/`
 - Résultats arbres de décision notebook : `analysis/decision_tree_thresholds/`
+- Résultats PDP/ICE dynamiques : `analysis/pdp_ice_dynamic/`
 - Notebook de lancement terrainSA : `simulations/batch_simulations_smt_terrainSA.ipynb`
 - Figures historiques terrainTest : `figs/`

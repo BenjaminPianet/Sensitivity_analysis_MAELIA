@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from sklearn.pipeline import Pipeline
 from sklearn.tree import plot_tree
 
+from .models import prepare_X
 from .config import FEATURE_LABELS, PALETTE, TARGET_LABELS
 
 
@@ -196,4 +198,138 @@ def plot_tree_figure(tree_result, target: str, path: Path) -> Path:
         ax=ax,
     )
     ax.set_title(f"Arbre de décision — {label(target)} | Q² test = {tree_result.metrics['Q2_test']:.2f}")
+    return _save(fig, path)
+
+
+
+def plot_temporal_trajectories(
+    dynamic: pd.DataFrame,
+    target: str,
+    path: Path,
+    group_col: str = "point_idx",
+    max_curves: int = 280,
+    random_state: int = 42,
+) -> Path:
+    setup_style()
+    if target not in dynamic.columns:
+        raise ValueError(f"Sortie dynamique absente: {target}")
+    if group_col not in dynamic.columns or dynamic[group_col].isna().all():
+        group_col = "sim_idx"
+    data = (
+        dynamic[[group_col, "date", "time_index", target]]
+        .replace([np.inf, -np.inf], np.nan)
+        .dropna(subset=[group_col, "date", target])
+        .groupby([group_col, "date", "time_index"], as_index=False)[target]
+        .mean()
+        .sort_values([group_col, "time_index"])
+    )
+    if data.empty:
+        raise ValueError(f"Aucune trajectoire exploitable pour {target}")
+
+    ids = np.array(sorted(data[group_col].unique()))
+    rng = np.random.default_rng(random_state)
+    if len(ids) > max_curves:
+        ids = np.sort(rng.choice(ids, size=max_curves, replace=False))
+    shown = data[data[group_col].isin(ids)]
+
+    summary = data.groupby(["date", "time_index"], as_index=False)[target].agg(
+        mean="mean",
+        q10=lambda s: s.quantile(0.10),
+        q25=lambda s: s.quantile(0.25),
+        q75=lambda s: s.quantile(0.75),
+        q90=lambda s: s.quantile(0.90),
+    ).sort_values("time_index")
+
+    fig, ax = plt.subplots(figsize=(12.5, 6.2))
+    ax.fill_between(summary["date"], summary["q10"], summary["q90"], color=PALETTE["blue"], alpha=0.12, linewidth=0, label="10-90 %")
+    ax.fill_between(summary["date"], summary["q25"], summary["q75"], color=PALETTE["teal"], alpha=0.18, linewidth=0, label="25-75 %")
+    for _, curve in shown.groupby(group_col, sort=True):
+        ax.plot(curve["date"], curve[target], color=PALETTE["blue"], alpha=0.12, linewidth=0.8)
+    ax.plot(summary["date"], summary["mean"], color="black", linewidth=3.0, label="Moyenne")
+    ax.set_title(f"Évolution temporelle — {label(target)}")
+    ax.set_xlabel("Date")
+    ax.set_ylabel(label(target))
+    ax.legend(frameon=False, ncol=3, loc="upper left")
+    ax.text(
+        0.0, -0.20,
+        f"Lecture : {len(ids)} trajectoires individuelles affichées sur {data[group_col].nunique()} groupes; la courbe noire est la moyenne globale.",
+        transform=ax.transAxes,
+        color=PALETTE["muted"],
+        fontsize=9,
+    )
+    fig.autofmt_xdate()
+    sns.despine(left=False, bottom=False)
+    return _save(fig, path)
+
+
+def _feature_grid(series: pd.Series, categorical: bool, n: int = 12) -> np.ndarray:
+    values = series.dropna()
+    if values.empty:
+        return np.array([])
+    if categorical:
+        counts = values.astype(str).value_counts().head(n)
+        return counts.index.to_numpy(dtype=object)
+    numeric = pd.to_numeric(values, errors="coerce").dropna()
+    uniques = np.unique(numeric.to_numpy())
+    if len(uniques) <= n:
+        return np.sort(uniques)
+    return np.unique(np.round(np.quantile(numeric, np.linspace(0.05, 0.95, n)), 6))
+
+
+def plot_pdp_ice(
+    model: Pipeline,
+    df: pd.DataFrame,
+    target: str,
+    feature: str,
+    features: list[str],
+    categorical: list[str],
+    continuous: list[str],
+    path: Path,
+    ice_sample: int = 80,
+    grid_size: int = 12,
+    random_state: int = 42,
+) -> Path:
+    setup_style()
+    X = prepare_X(df, features, categorical, continuous)
+    y = pd.to_numeric(df[target], errors="coerce")
+    mask = y.notna()
+    X = X.loc[mask].reset_index(drop=True)
+    if X.empty:
+        raise ValueError(f"Dataset vide pour PDP/ICE {target}")
+    grid = _feature_grid(X[feature], feature in categorical, n=grid_size)
+    if len(grid) == 0:
+        raise ValueError(f"Grille vide pour {feature}")
+    n = min(ice_sample, len(X))
+    X_ref = X.sample(n=n, random_state=random_state).reset_index(drop=True)
+
+    ice = []
+    for value in grid:
+        X_mod = X_ref.copy()
+        X_mod[feature] = value
+        ice.append(model.predict(X_mod))
+    ice_arr = np.asarray(ice).T
+    pdp = ice_arr.mean(axis=0)
+
+    is_cat = feature in categorical
+    x = np.arange(len(grid)) if is_cat else grid.astype(float)
+    fig, ax = plt.subplots(figsize=(9.5, 5.8))
+    for row in ice_arr:
+        ax.plot(x, row, color="#94A3B8", alpha=0.23, linewidth=0.9)
+    ax.plot(x, pdp, color="black", linewidth=3.2, label="PDP moyenne")
+    ax.scatter(x, pdp, color="black", s=28, zorder=3)
+    if is_cat:
+        ax.set_xticks(x)
+        ax.set_xticklabels([str(v) for v in grid], rotation=35, ha="right")
+    ax.set_title(f"PDP/ICE finale — {label(target)}")
+    ax.set_xlabel(label(feature))
+    ax.set_ylabel(label(target))
+    ax.legend(frameon=False)
+    ax.text(
+        0.0, -0.22,
+        "Lecture : les lignes grises sont des scénarios individuels; la ligne noire donne l'effet moyen prédit par le métamodèle.",
+        transform=ax.transAxes,
+        color=PALETTE["muted"],
+        fontsize=9,
+    )
+    sns.despine(left=False, bottom=False)
     return _save(fig, path)

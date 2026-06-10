@@ -7,11 +7,11 @@ from uuid import uuid4
 
 import pandas as pd
 
-from .config import DEFAULT_OUTPUT_ROOT, FEATURE_LABELS, TARGET_LABELS
-from .data import load_dataset
-from .models import sobol_total_from_metamodel, train_decision_tree, train_metamodel
+from .config import DEFAULT_OUTPUT_ROOT, DEFAULT_PDP_ICE_FEATURES, FEATURE_LABELS, TARGET_LABELS
+from .data import final_dynamic_dataset, load_dataset, load_dynamic_outputs
+from .models import metamodel_feature_importance, select_best_metamodel, sobol_total_from_metamodel, train_decision_tree
 from .stats import discretize_factors, one_factor_anova, two_factor_interaction
-from .viz import plot_interaction_heatmap, plot_metamodel_performance, plot_one_factor, plot_regions, plot_sobol_total, plot_tree_figure
+from .viz import plot_interaction_heatmap, plot_metamodel_performance, plot_one_factor, plot_pdp_ice, plot_regions, plot_sobol_total, plot_temporal_trajectories, plot_tree_figure
 
 
 def _safe_name(value: str) -> str:
@@ -24,6 +24,7 @@ def _write_html_report(manifest: dict, output_dir: Path) -> Path:
         title = TARGET_LABELS.get(target, target)
         cards.append(f"<h2>{title}</h2>")
         for key, label in [
+            ("temporal_trajectory_png", "Évolution temporelle observée"),
             ("anova_1factor_png", "ANOVA à un facteur"),
             ("anova_2factor_interaction_png", "Interactions à deux facteurs"),
             ("metamodel_performance_png", "Performance du métamodèle"),
@@ -38,6 +39,16 @@ def _write_html_report(manifest: dict, output_dir: Path) -> Path:
             cards.append(
                 f'<section class="figure-card"><h3>{label}</h3>'
                 f'<img src="{rel.as_posix()}" alt="{label} - {title}"></section>'
+            )
+        for item in artifacts.get("pdp_ice_pngs", []):
+            path = item.get("path")
+            if not path:
+                continue
+            rel = Path(path).relative_to(output_dir)
+            feature = FEATURE_LABELS.get(item.get("feature", ""), item.get("feature", ""))
+            cards.append(
+                f'<section class="figure-card"><h3>PDP/ICE finale — {feature}</h3>'
+                f'<img src="{rel.as_posix()}" alt="PDP ICE - {title} - {feature}"></section>'
             )
     warnings = "".join(f"<li>{w}</li>" for w in manifest.get("warnings", []))
     html = f"""<!doctype html>
@@ -98,7 +109,17 @@ def run_analysis(
     out.mkdir(parents=True, exist_ok=True)
 
     bundle = load_dataset(log_dir=log_dir, dataset_path=dataset_path, targets=targets, features=features)
-    df = bundle.dataframe
+    source_df = bundle.dataframe
+    dynamic_df, dynamic_warnings = load_dynamic_outputs(log_dir=log_dir, metadata=source_df)
+    bundle.warnings.extend(dynamic_warnings)
+    dynamic_final_df, dynamic_final_warnings = final_dynamic_dataset(
+        dynamic_df,
+        source_df,
+        bundle.feature_columns,
+        bundle.target_columns,
+    )
+    bundle.warnings.extend(dynamic_final_warnings)
+    df = dynamic_final_df if not dynamic_final_df.empty else source_df
     factor_frame = discretize_factors(
         df,
         bundle.feature_columns,
@@ -114,6 +135,7 @@ def run_analysis(
         "dataset_path": str(bundle.dataset_path),
         "output_dir": str(out),
         "n_rows": int(len(df)),
+        "output_source": "dynamic_final_logs" if not dynamic_final_df.empty else "dataset_metamodel",
         "n_features": int(len(bundle.feature_columns)),
         "features": bundle.feature_columns,
         "targets": {},
@@ -135,7 +157,17 @@ def run_analysis(
     for target in bundle.target_columns:
         target_dir = out / _safe_name(target)
         target_dir.mkdir(parents=True, exist_ok=True)
-        target_artifacts: dict[str, str | dict] = {}
+        target_artifacts: dict[str, str | dict | list] = {}
+
+        if not dynamic_df.empty and target in dynamic_df.columns:
+            p = plot_temporal_trajectories(
+                dynamic_df,
+                target,
+                target_dir / f"trajectoires_temporelles_{target}.png",
+                group_col="point_idx",
+                random_state=random_state,
+            )
+            target_artifacts["temporal_trajectory_png"] = str(p)
 
         p = plot_one_factor(anova, target, target_dir / f"anova_1facteur_{target}.png")
         target_artifacts["anova_1factor_png"] = str(p)
@@ -147,7 +179,7 @@ def run_analysis(
         p = plot_interaction_heatmap(matrix, target, target_dir / f"anova_2facteurs_R2_interaction_{target}.png")
         target_artifacts["anova_2factor_interaction_png"] = str(p)
 
-        model, model_metrics = train_metamodel(
+        model, model_metrics, model_comparison = select_best_metamodel(
             df,
             target,
             bundle.feature_columns,
@@ -155,11 +187,41 @@ def run_analysis(
             bundle.continuous_columns,
             random_state=random_state,
         )
+        comparison_path = target_dir / f"metamodel_selection_{target}.csv"
+        model_comparison.to_csv(comparison_path, index=False)
+        target_artifacts["metamodel_selection_csv"] = str(comparison_path)
         model_metrics_row = {"sortie": target, **model_metrics}
         metamodel_rows.append(model_metrics_row)
         target_artifacts["metamodel_metrics"] = model_metrics
         p = plot_metamodel_performance(model_metrics, target, target_dir / f"metamodel_performance_{target}.png")
         target_artifacts["metamodel_performance_png"] = str(p)
+
+        importances = metamodel_feature_importance(model, bundle.categorical_columns)
+        importances_path = target_dir / f"metamodel_importances_{target}.csv"
+        importances.to_csv(importances_path, index=False)
+        target_artifacts["metamodel_importances_csv"] = str(importances_path)
+
+        pdp_features = [
+            feature for feature in DEFAULT_PDP_ICE_FEATURES
+            if feature in bundle.feature_columns and feature in bundle.continuous_columns
+        ]
+        pdp_ice_pngs = []
+        for feature in pdp_features:
+            if feature not in bundle.feature_columns:
+                continue
+            p = plot_pdp_ice(
+                model,
+                df,
+                target,
+                feature,
+                bundle.feature_columns,
+                bundle.categorical_columns,
+                bundle.continuous_columns,
+                target_dir / f"pdp_ice_final_{target}_{_safe_name(feature)}.png",
+                random_state=random_state,
+            )
+            pdp_ice_pngs.append({"feature": feature, "feature_label": FEATURE_LABELS.get(feature, feature), "path": str(p)})
+        target_artifacts["pdp_ice_pngs"] = pdp_ice_pngs
 
         sobol = sobol_total_from_metamodel(
             model,
