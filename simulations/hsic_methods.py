@@ -196,20 +196,25 @@ def hsic_anova_hierarchical(X, Y, x_is_acting, num_is_decreed, is_categorical, t
     print("    Evaluating combinations...")
     for order in range(1, max_order + 1):
         for combo in combinations(range(n_features), order):
-            K_A = np.ones((n_samples, n_samples))
             
             # Compute joint activation probability for this combination
             joint_acting = np.ones(n_samples, dtype=bool)
             
-            for idx in combo:
+            # Optimize memory: copy the first kernel instead of np.ones()
+            K_A = base_centered_kernels[combo[0]].copy()
+            if num_is_decreed[combo[0]]:
+                joint_acting &= x_is_acting[:, combo[0]]
+                
+            for idx in combo[1:]:
                 K_A *= base_centered_kernels[idx]
                 if num_is_decreed[idx]:
                     joint_acting &= x_is_acting[:, idx]
             
             p_A = np.mean(joint_acting)
             
-            # Fast trace estimator (sum of Hadamard product)
-            trace_val = np.sum(K_A * Lc) / ((n_samples - 1) ** 2)
+            # Fast trace estimator: in-place Hadamard to save 32MB allocation
+            K_A *= Lc
+            trace_val = np.sum(K_A) / ((n_samples - 1) ** 2)
             
             # Adjusted trace (Intrinsic sensitivity)
             # We divide by p_A^2 because the cross-covariance trace scales quadratically with sparsity
