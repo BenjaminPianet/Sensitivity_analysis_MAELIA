@@ -12,6 +12,7 @@ from smt.surrogate_models.krg_based import MixIntKernelType, MixHrcKernelType
 from smt.design_space import CategoricalVariable
 from hsic_methods import hsic_anova_hierarchical
 
+from sklearn.inspection import permutation_importance
 print(f"Data imported: {xt.shape[0]} samples, {xt.shape[1]} features.")
 
 # Explicitly map the 26 MAELIA variables based on the design space definition
@@ -26,7 +27,7 @@ var_names = [
 
 
     # Get decreed status for features (boolean array)
-print("\n[1] Normalizing data and Bypassing Kriging with Random Forest...")
+print("\n[1] Normalizing data and Computing Permutation Importance (RF)...")
 
 # IMPORTANT: Normalize continuous variables to [0, 1] for proper distance calculation
 xt_normalized = np.copy(xt).astype(float)
@@ -38,19 +39,12 @@ for i, var in enumerate(agri_design_space.design_variables):
             xt_normalized[:, i] = (xt[:, i] - lower) / (upper - lower)
 
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.inspection import permutation_importance
 
-rf = RandomForestRegressor(n_estimators=150, random_state=42)
+# ASTUCE : En limitant la profondeur de l'arbre et en forçant des feuilles larges,
+# le RF n'a plus la "capacité" d'exploiter les fausses micro-corrélations de Type_Prepa_2.
+rf = RandomForestRegressor(n_estimators=200, max_depth=10, min_samples_leaf=15, random_state=42)
 rf.fit(xt_normalized, yt.ravel())
-
-# RF feature importances are a perfect proxy for true sensitivity (supervised by Y)
-rf_importances = rf.feature_importances_
-
-# We scale the importances to act as theta length scales (larger theta = more important)
-# A scaling factor of 5.0 ensures the active kernels are sharp enough for ANOVA.
-theta = rf_importances * 5.0
-
-# Force theta to be strictly 0 for variables that RF found completely useless (e.g. Dates)
-theta[rf_importances < 0.005] = 0.0
 
 # Extract conditional acting status for all samples
 _, x_is_acting = agri_design_space.correct_get_acting(xt)
@@ -58,6 +52,16 @@ _, x_is_acting = agri_design_space.correct_get_acting(xt)
 # Get decreed status for features (boolean array)
 num_is_decreed = np.array(agri_design_space.is_conditionally_acting)
 is_categorical = np.array([isinstance(v, CategoricalVariable) for v in agri_design_space.design_variables])
+
+print("    Computing Permutation Importances...")
+result = permutation_importance(rf, xt_normalized, yt.ravel(), n_repeats=10, random_state=42)
+
+# We use the RAW permutation importance to set the RKHS length scale (theta).
+# The physical sensitivity of a variable doesn't change based on its rarity!
+theta = result.importances_mean * 5.0
+
+# On filtre sur le score brut pour tuer le vrai bruit blanc
+theta[result.importances_mean < 0.005] = 0.0
 
 print("\n[2] Computing Hierarchical HSIC-ANOVA decomposition (Orders 1, 2, 3)...")
 print("    Extracting components explaining up to 95% of total variance.")
@@ -71,21 +75,8 @@ filtered_results, global_hsic = hsic_anova_hierarchical(
     theta_scales=theta,
     var_names=var_names,
     max_order=4,
-    use_smt_theta=True
+    use_smt_theta=True,
+    use_kta=False
 )
 
-print("\n" + "="*80)
-print("                MAELIA SENSITIVITY ANALYSIS (HSIC-ANOVA)")
-print("="*80)
-print(f"Global HSIC (Total Dependency): {global_hsic:.6e}\n")
-print(f"{'Order':<6} | {'Variance Share':<15} | {'Interacting Variables'}")
-print("-" * 80)
-
-cumulative_var = 0.0
-for res in filtered_results:
-    print(f"  {res['order']:<4} |      {res['variance_share']*100:>5.2f}%      | {res['name']}")
-    cumulative_var += res['variance_share']
-    
-print("-" * 80)
-print(f"Total variance explained by these terms: {cumulative_var*100:.2f}%")
-print("="*80)
+print("\nL'analyse est terminée. Le tableau 5 colonnes a été généré avec succès par hsic_methods.py !")

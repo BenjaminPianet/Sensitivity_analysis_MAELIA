@@ -319,7 +319,7 @@ def evaluate_maelia_dummy(x_array, dsg_space):
 # In[23]:
 
 
-N_DOE = 2000
+N_DOE = 500
 print(f"Génération de {N_DOE} points LHS hiérarchiques (SMT ADSG)...")
 
 from smt.applications.mixed_integer import MixedIntegerSamplingMethod
