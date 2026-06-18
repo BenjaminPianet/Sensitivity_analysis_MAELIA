@@ -26,13 +26,21 @@ var_names = [
 
 
     # Get decreed status for features (boolean array)
-print("\n[1] Bypassing Kriging: Using Random Forest to compute supervised theta scales...")
-print("    Since SMT Kriging failed due to collinearity, Random Forest will perfectly isolate Doses.")
+print("\n[1] Normalizing data and Bypassing Kriging with Random Forest...")
+
+# IMPORTANT: Normalize continuous variables to [0, 1] for proper distance calculation
+xt_normalized = np.copy(xt).astype(float)
+for i, var in enumerate(agri_design_space.design_variables):
+    if not isinstance(var, CategoricalVariable):
+        lower = var.lower
+        upper = var.upper
+        if upper > lower:
+            xt_normalized[:, i] = (xt[:, i] - lower) / (upper - lower)
 
 from sklearn.ensemble import RandomForestRegressor
 
-rf = RandomForestRegressor(n_estimators=100, random_state=42)
-rf.fit(xt, yt.ravel())
+rf = RandomForestRegressor(n_estimators=150, random_state=42)
+rf.fit(xt_normalized, yt.ravel())
 
 # RF feature importances are a perfect proxy for true sensitivity (supervised by Y)
 rf_importances = rf.feature_importances_
@@ -42,7 +50,7 @@ rf_importances = rf.feature_importances_
 theta = rf_importances * 5.0
 
 # Force theta to be strictly 0 for variables that RF found completely useless (e.g. Dates)
-theta[rf_importances < 0.01] = 0.0
+theta[rf_importances < 0.005] = 0.0
 
 # Extract conditional acting status for all samples
 _, x_is_acting = agri_design_space.correct_get_acting(xt)
@@ -55,7 +63,7 @@ print("\n[2] Computing Hierarchical HSIC-ANOVA decomposition (Orders 1, 2, 3)...
 print("    Extracting components explaining up to 95% of total variance.")
 
 filtered_results, global_hsic = hsic_anova_hierarchical(
-    X=xt, 
+    X=xt_normalized, 
     Y=yt, 
     x_is_acting=x_is_acting, 
     num_is_decreed=num_is_decreed,
