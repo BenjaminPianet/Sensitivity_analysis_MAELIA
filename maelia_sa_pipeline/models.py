@@ -179,6 +179,120 @@ def _regression_metrics(y_train, pred_train, y_test, pred_test) -> dict[str, flo
     }
 
 
+
+
+def _pce_unit_matrix(
+    df: pd.DataFrame,
+    features: list[str],
+    categorical: list[str],
+    continuous: list[str],
+) -> pd.DataFrame:
+    """Encode the feasible SMT design as a numeric unit-cube matrix for OpenTURNS PCE."""
+    numeric = pd.DataFrame(index=df.index)
+    for feature in features:
+        series = df[feature]
+        as_numeric = pd.to_numeric(series, errors="coerce")
+        non_null_source = series.notna().sum()
+        numeric_share = 0.0 if non_null_source == 0 else float(as_numeric.notna().sum() / non_null_source)
+        if feature in categorical and numeric_share < 0.8:
+            filled = series.astype("object").where(series.notna(), "inactif").astype(str)
+            codes, _ = pd.factorize(filled, sort=True)
+            numeric[feature] = codes.astype(float)
+        else:
+            numeric[feature] = as_numeric
+
+    medians = numeric.median(numeric_only=True).fillna(0.0)
+    numeric = numeric.fillna(medians)
+    minima = numeric.min(axis=0)
+    ranges = (numeric.max(axis=0) - minima).replace(0, 1.0)
+    return ((numeric - minima) / ranges).clip(0.0, 1.0)
+
+
+def train_sparse_pce_sobol(
+    df: pd.DataFrame,
+    target: str,
+    features: list[str],
+    categorical: list[str],
+    continuous: list[str],
+    degree: int = 2,
+    max_terms: int = 90,
+    max_train: int = 8000,
+    random_state: int = 42,
+) -> tuple[pd.DataFrame, dict[str, float | int | str]]:
+    try:
+        import openturns as ot
+    except Exception as exc:
+        raise RuntimeError("OpenTURNS n'est pas disponible pour entraîner le PCE creux.") from exc
+
+    ot.Log.Show(ot.Log.NONE)
+    X_unit = _pce_unit_matrix(df, features, categorical, continuous)
+    y = pd.to_numeric(df[target], errors="coerce")
+    valid = y.notna() & X_unit.notna().all(axis=1)
+    X_valid = X_unit.loc[valid]
+    y_valid = y.loc[valid]
+    if len(X_valid) < 30:
+        raise ValueError(f"Pas assez de points valides pour entraîner le PCE sur {target}.")
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_valid,
+        y_valid,
+        test_size=0.25,
+        random_state=random_state,
+    )
+    if len(X_train) > max_train:
+        X_train = X_train.sample(max_train, random_state=random_state)
+        y_train = y_train.loc[X_train.index]
+
+    dim = X_train.shape[1]
+    distribution = ot.JointDistribution([ot.Uniform(0.0, 1.0)] * dim)
+    distribution.setDescription(features)
+    poly_factories = [ot.StandardDistributionPolynomialFactory(distribution.getMarginal(i)) for i in range(dim)]
+    enumerate_function = ot.LinearEnumerateFunction(dim)
+    basis = ot.OrthogonalProductPolynomialFactory(poly_factories, enumerate_function)
+    n_total = enumerate_function.getStrataCumulatedCardinal(degree)
+    n_keep = min(max_terms, n_total)
+
+    adaptive_strategy = ot.CleaningStrategy(basis, n_total, n_keep, 1e-6)
+    projection_strategy = ot.LeastSquaresStrategy()
+    algo = ot.FunctionalChaosAlgorithm(
+        ot.Sample(X_train.to_numpy()),
+        ot.Sample(y_train.to_numpy(dtype=float).reshape(-1, 1)),
+        distribution,
+        adaptive_strategy,
+        projection_strategy,
+    )
+    algo.run()
+    result = algo.getResult()
+    metamodel = result.getMetaModel()
+
+    pred_train = np.array(metamodel(ot.Sample(X_train.to_numpy()))).ravel()
+    pred_test = np.array(metamodel(ot.Sample(X_test.to_numpy()))).ravel()
+    sensitivity = ot.FunctionalChaosSobolIndices(result)
+
+    rows = []
+    for j, feature in enumerate(features):
+        rows.append({
+            "sortie": target,
+            "metamodele": "SparsePCE",
+            "parametre": feature,
+            "Sobol_S1": max(0.0, float(sensitivity.getSobolIndex(j, 0))),
+            "Sobol_ST": max(0.0, float(sensitivity.getSobolTotalIndex(j, 0))),
+        })
+    sobol = pd.DataFrame(rows).sort_values("Sobol_ST", ascending=False).reset_index(drop=True)
+    metrics: dict[str, float | int | str] = {
+        "model_name": "SparsePCE",
+        "R2_train": float(r2_score(y_train, pred_train)),
+        "Q2_test": float(r2_score(y_test, pred_test)),
+        "MAE_test": float(mean_absolute_error(y_test, pred_test)),
+        "RMSE_test": float(np.sqrt(mean_squared_error(y_test, pred_test))),
+        "n_train": int(len(X_train)),
+        "n_test": int(len(X_test)),
+        "degree": int(degree),
+        "max_terms": int(max_terms),
+        "n_terms_effectifs": int(result.getIndices().getSize()),
+    }
+    return sobol, metrics
+
 def select_best_metamodel(
     df: pd.DataFrame,
     target: str,

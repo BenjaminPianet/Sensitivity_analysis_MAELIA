@@ -15,6 +15,7 @@ openturns
 geopandas
 graphviz
 ipython
+nbformat>=4.2
 pydantic
 numba
 fastapi

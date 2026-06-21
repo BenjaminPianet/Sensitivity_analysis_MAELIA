@@ -127,6 +127,42 @@ fieldset {
   gap: 10px;
 }
 
+.analysis-menu {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfd;
+  padding: 0;
+}
+
+.analysis-menu summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 13px 14px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.analysis-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.analysis-menu summary::after {
+  content: "⌄";
+  float: right;
+  color: var(--muted);
+}
+
+.analysis-menu[open] summary::after {
+  content: "⌃";
+}
+
+.analysis-options {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
 legend {
   padding: 0 6px;
 }
@@ -395,6 +431,15 @@ code {
   font-size: 24px;
 }
 
+.score.pce {
+  background: linear-gradient(180deg, #ffffff, #f4fbf9);
+  border-color: #cce7e1;
+}
+
+.score.pce strong {
+  color: var(--teal-dark);
+}
+
 .figure-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -420,6 +465,11 @@ code {
 
 .figure-panel.pdp-panel {
   background: #fffefa;
+}
+
+.figure-panel.pce-panel {
+  background: linear-gradient(180deg, #ffffff, #f3fbf9);
+  border-color: #cce7e1;
 }
 
 .subsection-title {

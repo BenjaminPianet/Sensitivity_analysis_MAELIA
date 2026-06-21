@@ -19,12 +19,24 @@ const targetLabels = {
   rdt: "Rendement",
 };
 
+const analysisLabels = {
+  temporal: "Évolution temporelle",
+  anova_1factor: "ANOVA 1 facteur",
+  anova_2factor: "ANOVA 2 facteurs",
+  pce_sobol: "Sobol PCE",
+  metamodel: "Métamodèle",
+  sobol_empirical: "Sobol empirique",
+  pdp_ice: "PDP/ICE",
+  decision_tree: "Arbres",
+};
+
 const figureLabels = {
   temporal_trajectory_png: "Évolution temporelle",
   anova_1factor_png: "ANOVA à un facteur",
   anova_2factor_interaction_png: "Interactions à deux facteurs",
   metamodel_performance_png: "Performance du métamodèle",
-  sobol_total_png: "Sobol total",
+  pce_sobol_png: "Sobol PCE",
+  sobol_total_png: "Sobol total empirique",
   decision_tree_regions_png: "Régions sensibles",
   decision_tree_png: "Arbre complet",
   pdp_ice_pngs: "PDP/ICE finales",
@@ -44,23 +56,37 @@ const helpTexts = {
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
   random_state: "Graine aléatoire utilisée pour rendre reproductibles les séparations train/test, l'entraînement et les échantillonnages associés.",
   targets: "Sorties MAELIA analysées. Chaque sortie produit ses propres scores, figures, indices et régions sensibles.",
+  analyses_menu: "Menu des blocs à exécuter. Le profil coché par défaut est rapide : ANOVA, Sobol par PCE et arbres. Les blocs PDP/ICE, Sobol empirique et comparaison de métamodèles entraînent un métamodèle prédictif et peuvent être nettement plus longs.",
+  analysis_anova_1factor: "Classe les paramètres selon leur effet descriptif individuel sur chaque sortie.",
+  analysis_anova_2factor: "Calcule les interactions entre couples de paramètres et génère une matrice de R² d'interaction.",
+  analysis_pce_sobol: "Entraîne un polynôme du chaos creux sur les points faisables SMT et calcule les indices de Sobol analytiques.",
+  analysis_decision_tree: "Entraîne des arbres de décision interprétables pour identifier des régions locales et des seuils.",
+  analysis_temporal: "Charge les sorties dynamiques des logs GAMA pour tracer les trajectoires temporelles. Ce bloc peut prendre du temps si beaucoup de fichiers de logs sont présents.",
+  analysis_metamodel: "Compare et sélectionne un métamodèle prédictif. Nécessaire pour PDP/ICE et Sobol empirique, mais plus coûteux que le PCE seul.",
+  analysis_pdp_ice: "Trace les courbes PDP/ICE finales pour les paramètres temporels principaux. Ce bloc entraîne automatiquement le métamodèle prédictif.",
+  analysis_sobol_empirical: "Estime un Sobol total par perturbation du métamodèle prédictif. À lire comme diagnostic complémentaire, plus coûteux et moins rigoureux que le Sobol PCE pour l'espace SMT.",
   run_button: "Lance la pipeline complète : chargement logs + dataset, contrôle des colonnes, entraînement du métamodèle, ANOVA/Kruskal, Sobol total et arbres de décision.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
   summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan actuel en comporte 26.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
   summary_run: "Identifiant unique du calcul web. Les figures, CSV et rapports sont sauvegardés dans analysis/web_runs/<run_id>/.",
+  summary_analyses: "Nombre de blocs d'analyse effectivement demandés pour ce run.",
   target_N_lixi: "Azote lixivié. Sortie environnementale représentant les pertes d'azote par lixiviation, généralement interprétées comme une pression sur l'eau et le sol.",
   target_dCorg: "Variation de carbone organique du sol. Sortie décrivant l'évolution simulée du stock de carbone organique; elle dépend fortement de la fenêtre culturale et de la dynamique du sol.",
   target_rdt: "Rendement. Sortie agronomique de production, utile pour comparer les effets techniques sur la performance de la culture.",
   metric_R2_train: "R² d'entraînement. Part de variance expliquée par le modèle sur les données utilisées pour l'entraîner. Un bon R² seul ne suffit pas: il faut le comparer au Q² de test.",
   metric_Q2_test: "Q² de test. R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation du métamodèle ou de l'arbre.",
   metric_selected_model: "Métamodèle sélectionné automatiquement pour cette sortie. Les candidats sont comparés sur le même dataset final dynamique et classés principalement par Q² de test, avec une petite pénalité de surapprentissage.",
+  metric_pce_model: "Métamodèle polynomial du chaos creux. Il sert spécifiquement à calculer des indices de Sobol analytiques sur l'espace SMT faisable, sans générer de recombinaisons Saltelli invalides.",
+  metric_pce_R2_train: "R² d'entraînement du PCE creux. Il indique à quel point le polynôme approxime les points utilisés pour son ajustement.",
+  metric_pce_Q2_test: "Q² de test du PCE creux. C'est le meilleur signal pour savoir si les indices Sobol PCE reposent sur une approximation fiable.",
   metric_tree_R2_train: "R² de l'arbre sur l'ensemble d'entraînement. Il mesure à quel point l'arbre interprétable capture la structure des données d'apprentissage.",
   metric_tree_Q2_test: "Q² de l'arbre sur l'ensemble de test. Il indique si les seuils affichés par l'arbre restent prédictifs sur des simulations non vues.",
   anova_1factor_png: "ANOVA/Kruskal à un facteur. La figure classe les paramètres selon leur R² descriptif, c'est-à-dire la part de variance expliquée par les groupes de ce paramètre.",
   anova_2factor_interaction_png: "Matrice d'interaction à deux facteurs. Elle affiche seulement le R² d'interaction, donc ce qui reste quand les effets additifs des deux paramètres sont retirés.",
   metamodel_performance_png: "Performance du métamodèle. Elle compare les prédictions aux valeurs observées et sépare la qualité d'entraînement de la qualité de test.",
-  sobol_total_png: "Indice de Sobol total estimé via le métamodèle. Il mesure la contribution globale d'un paramètre, interactions comprises, dans le domaine faisable échantillonné.",
+  pce_sobol_png: "Indices de Sobol calculés analytiquement depuis le PCE creux. Cette figure est méthodologiquement plus rigoureuse pour le plan SMT contraint que des points Saltelli générés hors contraintes.",
+  sobol_total_png: "Indice de Sobol total empirique estimé par perturbation sur le métamodèle prédictif. À lire comme diagnostic complémentaire, car certaines recombinaisons peuvent sortir de la logique SMT stricte.",
   decision_tree_regions_png: "Régions sensibles. Chaque barre correspond à une feuille de l'arbre, donc à un ensemble de simulations partageant les mêmes règles de seuil.",
   decision_tree_png: "Arbre de décision complet. Il expose les seuils successifs utilisés pour séparer les simulations en régimes locaux.",
   temporal_trajectory_png: "Suivi temporel directement issu des logs MAELIA. Les lignes fines montrent des expériences individuelles, les zones colorées résument la dispersion et la courbe noire représente la moyenne globale.",
@@ -165,10 +191,12 @@ function relativeAssetUrl(path) {
 function collectPayload() {
   const data = new FormData(form);
   const targets = [...form.querySelectorAll('input[name="targets"]:checked')].map((item) => item.value);
+  const analyses = [...form.querySelectorAll('input[name="analyses"]:checked')].map((item) => item.value);
   return {
     log_dir: data.get("log_dir").trim(),
     dataset_path: data.get("dataset_path").trim() || null,
     targets: targets.length ? targets : null,
+    analyses: analyses.length ? analyses : [],
     n_bins: Number(data.get("n_bins")),
     sobol_n_mc: Number(data.get("sobol_n_mc")),
     tree_max_depth: Number(data.get("tree_max_depth")),
@@ -178,11 +206,13 @@ function collectPayload() {
 
 function renderSummary(manifest) {
   const targetCount = Object.keys(manifest.targets || {}).length;
+  const analysisCount = (manifest.analyses || []).length;
   summaryGrid.hidden = false;
   summaryGrid.innerHTML = `
     <div class="metric"><span>${helpSpan("Simulations", "summary_rows")}</span><strong>${manifest.n_rows.toLocaleString("fr-FR")}</strong></div>
     <div class="metric"><span>${helpSpan("Paramètres", "summary_features")}</span><strong>${manifest.n_features}</strong></div>
     <div class="metric"><span>${helpSpan("Sorties", "summary_targets")}</span><strong>${targetCount}</strong></div>
+    <div class="metric"><span>${helpSpan("Analyses", "summary_analyses")}</span><strong>${analysisCount}</strong></div>
     <div class="metric"><span>${helpSpan("Run", "summary_run")}</span><strong>${escapeHtml(manifest.run_id.slice(-8))}</strong></div>`;
   decorateHelpables(summaryGrid);
 }
@@ -227,6 +257,16 @@ function figurePanel(artifacts, key, wide = false, extraClass = "") {
   return figurePanelFromPath(artifacts[key], figureLabels[key], key, wide, extraClass);
 }
 
+function actionLink(path, label, helpKey, primary = false) {
+  if (!path) return "";
+  return `<a class="link-button ${primary ? "primary" : ""} helpable" data-help-key="${escapeHtml(helpKey)}" href="${relativeAssetUrl(path)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
+}
+
+function reportLink() {
+  if (!currentManifest) return "";
+  return `<a class="link-button primary helpable" data-help-key="action_report" href="/analyses/${encodeURIComponent(currentManifest.run_id)}/report" target="_blank" rel="noreferrer">Ouvrir le rapport complet</a>`;
+}
+
 function pdpIcePanels(artifacts) {
   const items = artifacts.pdp_ice_pngs || [];
   if (!items.length) return "";
@@ -249,27 +289,40 @@ function pdpIcePanels(artifacts) {
 function renderTarget(target) {
   if (!currentManifest || !currentManifest.targets[target]) return;
   const artifacts = currentManifest.targets[target];
-  const metrics = artifacts.metamodel_metrics || {};
-  const treeMetrics = artifacts.decision_tree_metrics || {};
-  resultsPanel.innerHTML = `
-    <div class="target-view">
+  const metrics = artifacts.metamodel_metrics || null;
+  const treeMetrics = artifacts.decision_tree_metrics || null;
+  const pceMetrics = artifacts.pce_metrics || null;
+  const modelScores = metrics ? `
       <div class="score-row">
         ${textScoreCard("Métamodèle retenu", metrics.model_name, "model", "metric_selected_model")}
         ${scoreCard("R² entraînement métamodèle", metrics.R2_train, "train", "metric_R2_train")}
         ${scoreCard("Q² test métamodèle", metrics.Q2_test, "test", "metric_Q2_test")}
-      </div>
+      </div>` : "";
+  const treeScores = treeMetrics ? `
       <div class="score-row">
         ${scoreCard("R² entraînement arbre", treeMetrics.R2_train, "train", "metric_tree_R2_train")}
         ${scoreCard("Q² test arbre", treeMetrics.Q2_test, "test", "metric_tree_Q2_test")}
-      </div>
+      </div>` : "";
+  const pceScores = pceMetrics ? `
+      <div class="score-row pce-score-row">
+        ${textScoreCard("Métamodèle Sobol", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
+        ${scoreCard("R² entraînement PCE", pceMetrics.R2_train, "train pce", "metric_pce_R2_train")}
+        ${scoreCard("Q² test PCE", pceMetrics.Q2_test, "test pce", "metric_pce_Q2_test")}
+      </div>` : "";
+  resultsPanel.innerHTML = `
+    <div class="target-view">
+      ${modelScores}
+      ${pceScores}
+      ${treeScores}
       <div class="report-actions">
-        <a class="link-button primary helpable" data-help-key="action_report" href="/analyses/${encodeURIComponent(currentManifest.run_id)}/report" target="_blank" rel="noreferrer">Ouvrir le rapport complet</a>
-        <a class="link-button helpable" data-help-key="action_regions_csv" href="${relativeAssetUrl(artifacts.decision_tree_regions_csv)}" target="_blank" rel="noreferrer">Voir les régions CSV</a>
-        <a class="link-button helpable" data-help-key="action_rules_txt" href="${relativeAssetUrl(artifacts.decision_tree_rules_txt)}" target="_blank" rel="noreferrer">Voir les règles</a>
+        ${reportLink()}
+        ${actionLink(artifacts.decision_tree_regions_csv, "Voir les régions CSV", "action_regions_csv")}
+        ${actionLink(artifacts.decision_tree_rules_txt, "Voir les règles", "action_rules_txt")}
       </div>
       <div class="figure-grid">
         ${figurePanel(artifacts, "temporal_trajectory_png", true, "hero-figure")}
         ${figurePanel(artifacts, "metamodel_performance_png")}
+        ${figurePanel(artifacts, "pce_sobol_png", false, "pce-panel")}
         ${figurePanel(artifacts, "sobol_total_png")}
         ${pdpIcePanels(artifacts)}
         ${figurePanel(artifacts, "anova_1factor_png")}

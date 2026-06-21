@@ -127,6 +127,40 @@ def plot_sobol_total(sobol: pd.DataFrame, target: str, path: Path, top_n: int = 
     return _save(fig, path)
 
 
+
+
+def plot_pce_sobol(sobol: pd.DataFrame, target: str, path: Path, top_n: int = 12) -> Path:
+    setup_style()
+    data = sobol[sobol["sortie"] == target].head(top_n).copy()
+    if data.empty:
+        fig, ax = plt.subplots(figsize=(9, 4))
+        ax.text(0.5, 0.5, "PCE non disponible pour cette sortie", ha="center", va="center", fontsize=14)
+        ax.axis("off")
+        return _save(fig, path)
+    data["label"] = data["parametre"].map(label)
+    data = data.sort_values("Sobol_ST", ascending=True)
+    y = np.arange(len(data))
+    fig, ax = plt.subplots(figsize=(10.5, max(5, 0.46 * len(data) + 1.9)))
+    ax.barh(y - 0.18, data["Sobol_S1"], height=0.34, color=PALETTE["blue"], label="Ordre 1", edgecolor="white", linewidth=1.0)
+    ax.barh(y + 0.18, data["Sobol_ST"], height=0.34, color=PALETTE["teal"], label="Total", edgecolor="white", linewidth=1.0)
+    ax.set_yticks(y)
+    ax.set_yticklabels(data["label"])
+    ax.set_xlabel("Indice de Sobol analytique du PCE")
+    ax.set_ylabel("")
+    ax.set_title(f"Sobol par PCE creux — {label(target)}")
+    xmax = max(0.02, float(data[["Sobol_S1", "Sobol_ST"]].max().max()) * 1.18)
+    ax.set_xlim(0, xmax)
+    ax.legend(frameon=False, loc="lower right")
+    ax.text(
+        0.0, -0.18,
+        "Lecture : le PCE est entraîné sur les points faisables SMT; les indices sont calculés depuis ses coefficients, sans plan Saltelli artificiel.",
+        transform=ax.transAxes,
+        color=PALETTE["muted"],
+        fontsize=9,
+    )
+    sns.despine(left=True, bottom=False)
+    return _save(fig, path)
+
 def plot_metamodel_performance(metrics: dict, target: str, path: Path) -> Path:
     setup_style()
     values = [float(metrics.get("R2_train", 0.0)), float(metrics.get("Q2_test", 0.0))]

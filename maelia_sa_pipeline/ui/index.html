@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MAELIA Sensitivity Studio</title>
-  <link rel="stylesheet" href="/ui/static/styles.css?v=base7">
+  <link rel="stylesheet" href="/ui/static/styles.css?v=select1">
 </head>
 <body>
   <div class="shell">
@@ -57,6 +57,20 @@
           <label class="check"><input type="checkbox" name="targets" value="rdt" checked> <span class="helpable" data-help-key="target_rdt">Rendement</span></label>
         </fieldset>
 
+        <details class="analysis-menu">
+          <summary><span class="helpable" data-help-key="analyses_menu">Analyses incluses</span></summary>
+          <div class="analysis-options">
+            <label class="check"><input type="checkbox" name="analyses" value="anova_1factor" checked> <span class="helpable" data-help-key="analysis_anova_1factor">ANOVA à un facteur</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="anova_2factor" checked> <span class="helpable" data-help-key="analysis_anova_2factor">ANOVA à deux facteurs</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="pce_sobol" checked> <span class="helpable" data-help-key="analysis_pce_sobol">Sobol par PCE</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="decision_tree" checked> <span class="helpable" data-help-key="analysis_decision_tree">Arbres de décision</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="temporal"> <span class="helpable" data-help-key="analysis_temporal">Évolution temporelle</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="metamodel"> <span class="helpable" data-help-key="analysis_metamodel">Comparaison métamodèles</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="pdp_ice"> <span class="helpable" data-help-key="analysis_pdp_ice">PDP/ICE finales</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="sobol_empirical"> <span class="helpable" data-help-key="analysis_sobol_empirical">Sobol empirique</span></label>
+          </div>
+        </details>
+
         <button id="run-button" type="button">
           <span class="button-icon">▶</span>
           Lancer l'analyse
@@ -92,6 +106,6 @@
     </main>
   </div>
 
-  <script src="/ui/static/app.js?v=base7"></script>
+  <script src="/ui/static/app.js?v=select1"></script>
 </body>
 </html>
