@@ -17,8 +17,8 @@ UI_DIR = Path(__file__).parent / "ui"
 app = FastAPI(
     title="MAELIA Sensitivity Analysis API",
     description=(
-        "Pipeline web pour ANOVA, Sobol total, régions sensibles par arbres de décision, "
-        "suivi temporel des sorties et courbes PDP/ICE finales."
+        "Pipeline web pour ANOVA 1/2 facteurs, HSIC-ANOVA, comparaison de métamodèles, "
+        "indices de Sobol ordre 1 et total, seuils par arbre de régression et courbes PDP/ICE finales."
     ),
     version="0.1.0",
 )
@@ -35,7 +35,7 @@ class AnalysisRequest(BaseModel):
     features: list[str] | None = Field(None, description="Colonnes de paramètres à utiliser. Par défaut : les colonnes du plan SMT courant")
     analyses: list[str] | None = Field(None, description="Blocs d'analyse à exécuter. Par défaut : profil rapide recommandé")
     n_bins: int = Field(4, ge=2, le=8, description="Nombre de classes pour discrétiser les variables continues en ANOVA")
-    sobol_n_mc: int = Field(2000, ge=200, le=50000, description="Taille Monte-Carlo pour les indices de Sobol total")
+    sobol_n_mc: int = Field(2000, ge=200, le=50000, description="Paramètre conservé pour compatibilité API ; le bloc Sobol actuel estime S1/ST via PCE creux")
     tree_max_depth: int = Field(4, ge=1, le=8, description="Profondeur maximale des arbres de décision")
     random_state: int = Field(42, description="Graine aléatoire")
 

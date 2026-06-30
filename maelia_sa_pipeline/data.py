@@ -47,8 +47,58 @@ def latest_log_mtime(log_dir: Path) -> float | None:
     return max(mtimes) if mtimes else None
 
 
+def _feature_manifest_path(dataset_path: Path) -> Path:
+    return dataset_path.with_name("dataset_metamodel_features.csv")
+
+
+def read_feature_manifest(dataset_path: Path) -> dict[str, str]:
+    manifest_path = _feature_manifest_path(dataset_path)
+    if not manifest_path.exists():
+        return {}
+    manifest = pd.read_csv(manifest_path)
+    required = {"colonne", "parametre"}
+    if not required.issubset(manifest.columns):
+        return {}
+    mapping = (
+        manifest[["colonne", "parametre"]]
+        .dropna()
+        .drop_duplicates("colonne")
+        .set_index("colonne")["parametre"]
+        .astype(str)
+        .to_dict()
+    )
+    return mapping
+
+
+def _infer_categorical_columns(df: pd.DataFrame, feature_columns: list[str]) -> list[str]:
+    categorical = [c for c in feature_columns if c in AGRI_CATEGORICAL]
+    for col in feature_columns:
+        if col in categorical or col not in df.columns:
+            continue
+        series = df[col]
+        numeric = pd.to_numeric(series, errors="coerce")
+        non_null = series.dropna()
+        if non_null.empty:
+            continue
+        numeric_share = float(numeric.notna().sum() / len(series))
+        unique_count = int(non_null.nunique())
+        # Manifest-driven legacy plans often encode categories as small integer codes.
+        # Treat only very small finite domains as categorical; dates/doses remain continuous.
+        if numeric_share < 0.8 or unique_count <= 4 and not col.lower().startswith(("date", "dose", "delta", "profondeur")):
+            categorical.append(col)
+    return list(dict.fromkeys(categorical))
+
+
 def _validate_smt_feature_scale(df: pd.DataFrame, dataset_path: Path) -> None:
-    date_semis_col = f"feat_{AGRI_FEATURES.index('Date_Semis')}"
+    manifest = read_feature_manifest(dataset_path)
+    if manifest:
+        date_cols = [col for col, name in manifest.items() if name == "Date_Semis"]
+        if not date_cols:
+            return
+        date_semis_col = date_cols[0]
+    else:
+        date_semis_col = f"feat_{AGRI_FEATURES.index('Date_Semis')}"
+
     if date_semis_col not in df.columns:
         return
     date_semis = pd.to_numeric(df[date_semis_col], errors="coerce").dropna()
@@ -58,15 +108,15 @@ def _validate_smt_feature_scale(df: pd.DataFrame, dataset_path: Path) -> None:
     vmax = float(date_semis.max())
     if vmax > 150 or vmin < 35:
         raise ValueError(
-            "Le dataset_metamodel.csv semble provenir de l'ancien plan d'expérience. "
+            "Le dataset_metamodel.csv semble contenir une échelle de Date_Semis incompatible avec le plan courant. "
             f"La colonne {date_semis_col}, interprétée comme Date_Semis, vaut [{vmin:.1f}, {vmax:.1f}], "
-            "alors que le nouveau plan attend environ [45, 106] en jours de campagne. "
+            "alors que le plan actuel attend environ [45, 106] en jours de campagne. "
             "Régénère les fichiers dateDose, relance GAMA, puis ré-exporte dataset_metamodel.csv. "
             f"Dataset concerné : {dataset_path}"
         )
 
 
-def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = None) -> tuple[pd.DataFrame, list[str], list[str], list[str], list[str]]:
+def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = None, dataset_path: Path | None = None) -> tuple[pd.DataFrame, list[str], list[str], list[str], list[str]]:
     warnings: list[str] = []
     if requested_features:
         feature_columns = list(requested_features)
@@ -75,25 +125,43 @@ def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = 
             raise ValueError(f"Paramètres absents du dataset : {missing}")
         X = df[feature_columns].copy()
     else:
-        feat_cols = [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
-        if all(col in df.columns for col in feat_cols):
+        feat_cols_available = sorted(
+            [col for col in df.columns if re.fullmatch(r"feat_\d+", col)],
+            key=lambda value: int(value.split("_")[1]),
+        )
+        manifest = read_feature_manifest(dataset_path) if dataset_path is not None else {}
+        if manifest:
+            feat_cols = [col for col in feat_cols_available if col in manifest]
+            if not feat_cols:
+                raise ValueError(
+                    "dataset_metamodel_features.csv existe mais ne correspond à aucune colonne feat_* du dataset."
+                )
+            feature_columns = [manifest[col] for col in feat_cols]
             X = df[feat_cols].copy()
-            X.columns = AGRI_FEATURES
-            feature_columns = AGRI_FEATURES.copy()
+            X.columns = feature_columns
             warnings.append(
-                "Les colonnes feat_* ont été renommées avec des libellés agronomiques "
-                "pour l'affichage. Les valeurs restent celles du plan SMT exporté."
+                "Les colonnes feat_* ont été renommées depuis dataset_metamodel_features.csv. "
+                "L'application utilise donc le plan d'expérience réellement exporté avec les simulations."
             )
-        elif all(col in df.columns for col in AGRI_FEATURES):
-            feature_columns = AGRI_FEATURES.copy()
-            X = df[feature_columns].copy()
         else:
-            raise ValueError(
-                "Le dataset doit contenir soit les colonnes feat_* du plan courant, soit les colonnes agronomiques nommées. "
-                "Les logs MAELIA seuls ne suffisent pas : il faut le dataset exporté avec la matrice xt."
-            )
-
-    categorical = [c for c in feature_columns if c in AGRI_CATEGORICAL]
+            feat_cols = [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
+            if all(col in df.columns for col in feat_cols):
+                X = df[feat_cols].copy()
+                X.columns = AGRI_FEATURES
+                feature_columns = AGRI_FEATURES.copy()
+                warnings.append(
+                    "Les colonnes feat_* ont été renommées avec des libellés agronomiques "
+                    "pour l'affichage. Les valeurs restent celles du plan SMT exporté."
+                )
+            elif all(col in df.columns for col in AGRI_FEATURES):
+                feature_columns = AGRI_FEATURES.copy()
+                X = df[feature_columns].copy()
+            else:
+                raise ValueError(
+                    "Le dataset doit contenir soit les colonnes feat_* du plan courant, soit les colonnes agronomiques nommées. "
+                    "Les logs MAELIA seuls ne suffisent pas : il faut le dataset exporté avec la matrice xt."
+                )
+    categorical = _infer_categorical_columns(X, feature_columns)
     continuous = [c for c in feature_columns if c not in categorical]
     return X, feature_columns, categorical, continuous, warnings
 
@@ -250,7 +318,7 @@ def load_dataset(
     if missing_targets:
         raise ValueError(f"Sorties absentes du dataset {found_path}: {missing_targets}")
 
-    X, feature_columns, categorical, continuous, warnings = infer_features(df_raw, features)
+    X, feature_columns, categorical, continuous, warnings = infer_features(df_raw, features, found_path)
     df = pd.concat([X, df_raw[target_columns]], axis=1)
     for extra in ["point_idx", "parcelle", "simulation", "sim_idx"]:
         if extra in df_raw.columns:

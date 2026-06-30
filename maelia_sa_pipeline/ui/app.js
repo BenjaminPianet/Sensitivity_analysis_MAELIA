@@ -20,27 +20,23 @@ const targetLabels = {
 };
 
 const analysisLabels = {
-  temporal: "Évolution temporelle",
   anova_1factor: "ANOVA 1 facteur",
   anova_2factor: "ANOVA 2 facteurs",
-  pce_sobol: "Sobol PCE",
   hsic_anova: "HSIC-ANOVA",
-  metamodel: "Métamodèle",
-  sobol_empirical: "Sobol empirique",
+  metamodel: "Métamodèles",
+  sobol_indices: "Sobol S1/ST",
   pdp_ice: "PDP/ICE",
-  decision_tree: "Arbres",
+  decision_tree: "Arbres de régression",
 };
 
 const figureLabels = {
-  temporal_trajectory_png: "Évolution temporelle",
   anova_1factor_png: "ANOVA à un facteur",
   anova_2factor_interaction_png: "Interactions à deux facteurs",
   metamodel_performance_png: "Performance du métamodèle",
-  pce_sobol_png: "Sobol PCE",
+  pce_sobol_png: "Sobol ordre 1 et total",
   hsic_anova_order_png: "HSIC-ANOVA",
-  sobol_total_png: "Sobol total empirique",
-  decision_tree_regions_png: "Régions sensibles",
-  decision_tree_png: "Arbre complet",
+  decision_tree_regions_png: "Seuils et régions sensibles",
+  decision_tree_png: "Arbre de régression",
   pdp_ice_pngs: "PDP/ICE finales",
 };
 
@@ -56,21 +52,21 @@ const helpTexts = {
   log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt. Le dataset de paramètres doit être dans ce dossier ou indiqué séparément.",
   dataset_path: "Chemin vers dataset_metamodel.csv, exporté par le notebook de simulation. Ce fichier contient la matrice du plan SMT, donc les paramètres testés pour chaque simulation. Les logs seuls ne suffisent pas.",
   n_bins: "Nombre de classes utilisées pour transformer les paramètres continus en groupes avant l'ANOVA/Kruskal. Plus de classes donne une lecture plus fine, mais exige plus de points par classe.",
-  sobol_n_mc: "Nombre de points Monte-Carlo utilisés sur le métamodèle pour estimer les indices de Sobol total. Une valeur plus élevée stabilise l'estimation mais augmente le temps de calcul.",
+  sobol_n_mc: "Paramètre de compatibilité conservé par l'API. Le bloc Sobol affiché par l'app calcule désormais S1 et ST via un PCE creux entraîné sur les points SMT faisables.",
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
   random_state: "Graine aléatoire utilisée pour rendre reproductibles les séparations train/test, l'entraînement et les échantillonnages associés.",
   targets: "Sorties MAELIA analysées. Chaque sortie produit ses propres scores, figures, indices et régions sensibles.",
-  analyses_menu: "Menu des blocs à exécuter. Le profil coché par défaut est rapide : ANOVA, Sobol par PCE et arbres. Les blocs PDP/ICE, Sobol empirique et comparaison de métamodèles entraînent un métamodèle prédictif et peuvent être nettement plus longs.",
+  analyses_menu: "Menu des blocs à exécuter. L'app est limitée aux analyses retenues pour le workflow terrainSA : ANOVA 1/2 facteurs, HSIC-ANOVA, métamodèles, Sobol S1/ST, arbres de régression et PDP/ICE.",
   analysis_anova_1factor: "Classe les paramètres selon leur effet descriptif individuel sur chaque sortie.",
   analysis_anova_2factor: "Calcule les interactions entre couples de paramètres et génère une matrice de R² d'interaction.",
-  analysis_pce_sobol: "Entraîne un polynôme du chaos creux sur les points faisables SMT et calcule les indices de Sobol analytiques.",
+  analysis_sobol_indices: "Calcule les indices de Sobol d'ordre 1 et d'ordre total via un PCE creux entraîné sur un sous-échantillon reproductible des points SMT faisables.",
   analysis_hsic_anova: "Décompose la dépendance non linéaire entre paramètres et sortie avec HSIC-ANOVA. La figure résume la part portée par les effets simples, les interactions à deux paramètres et les interactions plus complexes.",
-  analysis_decision_tree: "Entraîne des arbres de décision interprétables pour identifier des régions locales et des seuils.",
-  analysis_temporal: "Charge les sorties dynamiques des logs GAMA pour tracer les trajectoires temporelles. Ce bloc peut prendre du temps si beaucoup de fichiers de logs sont présents.",
-  analysis_metamodel: "Compare et sélectionne un métamodèle prédictif. Nécessaire pour PDP/ICE et Sobol empirique, mais plus coûteux que le PCE seul.",
+  analysis_decision_tree: "Entraîne un RegressionTree interprétable pour identifier des seuils et des régions locales de réponse.",
+  
+  analysis_metamodel: "Compare et sélectionne un métamodèle prédictif parmi les candidats disponibles. Ce modèle sert notamment aux PDP/ICE.",
   analysis_pdp_ice: "Trace les courbes PDP/ICE finales pour les paramètres temporels principaux. Ce bloc entraîne automatiquement le métamodèle prédictif.",
-  analysis_sobol_empirical: "Estime un Sobol total par perturbation du métamodèle prédictif. À lire comme diagnostic complémentaire, plus coûteux et moins rigoureux que le Sobol PCE pour l'espace SMT.",
-  run_button: "Lance la pipeline complète : chargement logs + dataset, contrôle des colonnes, entraînement du métamodèle, ANOVA/Kruskal, Sobol total et arbres de décision.",
+  
+  run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA, HSIC-ANOVA, métamodèles, Sobol S1/ST, seuils ou PDP/ICE selon les cases cochées.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
   summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan actuel compact en comporte 15.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
@@ -82,20 +78,20 @@ const helpTexts = {
   metric_R2_train: "R² d'entraînement. Part de variance expliquée par le modèle sur les données utilisées pour l'entraîner. Un bon R² seul ne suffit pas: il faut le comparer au Q² de test.",
   metric_Q2_test: "Q² de test. R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation du métamodèle ou de l'arbre.",
   metric_selected_model: "Métamodèle sélectionné automatiquement pour cette sortie. Les candidats sont comparés sur le même dataset final dynamique et classés principalement par Q² de test, avec une petite pénalité de surapprentissage.",
-  metric_pce_model: "Métamodèle polynomial du chaos creux. Il sert spécifiquement à calculer des indices de Sobol analytiques sur l'espace SMT faisable, sans générer de recombinaisons Saltelli invalides.",
+  metric_pce_model: "Métamodèle polynomial du chaos creux utilisé pour calculer Sobol S1/ST sur l'espace SMT faisable, sans générer de recombinaisons Saltelli invalides.",
   metric_pce_R2_train: "R² d'entraînement du PCE creux. Il indique à quel point le polynôme approxime les points utilisés pour son ajustement.",
-  metric_pce_Q2_test: "Q² de test du PCE creux. C'est le meilleur signal pour savoir si les indices Sobol PCE reposent sur une approximation fiable.",
+  metric_pce_Q2_test: "Q² de test du PCE creux. C'est le meilleur signal pour savoir si les indices Sobol S1/ST reposent sur une approximation fiable.",
   metric_tree_R2_train: "R² de l'arbre sur l'ensemble d'entraînement. Il mesure à quel point l'arbre interprétable capture la structure des données d'apprentissage.",
   metric_tree_Q2_test: "Q² de l'arbre sur l'ensemble de test. Il indique si les seuils affichés par l'arbre restent prédictifs sur des simulations non vues.",
   anova_1factor_png: "ANOVA/Kruskal à un facteur. La figure classe les paramètres selon leur R² descriptif, c'est-à-dire la part de variance expliquée par les groupes de ce paramètre.",
   anova_2factor_interaction_png: "Matrice d'interaction à deux facteurs. Elle affiche seulement le R² d'interaction, donc ce qui reste quand les effets additifs des deux paramètres sont retirés.",
   metamodel_performance_png: "Performance du métamodèle. Elle compare les prédictions aux valeurs observées et sépare la qualité d'entraînement de la qualité de test.",
-  pce_sobol_png: "Indices de Sobol calculés analytiquement depuis le PCE creux. Cette figure est méthodologiquement plus rigoureuse pour le plan SMT contraint que des points Saltelli générés hors contraintes.",
+  pce_sobol_png: "Indices de Sobol d'ordre 1 et total calculés depuis le PCE creux web. Cette figure évite les recombinaisons Saltelli incompatibles avec les contraintes SMT.",
   hsic_anova_order_png: "Décomposition HSIC-ANOVA par ordre. L’ordre 1 correspond aux effets simples, l’ordre 2 aux interactions deux à deux, et les ordres supérieurs aux dépendances plus combinatoires. Ce n’est pas un R² ni un indice de Sobol, mais une contribution au HSIC global.",
-  sobol_total_png: "Indice de Sobol total empirique estimé par perturbation sur le métamodèle prédictif. À lire comme diagnostic complémentaire, car certaines recombinaisons peuvent sortir de la logique SMT stricte.",
+  
   decision_tree_regions_png: "Régions sensibles. Chaque barre correspond à une feuille de l'arbre, donc à un ensemble de simulations partageant les mêmes règles de seuil.",
   decision_tree_png: "Arbre de décision complet. Il expose les seuils successifs utilisés pour séparer les simulations en régimes locaux.",
-  temporal_trajectory_png: "Suivi temporel directement issu des logs MAELIA. Les lignes fines montrent des expériences individuelles, les zones colorées résument la dispersion et la courbe noire représente la moyenne globale.",
+  
   pdp_ice_pngs: "PDP/ICE finales calculées avec le métamodèle sur l'état final des expériences. L'app affiche systématiquement Date de semis, Date de récolte et Décalage préparation-semis.",
   pdp_ice_feature: "Paramètre temporel continu retenu pour comparer les trois sorties sur les mêmes axes d'interprétation. La figure montre comment la sortie finale prédite évolue quand ce paramètre varie et que les autres restent distribués comme dans le plan SMT.",
   action_report: "Ouvre le rapport HTML complet sauvegardé pour ce run. Il regroupe toutes les figures générées.",
@@ -301,7 +297,7 @@ function renderTarget(target) {
       </div>` : "";
   const pceScores = pceMetrics ? `
       <div class="score-row pce-score-row">
-        ${textScoreCard("Métamodèle Sobol", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
+        ${textScoreCard("Sobol S1/ST", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
         ${scoreCard("R² entraînement PCE", pceMetrics.R2_train, "train pce", "metric_pce_R2_train")}
         ${scoreCard("Q² test PCE", pceMetrics.Q2_test, "test pce", "metric_pce_Q2_test")}
       </div>` : "";
@@ -316,11 +312,9 @@ function renderTarget(target) {
         ${actionLink(artifacts.decision_tree_rules_txt, "Voir les règles", "action_rules_txt")}
       </div>
       <div class="figure-grid">
-        ${figurePanel(artifacts, "temporal_trajectory_png", true, "hero-figure")}
         ${figurePanel(artifacts, "metamodel_performance_png")}
         ${figurePanel(artifacts, "pce_sobol_png", false, "pce-panel")}
         ${figurePanel(artifacts, "hsic_anova_order_png", false, "hsic-panel")}
-        ${figurePanel(artifacts, "sobol_total_png")}
         ${pdpIcePanels(artifacts)}
         ${figurePanel(artifacts, "anova_1factor_png")}
         ${figurePanel(artifacts, "anova_2factor_interaction_png")}

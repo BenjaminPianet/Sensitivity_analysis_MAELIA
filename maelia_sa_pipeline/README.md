@@ -1,6 +1,6 @@
 # Pipeline web d'analyse de sensibilité MAELIA
 
-Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal, interactions à deux facteurs, performances de métamodèles, indices de Sobol total, HSIC-ANOVA et régions sensibles par arbres de décision.
+Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal à un facteur, interactions à deux facteurs, HSIC-ANOVA, comparaison de métamodèles, indices de Sobol d'ordre 1 et total, seuils par RegressionTree et courbes PDP/ICE finales.
 
 Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux 15 paramètres agronomiques du plan SMT courant.
 
@@ -17,7 +17,8 @@ Le point crucial est le suivant : les logs MAELIA contiennent les sorties du mod
 
 ```bash
 cd /chemin/vers/Sensitivity_analysis_MAELIA
-uvicorn maelia_sa_pipeline.api:app --reload --host 127.0.0.1 --port 8000
+python -m pip install -r requirements.txt
+python -m uvicorn maelia_sa_pipeline.api:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Interface utilisateur : http://127.0.0.1:8000/
@@ -34,7 +35,7 @@ L'interface contient maintenant un README intégré expliquant comment utiliser 
 - `Q² test` : R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation.
 - `ANOVA/Kruskal à un facteur` : R² descriptif associé aux groupes d'un paramètre.
 - `ANOVA à deux facteurs` : matrice du R² d'interaction uniquement, donc le surplus explicatif propre au couple de paramètres.
-- `Sobol total` : contribution globale d'un paramètre, interactions comprises, estimée via le métamodèle sur le domaine faisable.
+- `Sobol S1/ST` : indices d'ordre 1 et d'ordre total calculés via un PCE creux entraîné sur les points faisables SMT.
 - `HSIC-ANOVA` : décomposition de dépendance par noyaux, résumée par ordre d'interaction entre paramètres.
 - `Régions sensibles` : feuilles de l'arbre de décision résumées par leur moyenne et leur écart à la moyenne globale.
 - `Arbre complet` : règles de seuil successives qui définissent les régimes locaux.

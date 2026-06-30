@@ -8,11 +8,11 @@ from uuid import uuid4
 import pandas as pd
 
 from .config import DEFAULT_OUTPUT_ROOT, DEFAULT_PDP_ICE_FEATURES, FEATURE_LABELS, TARGET_LABELS
-from .data import final_dynamic_dataset, load_dataset, load_dynamic_outputs
+from .data import load_dataset
 from .hsic import compute_hsic_anova
-from .models import metamodel_feature_importance, select_best_metamodel, sobol_total_from_metamodel, train_decision_tree, train_sparse_pce_sobol
+from .models import metamodel_feature_importance, select_best_metamodel, train_decision_tree, train_sparse_pce_sobol
 from .stats import discretize_factors, one_factor_anova, two_factor_interaction
-from .viz import plot_interaction_heatmap, plot_metamodel_performance, plot_one_factor, plot_hsic_order_decomposition, plot_pce_sobol, plot_pdp_ice, plot_regions, plot_sobol_total, plot_temporal_trajectories, plot_tree_figure
+from .viz import plot_interaction_heatmap, plot_metamodel_performance, plot_one_factor, plot_hsic_order_decomposition, plot_pce_sobol, plot_pdp_ice, plot_regions, plot_tree_figure
 
 
 def _safe_name(value: str) -> str:
@@ -22,25 +22,25 @@ def _safe_name(value: str) -> str:
 
 
 ANALYSIS_LABELS = {
-    "temporal": "Évolution temporelle",
     "anova_1factor": "ANOVA à un facteur",
     "anova_2factor": "ANOVA à deux facteurs",
-    "pce_sobol": "Sobol analytique par PCE",
     "hsic_anova": "HSIC-ANOVA hiérarchique",
     "metamodel": "Comparaison / sélection du métamodèle",
-    "sobol_empirical": "Sobol total empirique",
+    "sobol_indices": "Indices de Sobol ordre 1 et total",
     "pdp_ice": "PDP/ICE finales",
-    "decision_tree": "Régions par arbre de décision",
+    "decision_tree": "Seuils par arbre de régression",
 }
 
 DEFAULT_ANALYSES = [
     "anova_1factor",
     "anova_2factor",
-    "pce_sobol",
+    "hsic_anova",
     "decision_tree",
 ]
 
-METAMODEL_DEPENDENT_ANALYSES = {"metamodel", "sobol_empirical", "pdp_ice"}
+# PDP/ICE need a predictive surrogate; Sobol S1/ST is estimated by a sparse PCE
+# fitted on feasible SMT points and therefore does not use the generic surrogate.
+METAMODEL_DEPENDENT_ANALYSES = {"metamodel", "pdp_ice"}
 
 
 def _normalise_analyses(analyses: list[str] | None) -> set[str]:
@@ -58,15 +58,13 @@ def _write_html_report(manifest: dict, output_dir: Path) -> Path:
         title = TARGET_LABELS.get(target, target)
         cards.append(f"<h2>{title}</h2>")
         for key, label in [
-            ("temporal_trajectory_png", "Évolution temporelle observée"),
             ("anova_1factor_png", "ANOVA à un facteur"),
             ("anova_2factor_interaction_png", "Interactions à deux facteurs"),
             ("metamodel_performance_png", "Performance du métamodèle"),
-            ("pce_sobol_png", "Sobol analytique par PCE"),
+            ("pce_sobol_png", "Sobol ordre 1 et total"),
             ("hsic_anova_order_png", "Décomposition HSIC-ANOVA"),
-            ("sobol_total_png", "Sobol total empirique"),
-            ("decision_tree_regions_png", "Régions sensibles"),
-            ("decision_tree_png", "Arbre de décision"),
+            ("decision_tree_regions_png", "Seuils et régions sensibles"),
+            ("decision_tree_png", "Arbre de régression"),
         ]:
             path = artifacts.get(key)
             if not path:
@@ -143,7 +141,6 @@ def run_analysis(
 ) -> dict:
     analysis_set = _normalise_analyses(analyses)
     model_needed = bool(analysis_set & METAMODEL_DEPENDENT_ANALYSES)
-    dynamic_needed = "temporal" in analysis_set
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + uuid4().hex[:8]
     out = Path(output_dir).expanduser() if output_dir else DEFAULT_OUTPUT_ROOT / run_id
@@ -151,21 +148,7 @@ def run_analysis(
 
     bundle = load_dataset(log_dir=log_dir, dataset_path=dataset_path, targets=targets, features=features)
     source_df = bundle.dataframe
-    dynamic_df = pd.DataFrame()
-    dynamic_final_df = pd.DataFrame()
-
-    if dynamic_needed:
-        dynamic_df, dynamic_warnings = load_dynamic_outputs(log_dir=log_dir, metadata=source_df)
-        bundle.warnings.extend(dynamic_warnings)
-        dynamic_final_df, dynamic_final_warnings = final_dynamic_dataset(
-            dynamic_df,
-            source_df,
-            bundle.feature_columns,
-            bundle.target_columns,
-        )
-        bundle.warnings.extend(dynamic_final_warnings)
-
-    df = dynamic_final_df if not dynamic_final_df.empty else source_df
+    df = source_df
 
     manifest: dict = {
         "run_id": run_id,
@@ -174,7 +157,7 @@ def run_analysis(
         "dataset_path": str(bundle.dataset_path),
         "output_dir": str(out),
         "n_rows": int(len(df)),
-        "output_source": "dynamic_final_logs" if not dynamic_final_df.empty else "dataset_metamodel",
+        "output_source": "dataset_metamodel",
         "n_features": int(len(bundle.feature_columns)),
         "features": bundle.feature_columns,
         "analyses": sorted(analysis_set),
@@ -216,16 +199,6 @@ def run_analysis(
         target_dir.mkdir(parents=True, exist_ok=True)
         target_artifacts: dict[str, str | dict | list] = {}
 
-        if dynamic_needed and not dynamic_df.empty and target in dynamic_df.columns:
-            p = plot_temporal_trajectories(
-                dynamic_df,
-                target,
-                target_dir / f"trajectoires_temporelles_{target}.png",
-                group_col="point_idx",
-                random_state=random_state,
-            )
-            target_artifacts["temporal_trajectory_png"] = str(p)
-
         if "anova_1factor" in analysis_set:
             p = plot_one_factor(anova, target, target_dir / f"anova_1facteur_{target}.png")
             target_artifacts["anova_1factor_png"] = str(p)
@@ -262,7 +235,7 @@ def run_analysis(
             importances.to_csv(importances_path, index=False)
             target_artifacts["metamodel_importances_csv"] = str(importances_path)
 
-        if "pce_sobol" in analysis_set:
+        if "sobol_indices" in analysis_set:
             try:
                 pce_sobol, pce_metrics = train_sparse_pce_sobol(
                     df,
@@ -270,6 +243,8 @@ def run_analysis(
                     bundle.feature_columns,
                     bundle.categorical_columns,
                     bundle.continuous_columns,
+                    max_terms=60,
+                    max_train=1200,
                     random_state=random_state + 1000 + bundle.target_columns.index(target),
                 )
                 pce_path = target_dir / f"pce_sobol_indices_{target}.csv"
@@ -328,23 +303,6 @@ def run_analysis(
                 )
                 pdp_ice_pngs.append({"feature": feature, "feature_label": FEATURE_LABELS.get(feature, feature), "path": str(p)})
             target_artifacts["pdp_ice_pngs"] = pdp_ice_pngs
-
-        if "sobol_empirical" in analysis_set and model is not None:
-            sobol = sobol_total_from_metamodel(
-                model,
-                df,
-                bundle.feature_columns,
-                bundle.categorical_columns,
-                bundle.continuous_columns,
-                target,
-                n_mc=sobol_n_mc,
-                random_state=random_state,
-            )
-            sobol_path = target_dir / f"sobol_total_{target}.csv"
-            sobol.to_csv(sobol_path, index=False)
-            target_artifacts["sobol_total_csv"] = str(sobol_path)
-            p = plot_sobol_total(sobol, target, target_dir / f"sobol_total_{target}.png")
-            target_artifacts["sobol_total_png"] = str(p)
 
         if "decision_tree" in analysis_set:
             tree_result = train_decision_tree(
