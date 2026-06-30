@@ -1,0 +1,436 @@
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[section]{placeins}
+\usepackage{enumitem}
+
+\geometry{margin=2.35cm}
+\onehalfspacing
+\setlist{nosep}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black
+}
+\captionsetup{font=footnotesize,labelfont=bf}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\param}[1]{\texttt{#1}}
+\newcommand{\fitfig}[1]{\includegraphics[width=0.86\textwidth,height=0.68\textheight,keepaspectratio]{#1}}
+
+\title{Sensitivity Analysis of an Agro-Ecological Model in a Hierarchical SMT Parameter Space: Controlling Pedoclimatic Effects in MAELIA}
+
+\author{
+Benjamin PIANET\thanks{Main author. Université de Lille, France. Corresponding author: \texttt{benjamin.pianet@etu.univ-lille.fr}.}
+\and Paul Saves\thanks{Secondary author. IRIT, Université Toulouse Capitole, Toulouse, France.}
+\and Benoît Gaudou\thanks{Secondary author. IRIT, Université Toulouse Capitole, Toulouse, France.}
+\and Baptiste Lesquoy\thanks{Secondary author. Affiliation to be completed.}
+}
+
+\date{Draft version -- \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Agro-ecological simulation models are increasingly used to explore how technical operations, soil properties and weather conditions shape production and environmental outcomes. Their systematic exploration remains difficult because the input domain is mixed, constrained and hierarchical: some parameters only become meaningful when upstream agronomic choices activate the corresponding operation. This paper presents a sensitivity-analysis workflow for MAELIA with emphasis on a hierarchical parameter space generated through an SMT-based design. A first heterogeneous-terrain analysis indicates that soil and climate strongly structure the outputs, but this part is kept as provisional because the corresponding simulations must be regenerated with the updated design. The main contribution is therefore the controlled \texttt{terrainSA} experiment, where the parcel \texttt{beauce\_5\_1} is replicated to hold soil and climate constant while varying the technical itinerary. The updated design contains 26 agronomic parameters describing activation, preparation, fertilization, dates, delays and doses. On 10,000 simulated points, the selected metamodels generalize well: ExtraTrees reaches test $Q^2=0.987$ for nitrogen leaching and $Q^2=0.985$ for yield, while XGBoost reaches $Q^2=0.999$ for organic-carbon variation. The analyses show that the response is now dominated by calendar and preparation variables: sowing date, harvest date, soil-preparation activation and the delay between preparation and sowing. Decision trees confirm this structure by identifying interpretable threshold regimes.
+\end{abstract}
+
+\noindent\textbf{Keywords:} sensitivity analysis; hierarchical parameter space; SMT design; surrogate modelling; agro-ecological modelling; MAELIA; Sobol indices; Shapley effects; decision trees.
+
+\section{Introduction}
+
+Agro-ecological models connect management decisions, biophysical processes and environmental outcomes. They are useful because they can represent interactions that are difficult to isolate experimentally: crop calendars, soil response, climate forcing, parcel geometry, technical operations and long-term feedbacks. This richness also makes model exploration difficult. When dozens of parameters are varied simultaneously, and when several of them are only meaningful under specific conditions, a sensitivity analysis cannot be reduced to a regular grid or to independent perturbations around a reference scenario.
+
+This difficulty is particularly acute in agricultural operation spaces. A technical itinerary is not a vector of always-active numerical parameters. The number of fertilization events activates the dates, products and doses attached to these events. The presence of soil preparation activates preparation type and preparation-to-sowing delay. A second preparation operation is meaningful only if the design authorizes it, and agronomic constraints may forbid combinations such as ploughing with another operation on the same date. The parameter space is therefore hierarchical: upstream variables define which downstream variables are active. It is also constrained: dates must be ordered and operations must remain agronomically coherent.
+
+The present work addresses this issue in MAELIA, an agro-ecological simulation model. The practical objective is to identify which agronomic parameters and local thresholds should be prioritized before a broader sensitivity-analysis campaign. The first simulations on a heterogeneous terrain revealed an important methodological point: when soil and climate vary, they dominate the outputs. That result is scientifically useful, but it prevents a clear interpretation of technical operations. The controlled experiment introduced here, \texttt{terrainSA}, therefore fixes the environmental context by cloning the same field parcel, \texttt{beauce\_5\_1}, several times in the same soil and weather polygon. The sensitivity analysis then focuses on the technical itinerary itself.
+
+This article is organized around three questions. First, what does the initial heterogeneous terrain tell us about pedoclimatic dominance, and why must this result be recomputed after the update of the design? Second, how can the updated SMT design be interpreted as a feasible hierarchical agronomic space rather than a standard rectangular hypercube? Third, once soil and climate are fixed, which parameters and threshold regimes control nitrogen leaching, organic-carbon variation and yield?
+
+\section{Background and methodological positioning}
+
+\subsection{Sensitivity analysis for complex simulation models}
+
+Sensitivity analysis studies how variability in model inputs propagates to model outputs. In simulation models, it is not only a numerical ranking exercise; it is also a way to assess robustness, locate nonlinear responses and guide future experiments. The agent-based modelling literature emphasizes that sensitivity analysis should be designed according to the modelling question, the computational budget and the type of input factors considered \citep{borgonovo2022protocol,tenbroeke2016which,thiele2014cookbook}. A single method rarely answers all questions. Screening methods identify broad drivers, variance-based methods quantify global contributions, and local methods reveal thresholds or regime changes.
+
+This combination is important for MAELIA because the model is expensive enough to make direct Monte Carlo sensitivity analysis difficult, while the input space is structured enough to make unconstrained sampling unsafe. The workflow therefore follows a staged logic: build a valid experimental design, run MAELIA on feasible itineraries, train and validate surrogate models, then use complementary global and local interpretation tools.
+
+\subsection{Hierarchical SMT parameter spaces}
+
+The updated design is generated as a constrained SMT/ADSG-like design space. Sampled points are not arbitrary combinations of values: they respect activation and compatibility rules before being transformed into MAELIA input files. The current analysis uses 26 reconstructed agronomic parameters: activation variables, preparation variables, fertilization variables, operation dates, preparation-to-sowing delay, and fertilizer doses.
+
+Dates are expressed in campaign days, with day 1 corresponding to 1 August. This convention aligns the design with the MAELIA campaign start and avoids invalid operations before the simulation period. The variable \param{Delta\_PREPA\_Semis} is negative: for example, a value close to $-25$ means that soil preparation occurs about 25 days before sowing.
+
+The design encodes several agronomic constraints. Soil preparation occurs before sowing. There is a single preparation date, with one or two operations on that date. If ploughing is selected, it cannot be combined with another preparation operation, because it is a heavy operation that requires soil rest. Fertilization dates follow the campaign calendar and are only interpreted when the corresponding event is active. These constraints are central to the analysis: the sensitivity indices reported below describe the sampled feasible distribution, not an unconstrained hypercube.
+
+\subsection{Surrogate models and local explanations}
+
+Surrogate models are used because global sensitivity analysis may require many more model evaluations than can reasonably be run directly. A metamodel is first trained on completed MAELIA simulations, then used to evaluate large synthetic samples at low computational cost. This approach is common for expensive simulation models, but it requires predictive validation before interpretation \citep{angione2022surrogate,saves2026mabs}. In this work, ExtraTrees \citep{geurts2006extremely}, XGBoost \citep{chen2016xgboost} and Gaussian-process regressors \citep{rasmussen2006gaussian} are compared, and the best model for each output is selected by held-out $Q^2$.
+
+Global indices and decision trees play complementary roles. Sobol total-order indices summarize the contribution of each factor including interactions \citep{sobol2001global,saltelli2002best}. Shapley effects allocate output variance across parameters in a way that accounts for coalitions of variables \citep{shapley1953value,song2016shapley}. Decision trees translate response structure into threshold rules and local regimes \citep{breiman1984cart}. In the present setting, this is valuable because a variable can be globally important while the agronomic interpretation depends on specific ranges of dates or delays.
+
+\section{Model outputs and experimental material}
+
+The analysis focuses on three MAELIA outputs extracted from simulation logs: nitrogen leaching (\param{N\_lixi}), organic-carbon variation (\param{dCorg}) and yield (\param{rdt}). These outputs are interpreted separately because they do not reward the same technical choices. A calendar that limits nitrogen leaching may not maximize yield, and a high-yield itinerary may produce a different carbon response.
+
+\subsection{Initial heterogeneous terrain: provisional status}
+
+The first analysis used a terrain where plots differed in soil and weather context. The figures currently available indicate a strong separation of outputs by soil and climate groups (Figure~\ref{fig:soil-climate}). This result is consistent with the expected behaviour of an agro-ecological model: pedoclimatic context can dominate technical decisions because it affects crop development, water and nitrogen dynamics, and the initial state of the soil.
+
+However, this part is deliberately kept in a \textbf{to-be-completed status}. The design space has since been modified, and the heterogeneous-terrain simulations must be regenerated before numerical conclusions can be reported in the same frame as the updated \texttt{terrainSA} results. The current role of this section is methodological: it explains why a controlled terrain was needed and reserves space for the final pedoclimatic analysis.
+
+\begin{figure}[!tbp]
+\centering
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\linewidth,height=0.24\textheight,keepaspectratio]{../figs/rdt_sol_climat.png}
+\caption{Yield.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\linewidth,height=0.24\textheight,keepaspectratio]{../figs/Nlixi_sol_climat.png}
+\caption{Nitrogen leaching.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\linewidth,height=0.24\textheight,keepaspectratio]{../figs/Corg_sol_climat.png}
+\caption{Organic carbon.}
+\end{subfigure}
+\caption{Provisional heterogeneous-terrain figures. They diagnose pedoclimatic dominance and will be updated after the new simulation batch.}
+\label{fig:soil-climate}
+\end{figure}
+
+\begin{figure}[!tbp]
+\centering
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{../figs/ANOVA.png}
+\caption{ANOVA-style screening.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{../figs/PRCC.png}
+\caption{PRCC screening.}
+\end{subfigure}
+\caption{Provisional first screening on the heterogeneous terrain. The main point is environmental dominance before technical effects are isolated.}
+\label{fig:first-screening}
+\end{figure}
+
+\FloatBarrier
+
+\subsection{Controlled \texttt{terrainSA} dataset}
+
+The controlled terrain \texttt{terrainSA} is built by replicating the parcel \texttt{beauce\_5\_1}. All clones share the same soil type and weather polygon. This does not aim to reproduce a real landscape. It creates a local experimental support where technical operations can be varied while environmental context is held constant. The current dataset contains 10,000 simulation points and 26 agronomic variables reconstructed from the SMT design.
+
+This controlled design changes the scientific question. Instead of asking which environmental contexts dominate the model, it asks which technical choices matter within one fixed pedoclimatic context. The distinction is essential. A parameter that is invisible in the heterogeneous terrain may become important once soil and weather are fixed, and conversely an apparent technical effect in the heterogeneous terrain may be partly confounded with spatial structure.
+
+\section{Methods}
+
+\subsection{Direct one-factor and two-factor screening}
+
+For each output, a one-factor screening is performed on the reconstructed agronomic variables. Continuous variables are discretized into quantile groups, while categorical variables are used as groups directly. The reported descriptive contribution is
+\begin{equation}
+R^2_j = \frac{SS_{\mathrm{between},j}}{SS_{\mathrm{total}}},
+\end{equation}
+where $SS_{\mathrm{between},j}$ is the between-group sum of squares induced by parameter $j$. Normality and homoscedasticity checks are used to decide whether a classical ANOVA-style comparison or a Kruskal test is more appropriate. In the current dataset, the leading tests are Kruskal tests, which is expected given the nonlinear and grouped structure of the simulator outputs.
+
+Two-factor matrices are then computed. For each pair $(A,B)$, the interaction component is estimated as the additional $R^2$ obtained by considering the joint grouped factor beyond the additive contributions of $A$ and $B$. These matrices are useful because they separate the main calendar signal from pairwise nonlinearities. They should not be read as a complete functional decomposition of the hierarchical space, but as an interpretable map of where combinations matter.
+
+\subsection{Metamodel comparison and global summaries}
+
+The metamodel comparison uses a 75/25 train-test split. ExtraTrees, XGBoost and Gaussian-process regressors are evaluated, and the best model is selected separately for each output according to test $Q^2$. The training $R^2$ and test $Q^2$ are reported separately to identify overfitting.
+
+The retained metamodels are used to compute Sobol and Shapley summaries over the reconstructed parameter domain. Since the original SMT design is constrained and hierarchical, these indices are interpreted as sensitivity summaries over the feasible sampled distribution. They are not direct Saltelli estimators from the original simulator. Negative or greater-than-one first-order estimates can appear as Monte Carlo or surrogate artefacts in this constrained setting; total-order and Shapley rankings are therefore interpreted qualitatively and jointly with direct screening and decision-tree thresholds.
+
+\subsection{Decision-tree threshold extraction}
+
+Interpretable regression trees are trained for the three outputs. Their objective is not to outperform the ensemble metamodels, but to identify local regimes. Each internal node provides a threshold rule, and each leaf summarizes a subset of simulations sharing the same path through the tree. This converts a high-dimensional response surface into agronomically readable conditions, such as early or late sowing, short or long preparation-to-sowing delays, and early or late harvest.
+
+\section{Results on the updated \texttt{terrainSA} design}
+
+\subsection{Metamodel quality}
+
+Table~\ref{tab:metamodel} reports the selected metamodels. ExtraTrees is selected for \param{N\_lixi} and \param{rdt}, while XGBoost is selected for \param{dCorg}. The high held-out scores indicate that the response surfaces are learnable once soil and climate are fixed. The small train-test gap means that the metamodels are not merely memorizing the design points; they capture a stable structure in the controlled technical space.
+
+\begin{table}[!tbp]
+\centering
+\caption{Selected metamodels on \texttt{terrainSA}. $R^2$ is computed on the training set and $Q^2$ on held-out simulations.}
+\label{tab:metamodel}
+\begin{tabular}{llrrrr}
+\toprule
+Output & Model & Train $R^2$ & Test $Q^2$ & MAE & RMSE \\
+\midrule
+\param{N\_lixi} & ExtraTrees & 0.999 & 0.987 & 0.031 & 0.052 \\
+\param{dCorg} & XGBoost & 0.999 & 0.999 & 0.791 & 1.092 \\
+\param{rdt} & ExtraTrees & 0.999 & 0.985 & 0.012 & 0.016 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{One-factor screening: a calendar and preparation signal}
+
+The updated one-factor analysis changes the interpretation of the agronomic space. The dominant factors are no longer fertilization count and first-fertilization delay. Instead, the strongest effects are concentrated on sowing date, harvest date, soil-preparation activation and the delay between preparation and sowing.
+
+\begin{table}[!tbp]
+\centering
+\caption{Leading one-factor descriptive $R^2$ values in the updated \texttt{terrainSA} analysis. The table is split by factor to avoid hiding values inside long text cells.}
+\label{tab:anova-one}
+\small
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}p{3.6cm}rY}
+\toprule
+Output & Factor & $R^2$ & Interpretation \\
+\midrule
+\param{N\_lixi} & \param{Date\_Semis} & 0.463 & Main calendar driver of nitrogen leaching. \\
+ & \param{Delta\_PREPA\_Semis} & 0.214 & Preparation lead time modifies leaching regimes. \\
+ & \param{has\_prepa} & 0.145 & Presence of soil preparation is visible in leaching. \\
+ & \param{prepa\_1} & 0.118 & The first preparation operation contributes to the signal. \\
+\addlinespace
+\param{dCorg} & \param{Date\_Recolte} & 0.642 & Harvest timing dominates carbon variation. \\
+ & \param{Date\_Semis} & 0.297 & Sowing timing is the second main carbon driver. \\
+\addlinespace
+\param{rdt} & \param{Delta\_PREPA\_Semis} & 0.342 & Yield is highly sensitive to preparation lead time. \\
+ & \param{has\_prepa} & 0.245 & Soil preparation activation structures yield regimes. \\
+ & \param{prepa\_1} & 0.196 & The first preparation operation remains important. \\
+ & \param{Date\_Recolte} & 0.169 & Harvest timing contributes to yield variability. \\
+ & \param{Date\_Semis} & 0.139 & Sowing date completes the leading calendar signal. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[!tbp]
+\centering
+\includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{../analysis/terrainSA_results/anova_1facteur_top.png}
+\caption{One-factor screening on \texttt{terrainSA}. Calendar and preparation variables dominate the updated SMT space.}
+\label{fig:anova-one}
+\end{figure}
+
+In a fixed soil and climate context, the timing of the technical itinerary becomes the main source of variability. \param{Date\_Semis} changes the crop exposure window and soil mineral nitrogen dynamics. \param{Date\_Recolte} changes the duration of crop occupation and the end of the simulated cycle. \param{Delta\_PREPA\_Semis} describes how much time the soil is left between preparation and sowing, which affects yield and leaching regimes. Fertilization variables are not absent from the design; they are simply dominated by calendar and preparation in this local controlled context.
+
+\FloatBarrier
+
+\subsection{Two-factor interactions}
+
+The two-factor heatmaps show that the strongest interactions are concentrated around pairs involving sowing and harvest dates. For \param{N\_lixi}, the leading interaction is \param{Date\_Semis} with \param{Date\_Recolte}, with an interaction $R^2$ of 0.102. For \param{rdt}, the same pair is even more important, with an interaction $R^2$ of 0.189. For \param{dCorg}, the global two-factor contribution of sowing and harvest is high, but the interaction component itself remains small (0.002), meaning that most of the carbon signal is additive in these two dates.
+
+\begin{figure}[!tbp]
+\centering
+\fitfig{../analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_N_lixi.png}
+\caption{Pairwise interaction $R^2$ for nitrogen leaching. The dominant non-additive signal combines sowing and harvest dates.}
+\label{fig:interaction-nlixi}
+\end{figure}
+
+\begin{figure}[!tbp]
+\centering
+\fitfig{../analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_dCorg.png}
+\caption{Pairwise interaction $R^2$ for organic-carbon variation. The map is weaker than for yield and leaching, supporting a mostly additive date response.}
+\label{fig:interaction-dcorg}
+\end{figure}
+
+\begin{figure}[!tbp]
+\centering
+\fitfig{../analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_rdt.png}
+\caption{Pairwise interaction $R^2$ for yield. The sowing--harvest interaction indicates that crop-calendar placement must be interpreted jointly.}
+\label{fig:interaction-rdt}
+\end{figure}
+
+The heatmaps prevent a misleading interpretation of one-factor bars. A variable can have a strong individual effect, while the agronomic mechanism is expressed through a pair. For yield, the \param{Date\_Semis}--\param{Date\_Recolte} interaction suggests that calendar duration and timing must be interpreted together: a sowing date that is favourable under one harvest window may be less favourable under another.
+
+\FloatBarrier
+
+\subsection{Global metamodel-based indices}
+
+Sobol total-order and Shapley summaries broadly confirm the same structure. For \param{N\_lixi}, \param{Date\_Semis} is dominant, followed by \param{Date\_Recolte}, \param{has\_prepa} and \param{Delta\_PREPA\_Semis}. The Shapley effects allocate about 39\% of the metamodel variance to \param{Date\_Semis}, about 13\% to \param{has\_prepa}, about 12\% to \param{Date\_Recolte}, and about 9\% to \param{Delta\_PREPA\_Semis}.
+
+For \param{dCorg}, both Sobol and Shapley summaries place \param{Date\_Recolte} first and \param{Date\_Semis} second. This aligns with the direct screening and supports a simple interpretation: carbon variation is largely controlled by how the crop period is positioned and terminated in the campaign. For \param{rdt}, the Shapley effects distribute importance across \param{Date\_Recolte} (24\%), \param{Date\_Semis} (21\%), \param{has\_prepa} (20\%) and \param{Delta\_PREPA\_Semis} (8\%).
+
+\begin{figure}[!tbp]
+\centering
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\linewidth,height=0.34\textheight,keepaspectratio]{../analysis/terrainSA_results/sobol_total_top.png}
+\caption{Sobol total-order indices.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\linewidth,height=0.34\textheight,keepaspectratio]{../analysis/terrainSA_results/shapley_top.png}
+\caption{Shapley effects.}
+\end{subfigure}
+\caption{Global sensitivity summaries for the updated \texttt{terrainSA} design. The stable qualitative result is the dominance of calendar and preparation variables.}
+\label{fig:sobol-shapley}
+\end{figure}
+
+In constrained hierarchical spaces, numerical estimates can be affected by inactive variables and sampling distribution. The stable conclusion is therefore the agreement between independent views: one-factor screening, interaction heatmaps, Sobol/Shapley summaries and trees all point toward calendar and preparation variables.
+
+\FloatBarrier
+
+\subsection{Decision-tree thresholds and local regimes}
+
+The interpretable decision trees have lower complexity than the ensemble metamodels but still generalize well (Table~\ref{tab:tree}). Their purpose is to expose thresholds. Unlike global indices, which give rankings, the trees show where the response changes.
+
+\begin{table}[!tbp]
+\centering
+\caption{Performance of interpretable regression trees.}
+\label{tab:tree}
+\begin{tabular}{lrrrr}
+\toprule
+Output & Train $R^2$ & Test $Q^2$ & MAE & RMSE \\
+\midrule
+\param{N\_lixi} & 0.900 & 0.887 & 0.109 & 0.150 \\
+\param{dCorg} & 0.969 & 0.966 & 5.407 & 6.618 \\
+\param{rdt} & 0.899 & 0.879 & 0.035 & 0.047 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!tbp]
+\centering
+\caption{Main split thresholds identified by decision trees. Campaign day 1 corresponds to 1 August.}
+\label{tab:thresholds}
+\small
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}p{5.1cm}Y}
+\toprule
+Output & Main thresholds & Local interpretation \\
+\midrule
+\param{N\_lixi} & \param{Date\_Semis}: 53--73, 81--91 & Later sowing branches increase leaching. \\
+ & \param{Delta\_PREPA\_Semis}: $-24$ to $-35$ & Preparation close to sowing modifies high-leaching regimes. \\
+ & \param{Date\_Recolte}: 331--376 & Harvest timing further separates branches. \\
+\addlinespace
+\param{dCorg} & \param{Date\_Recolte}: 329--377 & Harvest date is the main carbon partition. \\
+ & \param{Date\_Semis}: 54--85 & Sowing date refines carbon regimes. \\
+\addlinespace
+\param{rdt} & \param{Delta\_PREPA\_Semis}: $-24.6$, $-34.5$ & Yield improves in branches with sufficient preparation lead time. \\
+ & \param{Date\_Semis}: 57--97 & Early and late sowing windows produce distinct yield regimes. \\
+ & \param{Date\_Recolte}: 329--343, 369 & Harvest windows interact with sowing and preparation. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The local regimes give a concrete interpretation of the global rankings. For \param{N\_lixi}, the mean over all tree leaves is about 2.82. Low-leaching leaves occur when sowing is early in the campaign and the preparation-to-sowing delay is long enough; one low regime has a mean of 1.57. High-leaching leaves appear when sowing is later than day 73, preparation is close to sowing, and harvest occurs early in the corresponding branch; the highest displayed regime reaches about 3.68. This suggests that nitrogen losses are driven by temporal exposure rather than by a single isolated operation.
+
+For \param{dCorg}, the tree partitions regimes around harvest and sowing dates. The global mean is around $-216$. More negative regimes occur when harvest is later than day 352 and sowing is early, with some leaves near $-298$. Less negative regimes occur when harvest is earlier and sowing is later, with leaves around $-152$ to $-169$. The interpretation is not that one calendar is universally better; the tree reveals that the simulated carbon balance is highly sensitive to the crop-period window.
+
+For \param{rdt}, the global mean is about 4.50. The lowest-yield leaves occur when preparation is close to sowing, harvest is early, and sowing is late; one local regime has a mean near 4.14. The highest-yield leaves combine a longer preparation lead time, early sowing and favourable harvest windows, with means near 4.78. Yield is therefore not only sensitive to \param{Delta\_PREPA\_Semis}; it is sensitive to how that delay combines with sowing and harvest windows.
+
+\begin{figure}[!tbp]
+\centering
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{../analysis/decision_tree_thresholds/decision_tree_importance_N_lixi.png}
+\caption{\param{N\_lixi}.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{../analysis/decision_tree_thresholds/decision_tree_importance_dCorg.png}
+\caption{\param{dCorg}.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+\includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{../analysis/decision_tree_thresholds/decision_tree_importance_rdt.png}
+\caption{\param{rdt}.}
+\end{subfigure}
+\caption{Decision-tree feature importances aggregated by original agronomic parameter. The tree structure is carried almost entirely by dates and preparation variables.}
+\label{fig:tree-importance}
+\end{figure}
+
+Full decision-tree diagrams are kept in Appendix~\ref{sec:tree-appendix}. They are useful for checking the precise sequence of splits, but the main text focuses on thresholds and local regimes because the complete trees are too dense to carry the interpretation on their own.
+
+\FloatBarrier
+
+\section{Discussion}
+
+\subsection{From pedoclimatic dominance to controlled technical analysis}
+
+The provisional heterogeneous-terrain figures show why the two-stage design is necessary. If soil and climate are allowed to vary, they can dominate the outputs and obscure the contribution of technical operations. This is not a weakness of the model. It is a reminder that agro-ecological outputs are strongly contextual. The role of \texttt{terrainSA} is to hold that context fixed and make technical variability visible.
+
+The first part must now be rerun with the updated SMT plan. Until then, the article should avoid reporting final numerical claims for the heterogeneous terrain. The final version should compare two complementary statements: pedoclimatic heterogeneity dominates when the full terrain varies, while calendar and preparation dominate within a fixed pedoclimatic context.
+
+\subsection{What the updated SMT space changes}
+
+The updated design changes the scientific interpretation. Earlier drafts emphasized fertilization structure. The current results instead show that the dominant signal is temporal: sowing date, harvest date, preparation presence and preparation delay. This shift is plausible because the updated design expresses operation dates as campaign-day variables and enforces temporal feasibility more cleanly. Once the scenario space is made coherent, MAELIA responds strongly to the placement of operations in the crop campaign.
+
+This does not mean that dose and product parameters are irrelevant in all agronomic contexts. It means that in this specific feasible design, for this parcel and these outputs, their variance contribution is small compared with calendar/preparation structure. Before increasing the complexity of fertilization sensitivity analysis, one must understand the calendar regimes in which fertilization effects could become visible.
+
+\subsection{Reading global indices in a hierarchical space}
+
+The indices reported here are summaries over a constrained distribution. This matters for interpretation. In a classical rectangular space, one can often discuss Sobol indices as contributions of independent variables. In a hierarchical SMT space, variables are activated conditionally and sampled under constraints. A dose attached to an inactive fertilization event has a different status from an always-active continuous parameter. Therefore, global indices should be read together with activation variables and decision-tree rules.
+
+The stable conclusion across methods is not a precise decimal value for each factor. It is the agreement between independent views: one-factor screening, interaction heatmaps, Sobol/Shapley summaries and trees all point toward calendar and preparation variables. This convergence is stronger than any individual estimator.
+
+\subsection{Local regimes as hypotheses}
+
+Decision-tree thresholds should be interpreted as hypotheses for targeted follow-up simulations. The thresholds around campaign days 53--73 for sowing, around 331--377 for harvest, and around $-24$ to $-35$ for preparation delay are not universal agronomic prescriptions. They are local partitions of the simulated response surface. Their value is to indicate where the model changes behaviour and where finer analysis should be concentrated.
+
+For example, the yield tree suggests that the preparation-to-sowing delay matters most when combined with sowing and harvest windows. A future analysis could therefore fix a promising calendar window and locally vary preparation type, lead time and fertilization doses. This is the practical benefit of the tree: it transforms a global sensitivity result into a smaller set of local questions.
+
+\subsection{Limitations and next steps}
+
+Several limitations remain. First, \texttt{terrainSA} is intentionally local: it fixes soil and climate by replicating one parcel. The conclusions should not be generalized to other pedoclimatic contexts without repeating the same workflow on representative parcels. Second, the heterogeneous-terrain section must be rerun with the updated design before final publication. Third, Sobol and Shapley summaries are metamodel-based and evaluated over a constrained feasible distribution. Fourth, decision-tree thresholds depend on the sampled range and regularization choices.
+
+The next step is to regenerate the heterogeneous-terrain simulations with the updated SMT design, then compare the controlled and heterogeneous analyses directly. A second extension would be to generate pick-freeze or Shapley samples directly inside the feasible SMT space, avoiding the mismatch between classical variance-based designs and hierarchical activation constraints.
+
+\section{Conclusion}
+
+This paper presents an updated sensitivity-analysis workflow for MAELIA in a hierarchical SMT parameter space. The first, heterogeneous part remains to be completed after rerunning simulations with the updated design, but it already motivates the key methodological choice: soil and climate must be diagnosed or controlled before technical operations can be interpreted. The controlled \texttt{terrainSA} experiment fixes this issue by cloning \texttt{beauce\_5\_1} in a common soil and weather context.
+
+On the updated 10,000-point dataset, the selected metamodels generalize very well. The main result is that, in the controlled context, the dominant technical signal is calendar and preparation rather than fertilization dose structure. \param{Date\_Semis}, \param{Date\_Recolte}, \param{Delta\_PREPA\_Semis} and \param{has\_prepa} explain most of the variability in nitrogen leaching, organic-carbon variation and yield. Decision trees translate these rankings into threshold regimes, making it possible to identify local zones where more detailed simulations should be run.
+
+The broader methodological message is that sensitivity analysis of agro-ecological models should be adapted to the structure of the input space. In hierarchical agronomic designs, validity of scenarios is as important as the numerical estimator. A useful workflow must preserve constraints, validate surrogates, combine global and local tools, and separate environmental heterogeneity from technical effects.
+
+\appendix
+\section{Full Decision-Tree Diagrams}
+\label{sec:tree-appendix}
+
+The complete trees are provided for traceability. Their detailed node labels are useful for auditing thresholds, while the main text summarizes the interpretable regimes.
+
+\begin{figure}[!p]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{../analysis/decision_tree_thresholds/decision_tree_N_lixi.png}
+\caption{Full regression tree for nitrogen leaching.}
+\label{fig:tree-nlixi-full}
+\end{figure}
+
+\begin{figure}[!p]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{../analysis/decision_tree_thresholds/decision_tree_dCorg.png}
+\caption{Full regression tree for organic-carbon variation.}
+\label{fig:tree-dcorg-full}
+\end{figure}
+
+\begin{figure}[!p]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{../analysis/decision_tree_thresholds/decision_tree_rdt.png}
+\caption{Full regression tree for yield.}
+\label{fig:tree-rdt-full}
+\end{figure}
+
+\FloatBarrier
+
+\section*{Data and code availability}
+
+The notebooks and generated figures used in this draft are stored in the repository containing the MAELIA sensitivity-analysis workflow. The main analysis notebooks are \texttt{analysis/Analyse\_terrainSA.ipynb} and \texttt{analysis/Analyse\_seuils\_decision\_tree.ipynb}. The controlled simulation notebooks are \texttt{simulations/batch\_simulations\_smt\_terrainSA.ipynb} and \texttt{simulations/batch\_simulations\_smt\_beauce5.ipynb}.
+
+\section*{Acknowledgements}
+
+This draft was prepared as part of an internship project on sensitivity analysis for MAELIA. The author thanks the contributors to the MAELIA modelling environment and the methodological discussions around hierarchical spaces and simulation exploration. Funding and institutional acknowledgements should be completed before submission.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

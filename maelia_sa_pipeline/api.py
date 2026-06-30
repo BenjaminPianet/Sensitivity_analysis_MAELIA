@@ -32,7 +32,7 @@ class AnalysisRequest(BaseModel):
     )
     output_dir: str | None = Field(None, description="Dossier de sortie. Par défaut : analysis/web_runs/<run_id>")
     targets: list[str] | None = Field(None, description="Sorties à analyser, par défaut N_lixi, dCorg, rdt")
-    features: list[str] | None = Field(None, description="Colonnes de paramètres à utiliser. Par défaut : feat_0...feat_25")
+    features: list[str] | None = Field(None, description="Colonnes de paramètres à utiliser. Par défaut : les colonnes du plan SMT courant")
     analyses: list[str] | None = Field(None, description="Blocs d'analyse à exécuter. Par défaut : profil rapide recommandé")
     n_bins: int = Field(4, ge=2, le=8, description="Nombre de classes pour discrétiser les variables continues en ANOVA")
     sobol_n_mc: int = Field(2000, ge=200, le=50000, description="Taille Monte-Carlo pour les indices de Sobol total")

@@ -64,9 +64,9 @@ L'ANOVA/Kruskal à un facteur met en évidence des leviers différents selon les
 
 | Sortie | Paramètres dominants | Lecture rapide |
 |---|---|---|
-| `N_lixi` | `Date_Semis`, `Delta_PREPA_Semis`, `has_prepa`, `prepa_1`, `Date_Recolte` | la lixiviation est d'abord gouvernée par le calendrier semis-préparation-récolte ; |
+| `N_lixi` | `Date_Semis`, `Delta_PREPA_Semis`, `has_prepa`, `Profondeur_Prepa_1`, `Date_Recolte` | la lixiviation est d'abord gouvernée par le calendrier semis-préparation-récolte ; |
 | `dCorg` | `Date_Recolte`, `Date_Semis` | le carbone organique dépend surtout de la durée et du positionnement du cycle ; |
-| `rdt` | `Delta_PREPA_Semis`, `has_prepa`, `prepa_1`, `Date_Recolte`, `Date_Semis` | le rendement est sensible au délai préparation-semis et au calendrier de fin de cycle. |
+| `rdt` | `Delta_PREPA_Semis`, `has_prepa`, `Profondeur_Prepa_1`, `Date_Recolte`, `Date_Semis` | le rendement est sensible au délai préparation-semis et au calendrier de fin de cycle. |
 
 ![ANOVA terrainSA à un facteur](analysis/terrainSA_results/anova_1facteur_top.png)
 

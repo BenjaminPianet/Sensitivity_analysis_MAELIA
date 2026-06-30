@@ -9,9 +9,10 @@ import pandas as pd
 
 from .config import DEFAULT_OUTPUT_ROOT, DEFAULT_PDP_ICE_FEATURES, FEATURE_LABELS, TARGET_LABELS
 from .data import final_dynamic_dataset, load_dataset, load_dynamic_outputs
+from .hsic import compute_hsic_anova
 from .models import metamodel_feature_importance, select_best_metamodel, sobol_total_from_metamodel, train_decision_tree, train_sparse_pce_sobol
 from .stats import discretize_factors, one_factor_anova, two_factor_interaction
-from .viz import plot_interaction_heatmap, plot_metamodel_performance, plot_one_factor, plot_pce_sobol, plot_pdp_ice, plot_regions, plot_sobol_total, plot_temporal_trajectories, plot_tree_figure
+from .viz import plot_interaction_heatmap, plot_metamodel_performance, plot_one_factor, plot_hsic_order_decomposition, plot_pce_sobol, plot_pdp_ice, plot_regions, plot_sobol_total, plot_temporal_trajectories, plot_tree_figure
 
 
 def _safe_name(value: str) -> str:
@@ -25,6 +26,7 @@ ANALYSIS_LABELS = {
     "anova_1factor": "ANOVA à un facteur",
     "anova_2factor": "ANOVA à deux facteurs",
     "pce_sobol": "Sobol analytique par PCE",
+    "hsic_anova": "HSIC-ANOVA hiérarchique",
     "metamodel": "Comparaison / sélection du métamodèle",
     "sobol_empirical": "Sobol total empirique",
     "pdp_ice": "PDP/ICE finales",
@@ -61,6 +63,7 @@ def _write_html_report(manifest: dict, output_dir: Path) -> Path:
             ("anova_2factor_interaction_png", "Interactions à deux facteurs"),
             ("metamodel_performance_png", "Performance du métamodèle"),
             ("pce_sobol_png", "Sobol analytique par PCE"),
+            ("hsic_anova_order_png", "Décomposition HSIC-ANOVA"),
             ("sobol_total_png", "Sobol total empirique"),
             ("decision_tree_regions_png", "Régions sensibles"),
             ("decision_tree_png", "Arbre de décision"),
@@ -207,6 +210,7 @@ def run_analysis(
 
     metamodel_rows = []
     pce_metric_rows = []
+    hsic_metric_rows = []
     for target in bundle.target_columns:
         target_dir = out / _safe_name(target)
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -280,6 +284,30 @@ def run_analysis(
                 bundle.warnings.append(warning)
                 target_artifacts["pce_metrics"] = {"model_name": "SparsePCE", "status": "error", "error": str(exc)}
 
+        if "hsic_anova" in analysis_set:
+            try:
+                hsic_terms, hsic_metrics = compute_hsic_anova(
+                    df,
+                    target,
+                    bundle.feature_columns,
+                    bundle.categorical_columns,
+                    bundle.continuous_columns,
+                    max_order=3,
+                    max_samples=1200,
+                    random_state=random_state + 3000 + bundle.target_columns.index(target),
+                )
+                hsic_path = target_dir / f"hsic_anova_terms_{target}.csv"
+                hsic_terms.to_csv(hsic_path, index=False)
+                target_artifacts["hsic_anova_terms_csv"] = str(hsic_path)
+                target_artifacts["hsic_anova_metrics"] = hsic_metrics
+                hsic_metric_rows.append({"sortie": target, **hsic_metrics})
+                p = plot_hsic_order_decomposition(hsic_terms, target, target_dir / f"hsic_anova_decomposition_{target}.png")
+                target_artifacts["hsic_anova_order_png"] = str(p)
+            except Exception as exc:
+                warning = f"HSIC-ANOVA indisponible pour {target}: {exc}"
+                bundle.warnings.append(warning)
+                target_artifacts["hsic_anova_metrics"] = {"model_name": "HSIC-ANOVA", "status": "error", "error": str(exc)}
+
         if "pdp_ice" in analysis_set and model is not None:
             pdp_features = [
                 feature for feature in DEFAULT_PDP_ICE_FEATURES
@@ -351,6 +379,11 @@ def run_analysis(
         pce_metrics_path = out / "pce_metamodel_metrics.csv"
         pd.DataFrame(pce_metric_rows).to_csv(pce_metrics_path, index=False)
         manifest["tables"]["pce_metamodel_metrics"] = str(pce_metrics_path)
+
+    if hsic_metric_rows:
+        hsic_metrics_path = out / "hsic_anova_metrics.csv"
+        pd.DataFrame(hsic_metric_rows).to_csv(hsic_metrics_path, index=False)
+        manifest["tables"]["hsic_anova_metrics"] = str(hsic_metrics_path)
 
     report_path = _write_html_report(manifest, out)
     manifest["report_html"] = str(report_path)

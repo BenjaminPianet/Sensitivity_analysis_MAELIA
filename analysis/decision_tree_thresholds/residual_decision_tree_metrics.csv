@@ -1,0 +1,4 @@
+sortie,best_params,additive_Q2_test,residual_tree_Q2_test,residual_tree_MAE_test,residual_tree_RMSE_test
+N_lixi,"{'tree__ccp_alpha': 1e-05, 'tree__max_depth': 4, 'tree__min_samples_leaf': 37}",0.74787033570455,0.640974343081418,0.09973971843406682,0.13409701649912445
+dCorg,"{'tree__ccp_alpha': 0.0, 'tree__max_depth': 4, 'tree__min_samples_leaf': 37}",0.9851997447172737,0.7718848209902983,1.6046516102205206,2.090144064415711
+rdt,"{'tree__ccp_alpha': 0.0, 'tree__max_depth': 4, 'tree__min_samples_leaf': 37}",0.5832747264369285,0.7709423757569533,0.032854654493084494,0.04200527610933561

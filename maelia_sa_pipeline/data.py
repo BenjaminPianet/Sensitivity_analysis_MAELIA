@@ -48,9 +48,10 @@ def latest_log_mtime(log_dir: Path) -> float | None:
 
 
 def _validate_smt_feature_scale(df: pd.DataFrame, dataset_path: Path) -> None:
-    if "feat_14" not in df.columns:
+    date_semis_col = f"feat_{AGRI_FEATURES.index('Date_Semis')}"
+    if date_semis_col not in df.columns:
         return
-    date_semis = pd.to_numeric(df["feat_14"], errors="coerce").dropna()
+    date_semis = pd.to_numeric(df[date_semis_col], errors="coerce").dropna()
     if date_semis.empty:
         return
     vmin = float(date_semis.min())
@@ -58,7 +59,7 @@ def _validate_smt_feature_scale(df: pd.DataFrame, dataset_path: Path) -> None:
     if vmax > 150 or vmin < 35:
         raise ValueError(
             "Le dataset_metamodel.csv semble provenir de l'ancien plan d'expérience. "
-            f"La colonne feat_14, maintenant interprétée comme Date_Semis, vaut [{vmin:.1f}, {vmax:.1f}], "
+            f"La colonne {date_semis_col}, interprétée comme Date_Semis, vaut [{vmin:.1f}, {vmax:.1f}], "
             "alors que le nouveau plan attend environ [45, 106] en jours de campagne. "
             "Régénère les fichiers dateDose, relance GAMA, puis ré-exporte dataset_metamodel.csv. "
             f"Dataset concerné : {dataset_path}"
@@ -74,13 +75,13 @@ def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = 
             raise ValueError(f"Paramètres absents du dataset : {missing}")
         X = df[feature_columns].copy()
     else:
-        feat_cols = [f"feat_{i}" for i in range(26)]
+        feat_cols = [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
         if all(col in df.columns for col in feat_cols):
             X = df[feat_cols].copy()
             X.columns = AGRI_FEATURES
             feature_columns = AGRI_FEATURES.copy()
             warnings.append(
-                "Les colonnes feat_0...feat_25 ont été renommées avec des libellés agronomiques "
+                "Les colonnes feat_* ont été renommées avec des libellés agronomiques "
                 "pour l'affichage. Les valeurs restent celles du plan SMT exporté."
             )
         elif all(col in df.columns for col in AGRI_FEATURES):
@@ -88,7 +89,7 @@ def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = 
             X = df[feature_columns].copy()
         else:
             raise ValueError(
-                "Le dataset doit contenir soit feat_0...feat_25, soit les 26 colonnes agronomiques. "
+                "Le dataset doit contenir soit les colonnes feat_* du plan courant, soit les colonnes agronomiques nommées. "
                 "Les logs MAELIA seuls ne suffisent pas : il faut le dataset exporté avec la matrice xt."
             )
 

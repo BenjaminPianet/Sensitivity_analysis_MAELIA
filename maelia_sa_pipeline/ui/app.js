@@ -24,6 +24,7 @@ const analysisLabels = {
   anova_1factor: "ANOVA 1 facteur",
   anova_2factor: "ANOVA 2 facteurs",
   pce_sobol: "Sobol PCE",
+  hsic_anova: "HSIC-ANOVA",
   metamodel: "Métamodèle",
   sobol_empirical: "Sobol empirique",
   pdp_ice: "PDP/ICE",
@@ -36,6 +37,7 @@ const figureLabels = {
   anova_2factor_interaction_png: "Interactions à deux facteurs",
   metamodel_performance_png: "Performance du métamodèle",
   pce_sobol_png: "Sobol PCE",
+  hsic_anova_order_png: "HSIC-ANOVA",
   sobol_total_png: "Sobol total empirique",
   decision_tree_regions_png: "Régions sensibles",
   decision_tree_png: "Arbre complet",
@@ -43,9 +45,11 @@ const figureLabels = {
 };
 
 const featureOrder = [
-  "n_ferti", "has_prepa", "nb_prepa", "prepa_1", "nb_f1", "type_f1_1", "nb_f2", "type_f2_1", "nb_f3", "type_f3_1",
-  "prepa_2", "type_f1_2", "type_f2_2", "type_f3_2", "Date_Semis", "Delta_PREPA_Semis", "Date_F1", "Date_F2",
-  "Date_F3", "Date_Recolte", "Dose_F1_1", "Dose_F1_2", "Dose_F2_1", "Dose_F2_2", "Dose_F3_1", "Dose_F3_2",
+  "n_ferti", "has_prepa", "nb_prepa",
+  "Date_Semis", "Delta_PREPA_Semis", "Profondeur_Semis",
+  "Profondeur_Prepa_1", "Profondeur_Prepa_2",
+  "Date_F1", "Date_F2", "Date_F3", "Date_Recolte",
+  "Dose_F1", "Dose_F2", "Dose_F3",
 ];
 
 const helpTexts = {
@@ -60,6 +64,7 @@ const helpTexts = {
   analysis_anova_1factor: "Classe les paramètres selon leur effet descriptif individuel sur chaque sortie.",
   analysis_anova_2factor: "Calcule les interactions entre couples de paramètres et génère une matrice de R² d'interaction.",
   analysis_pce_sobol: "Entraîne un polynôme du chaos creux sur les points faisables SMT et calcule les indices de Sobol analytiques.",
+  analysis_hsic_anova: "Décompose la dépendance non linéaire entre paramètres et sortie avec HSIC-ANOVA. La figure résume la part portée par les effets simples, les interactions à deux paramètres et les interactions plus complexes.",
   analysis_decision_tree: "Entraîne des arbres de décision interprétables pour identifier des régions locales et des seuils.",
   analysis_temporal: "Charge les sorties dynamiques des logs GAMA pour tracer les trajectoires temporelles. Ce bloc peut prendre du temps si beaucoup de fichiers de logs sont présents.",
   analysis_metamodel: "Compare et sélectionne un métamodèle prédictif. Nécessaire pour PDP/ICE et Sobol empirique, mais plus coûteux que le PCE seul.",
@@ -67,7 +72,7 @@ const helpTexts = {
   analysis_sobol_empirical: "Estime un Sobol total par perturbation du métamodèle prédictif. À lire comme diagnostic complémentaire, plus coûteux et moins rigoureux que le Sobol PCE pour l'espace SMT.",
   run_button: "Lance la pipeline complète : chargement logs + dataset, contrôle des colonnes, entraînement du métamodèle, ANOVA/Kruskal, Sobol total et arbres de décision.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
-  summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan actuel en comporte 26.",
+  summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan actuel compact en comporte 15.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
   summary_run: "Identifiant unique du calcul web. Les figures, CSV et rapports sont sauvegardés dans analysis/web_runs/<run_id>/.",
   summary_analyses: "Nombre de blocs d'analyse effectivement demandés pour ce run.",
@@ -86,6 +91,7 @@ const helpTexts = {
   anova_2factor_interaction_png: "Matrice d'interaction à deux facteurs. Elle affiche seulement le R² d'interaction, donc ce qui reste quand les effets additifs des deux paramètres sont retirés.",
   metamodel_performance_png: "Performance du métamodèle. Elle compare les prédictions aux valeurs observées et sépare la qualité d'entraînement de la qualité de test.",
   pce_sobol_png: "Indices de Sobol calculés analytiquement depuis le PCE creux. Cette figure est méthodologiquement plus rigoureuse pour le plan SMT contraint que des points Saltelli générés hors contraintes.",
+  hsic_anova_order_png: "Décomposition HSIC-ANOVA par ordre. L’ordre 1 correspond aux effets simples, l’ordre 2 aux interactions deux à deux, et les ordres supérieurs aux dépendances plus combinatoires. Ce n’est pas un R² ni un indice de Sobol, mais une contribution au HSIC global.",
   sobol_total_png: "Indice de Sobol total empirique estimé par perturbation sur le métamodèle prédictif. À lire comme diagnostic complémentaire, car certaines recombinaisons peuvent sortir de la logique SMT stricte.",
   decision_tree_regions_png: "Régions sensibles. Chaque barre correspond à une feuille de l'arbre, donc à un ensemble de simulations partageant les mêmes règles de seuil.",
   decision_tree_png: "Arbre de décision complet. Il expose les seuils successifs utilisés pour séparer les simulations en régimes locaux.",
@@ -95,32 +101,21 @@ const helpTexts = {
   action_report: "Ouvre le rapport HTML complet sauvegardé pour ce run. Il regroupe toutes les figures générées.",
   action_regions_csv: "Ouvre le CSV des régions sensibles. Il contient les règles de seuil, la taille de chaque région et la moyenne de sortie associée.",
   action_rules_txt: "Ouvre les règles textuelles brutes de l'arbre de décision.",
-  feature_n_ferti: "Nombre d'événements de fertilisation azotée activés dans l'itinéraire. Les variables F1, F2 et F3 ne s'interprètent que si l'événement correspondant existe.",
-  feature_has_prepa: "Indique si une préparation du sol est activée avant le semis. C'est une variable d'activation hiérarchique pour nb_prepa, prepa_1, prepa_2 et Delta_PREPA_Semis.",
-  feature_nb_prepa: "Nombre d'opérations de préparation du sol effectuées sur l'unique date de préparation. Le plan autorise une ou deux opérations, sauf contraintes spécifiques.",
-  feature_prepa_1: "Type de la première opération de préparation du sol. Si le labour est choisi, il ne doit pas être combiné avec une autre préparation.",
-  feature_prepa_2: "Type de la deuxième opération de préparation du sol, active seulement lorsque deux préparations sont prévues.",
-  feature_nb_f1: "Nombre de produits appliqués lors du premier événement de fertilisation F1.",
-  feature_type_f1_1: "Type du premier produit appliqué lors de F1.",
-  feature_type_f1_2: "Type du deuxième produit appliqué lors de F1, actif uniquement si F1 contient deux produits.",
-  feature_nb_f2: "Nombre de produits appliqués lors du deuxième événement de fertilisation F2.",
-  feature_type_f2_1: "Type du premier produit appliqué lors de F2.",
-  feature_type_f2_2: "Type du deuxième produit appliqué lors de F2, actif uniquement si F2 contient deux produits.",
-  feature_nb_f3: "Nombre de produits appliqués lors du troisième événement de fertilisation F3.",
-  feature_type_f3_1: "Type du premier produit appliqué lors de F3.",
-  feature_type_f3_2: "Type du deuxième produit appliqué lors de F3, actif uniquement si F3 contient deux produits.",
+  feature_n_ferti: "Nombre d'événements de fertilisation azotée activés dans l'itinéraire. Le produit est fixé à AN; seules les dates et doses des apports varient.",
+  feature_has_prepa: "Indique si une préparation du sol est activée avant le semis. Cette variable active le nombre de préparations, le délai préparation-semis et les profondeurs de travail du sol.",
+  feature_nb_prepa: "Nombre d'opérations de préparation du sol effectuées sur l'unique date de préparation. Le plan autorise une ou deux profondeurs de travail.",
   feature_Date_Semis: "Date de semis exprimée en jour de campagne, avec 1 = 1er août. C'est un moteur majeur des fenêtres culturales.",
   feature_Delta_PREPA_Semis: "Délai entre préparation du sol et semis. La valeur est négative: -25 signifie environ 25 jours avant le semis.",
-  feature_Date_F1: "Date du premier événement de fertilisation, exprimée en jour de campagne.",
-  feature_Date_F2: "Date du deuxième événement de fertilisation, exprimée en jour de campagne et active si F2 existe.",
-  feature_Date_F3: "Date du troisième événement de fertilisation, exprimée en jour de campagne et active si F3 existe.",
+  feature_Profondeur_Semis: "Profondeur du semis en centimètres. Dans MAELIA, elle agit comme un petit travail du sol associé au semis.",
+  feature_Profondeur_Prepa_1: "Profondeur de la première opération de préparation du sol en centimètres. Elle remplace les anciens noms de préparation, qui n'étaient que des alias.",
+  feature_Profondeur_Prepa_2: "Profondeur de la deuxième opération de préparation du sol, active seulement lorsque deux préparations sont prévues.",
+  feature_Date_F1: "Date du premier apport d'azote minéral AN, exprimée en jour de campagne.",
+  feature_Date_F2: "Date du deuxième apport d'azote minéral AN, exprimée en jour de campagne et active si F2 existe.",
+  feature_Date_F3: "Date du troisième apport d'azote minéral AN, exprimée en jour de campagne et active si F3 existe.",
   feature_Date_Recolte: "Date de récolte exprimée en jour de campagne. Elle définit la fin de la fenêtre culturale simulée.",
-  feature_Dose_F1_1: "Dose d'azote du premier produit de l'événement F1.",
-  feature_Dose_F1_2: "Dose d'azote du deuxième produit de l'événement F1, active si ce produit existe.",
-  feature_Dose_F2_1: "Dose d'azote du premier produit de l'événement F2.",
-  feature_Dose_F2_2: "Dose d'azote du deuxième produit de l'événement F2, active si ce produit existe.",
-  feature_Dose_F3_1: "Dose d'azote du premier produit de l'événement F3.",
-  feature_Dose_F3_2: "Dose d'azote du deuxième produit de l'événement F3, active si ce produit existe.",
+  feature_Dose_F1: "Dose d'azote de l'apport F1, avec le fertilisant fixé à AN.",
+  feature_Dose_F2: "Dose d'azote de l'apport F2, active si le deuxième apport existe.",
+  feature_Dose_F3: "Dose d'azote de l'apport F3, active si le troisième apport existe.",
 };
 
 const references = [
@@ -130,6 +125,7 @@ const references = [
   "Sobol' (2001) et Saltelli (2002) : indices de sensibilité variance-based et indices totaux.",
   "Shapley (1953) et Song et al. (2016) : allocation de variance par effets de Shapley.",
   "Breiman et al. (1984) : arbres de classification et régression pour règles de seuil.",
+  "Gretton et al. (2005) et Da Veiga (2015) : HSIC et décomposition HSIC-ANOVA par noyaux.",
   "Geurts et al. (2006), Chen et Guestrin (2016), Rasmussen et Williams (2006) : ExtraTrees, XGBoost et Gaussian Processes pour métamodélisation.",
 ];
 
@@ -323,6 +319,7 @@ function renderTarget(target) {
         ${figurePanel(artifacts, "temporal_trajectory_png", true, "hero-figure")}
         ${figurePanel(artifacts, "metamodel_performance_png")}
         ${figurePanel(artifacts, "pce_sobol_png", false, "pce-panel")}
+        ${figurePanel(artifacts, "hsic_anova_order_png", false, "hsic-panel")}
         ${figurePanel(artifacts, "sobol_total_png")}
         ${pdpIcePanels(artifacts)}
         ${figurePanel(artifacts, "anova_1factor_png")}

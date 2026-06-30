@@ -1,8 +1,8 @@
 # Pipeline web d'analyse de sensibilité MAELIA
 
-Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal, interactions à deux facteurs, performances de métamodèles, indices de Sobol total et régions sensibles par arbres de décision.
+Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal, interactions à deux facteurs, performances de métamodèles, indices de Sobol total, HSIC-ANOVA et régions sensibles par arbres de décision.
 
-Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation à ses 26 paramètres agronomiques.
+Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux 15 paramètres agronomiques du plan SMT courant.
 
 ## Workflow GAMA + application web
 
@@ -26,7 +26,7 @@ Documentation API interactive : http://127.0.0.1:8000/docs
 
 ## Aide intégrée
 
-L'interface contient maintenant un README intégré expliquant comment utiliser GAMA avec l'application et comment lire les mesures. Les champs, sorties, figures, métriques et 26 paramètres du plan SMT disposent aussi d'une aide contextuelle : survoler un terme pendant deux secondes affiche sa définition.
+L'interface contient maintenant un README intégré expliquant comment utiliser GAMA avec l'application et comment lire les mesures. Les champs, sorties, figures, métriques et 15 paramètres du plan SMT disposent aussi d'une aide contextuelle : survoler un terme pendant deux secondes affiche sa définition.
 
 ## Mesures affichées
 
@@ -35,12 +35,13 @@ L'interface contient maintenant un README intégré expliquant comment utiliser 
 - `ANOVA/Kruskal à un facteur` : R² descriptif associé aux groupes d'un paramètre.
 - `ANOVA à deux facteurs` : matrice du R² d'interaction uniquement, donc le surplus explicatif propre au couple de paramètres.
 - `Sobol total` : contribution globale d'un paramètre, interactions comprises, estimée via le métamodèle sur le domaine faisable.
+- `HSIC-ANOVA` : décomposition de dépendance par noyaux, résumée par ordre d'interaction entre paramètres.
 - `Régions sensibles` : feuilles de l'arbre de décision résumées par leur moyenne et leur écart à la moyenne globale.
 - `Arbre complet` : règles de seuil successives qui définissent les régimes locaux.
 
 ## Paramètres du plan SMT
 
-Le plan actuel contient 26 paramètres : activations (`n_ferti`, `has_prepa`), préparation du sol (`nb_prepa`, `prepa_1`, `prepa_2`, `Delta_PREPA_Semis`), fertilisations (`nb_f1`, `type_f1_1`, etc.), dates (`Date_Semis`, `Date_F1`, `Date_F2`, `Date_F3`, `Date_Recolte`) et doses (`Dose_F1_1` à `Dose_F3_2`). Les dates sont exprimées en jours de campagne, avec `1 = 1er août`. Les variables dépendantes ne doivent être interprétées que si leur événement parent est actif.
+Le plan actuel contient 15 paramètres : activations (`n_ferti`, `has_prepa`), préparation du sol (`nb_prepa`, `Delta_PREPA_Semis`, `Profondeur_Prepa_1`, `Profondeur_Prepa_2`), profondeur de semis (`Profondeur_Semis`), dates (`Date_Semis`, `Date_F1`, `Date_F2`, `Date_F3`, `Date_Recolte`) et doses (`Dose_F1`, `Dose_F2`, `Dose_F3`). Les dates sont exprimées en jours de campagne, avec `1 = 1er août`. Le fertilisant est fixé à l'engrais minéral `AN`; les variables dépendantes ne doivent être interprétées que si leur événement parent est actif.
 
 ## Ligne de commande sans serveur
 
@@ -56,4 +57,5 @@ python -m maelia_sa_pipeline.cli   --log-dir /Users/benjamin/files/Repositories/
 - Sobol' (2001) et Saltelli (2002), indices variance-based et indices totaux.
 - Shapley (1953) et Song et al. (2016), effets de Shapley pour l'analyse de sensibilité globale.
 - Breiman et al. (1984), arbres de classification et régression.
+- Gretton et al. (2005) et Da Veiga (2015), HSIC et décomposition HSIC-ANOVA.
 - Geurts et al. (2006), Chen et Guestrin (2016), Rasmussen et Williams (2006), métamodèles ExtraTrees, XGBoost et Gaussian Processes.

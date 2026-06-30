@@ -1,0 +1,7 @@
+ID_EXPL;ID_LOT;TYPE_ANIMAUX;NB_UGB;DUREE_PATURAGE;CST_ALIM;STOCK_FOIN;FECES;RESTITUTION_BATIMENT;ELOIGNEMENT_MIN;ELOIGNEMENT_MAX
+mineral_sudouest_prairie;mineral_sudouest_prairie_1;VL;20;NA;11.1;NA;fumier bovin;0.2;0;1.5
+mineral_oceanique_prairie;mineral_oceanique_prairie_1;VL;20;NA;11.1;NA;fumier bovin;0.2;0;1.5
+mineral_beauce_prairie;mineral_beauce_prairie_1;VL;20;NA;11.1;NA;fumier bovin;0.2;0;1.5
+mineral_sudouest_prairie;mineral_sudouest_prairie_2;VL;20;NA;11.1;NA;fumier bovin;0.2;1.5;50
+mineral_oceanique_prairie;mineral_oceanique_prairie_2;VL;20;NA;11.1;NA;fumier bovin;0.2;1.5;50
+mineral_beauce_prairie;mineral_beauce_prairie_2;VL;20;NA;11.1;NA;fumier bovin;0.2;1.5;50

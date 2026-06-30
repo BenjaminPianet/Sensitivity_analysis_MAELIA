@@ -161,6 +161,78 @@ def plot_pce_sobol(sobol: pd.DataFrame, target: str, path: Path, top_n: int = 12
     sns.despine(left=True, bottom=False)
     return _save(fig, path)
 
+
+def plot_hsic_order_decomposition(hsic_terms: pd.DataFrame, target: str, path: Path) -> Path:
+    setup_style()
+    data = hsic_terms[hsic_terms["sortie"] == target].copy()
+    if data.empty:
+        fig, ax = plt.subplots(figsize=(9, 4.2))
+        ax.text(0.5, 0.5, "HSIC-ANOVA indisponible pour cette sortie", ha="center", va="center", fontsize=14)
+        ax.axis("off")
+        return _save(fig, path)
+
+    order_summary = (
+        data.groupby("order", as_index=False)["contribution_hsic_globale_pct"]
+        .sum()
+        .sort_values("order")
+    )
+    represented = float(order_summary["contribution_hsic_globale_pct"].sum())
+    if represented < 99.5:
+        order_summary = pd.concat([
+            order_summary,
+            pd.DataFrame([{"order": "Non représenté", "contribution_hsic_globale_pct": max(0.0, 100.0 - represented)}]),
+        ], ignore_index=True)
+
+    colors = {
+        1: PALETTE["teal"],
+        2: PALETTE["amber"],
+        3: "#F4A261",
+        4: PALETTE["coral"],
+        "Non représenté": "#CBD5E1",
+    }
+
+    fig, ax = plt.subplots(figsize=(10.8, 4.8))
+    left = 0.0
+    y = [0]
+    for row in order_summary.itertuples(index=False):
+        order = row.order
+        value = float(row.contribution_hsic_globale_pct)
+        label_text = f"Ordre {order}" if isinstance(order, (int, np.integer)) else str(order)
+        ax.barh(
+            y,
+            [value],
+            left=left,
+            height=0.42,
+            color=colors.get(order, "#7C8DA6"),
+            edgecolor="white",
+            linewidth=1.2,
+            label=label_text,
+        )
+        if value >= 4.0:
+            ax.text(left + value / 2, 0, f"{value:.0f}%", ha="center", va="center", fontsize=11, fontweight="bold", color=PALETTE["ink"])
+        left += value
+
+    ax.set_xlim(0, max(100.0, left * 1.04))
+    ax.set_yticks([])
+    ax.set_xlabel("Contribution au HSIC global (%)")
+    ax.set_title(f"Décomposition HSIC-ANOVA — {label(target)}")
+    ax.legend(frameon=False, ncol=min(len(order_summary), 5), loc="upper center", bbox_to_anchor=(0.5, -0.18))
+    ax.grid(axis="x", alpha=0.28)
+    ax.grid(axis="y", visible=False)
+    ax.text(
+        0.0,
+        -0.42,
+        "Lecture : l'ordre 1 correspond aux effets simples; l'ordre 2 aux interactions deux à deux; "
+        "les ordres supérieurs signalent des dépendances plus combinatoires. Le gris, s'il apparaît, "
+        "regroupe les termes non retenus par le filtrage HSIC.",
+        transform=ax.transAxes,
+        color=PALETTE["muted"],
+        fontsize=9,
+        va="top",
+    )
+    sns.despine(left=True, bottom=False)
+    return _save(fig, path)
+
 def plot_metamodel_performance(metrics: dict, target: str, path: Path) -> Path:
     setup_style()
     values = [float(metrics.get("R2_train", 0.0)), float(metrics.get("Q2_test", 0.0))]

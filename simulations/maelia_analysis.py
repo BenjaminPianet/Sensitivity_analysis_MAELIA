@@ -1,4 +1,12 @@
+from pathlib import Path
+import sys
+
 import numpy as np
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+TOOLS_DIR = PROJECT_ROOT / 'analysis' / 'tools'
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
 
 # 1. Imports from smt_generation
 from smt_generation import agri_design_space, xt, yt
@@ -10,19 +18,17 @@ from hsic_methods import hsic_anova_hierarchical
 from smt.surrogate_models import KRG
 from smt.surrogate_models.krg_based import MixIntKernelType, MixHrcKernelType
 from smt.design_space import CategoricalVariable
-from hsic_methods import hsic_anova_hierarchical
 
 from sklearn.inspection import permutation_importance
 print(f"Data imported: {xt.shape[0]} samples, {xt.shape[1]} features.")
 
-# Explicitly map the 26 MAELIA variables based on the design space definition
+# Explicitly map the 15 MAELIA variables based on the current design space definition
 var_names = [
-    "Nb_Ferti", "Has_Prepa", "Nb_Prepa", "Type_Prepa_1", "Type_Prepa_2",
-    "Nb_F1", "Type_F1_1", "Type_F1_2",
-    "Nb_F2", "Type_F2_1", "Type_F2_2",
-    "Nb_F3", "Type_F3_1", "Type_F3_2",
-    "Date_Semis", "Date_Prepa_Offset", "Date_F1", "Date_F2", "Date_F3", "Date_Recolte",
-    "Dose_F1_1", "Dose_F1_2", "Dose_F2_1", "Dose_F2_2", "Dose_F3_1", "Dose_F3_2"
+    "n_ferti", "has_prepa", "nb_prepa",
+    "Date_Semis", "Delta_PREPA_Semis", "Profondeur_Semis",
+    "Profondeur_Prepa_1", "Profondeur_Prepa_2",
+    "Date_F1", "Date_F2", "Date_F3", "Date_Recolte",
+    "Dose_F1", "Dose_F2", "Dose_F3",
 ]
 
 
@@ -42,7 +48,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.inspection import permutation_importance
 
 # ASTUCE : En limitant la profondeur de l'arbre et en forçant des feuilles larges,
-# le RF n'a plus la "capacité" d'exploiter les fausses micro-corrélations de Type_Prepa_2.
+# le RF évite de surinterpréter les variables conditionnelles rarement actives.
 rf = RandomForestRegressor(n_estimators=200, max_depth=10, min_samples_leaf=15, random_state=42)
 rf.fit(xt_normalized, yt.ravel())
 
