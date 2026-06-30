@@ -1,6 +1,6 @@
 from pathlib import Path
 
-PROJECT_ROOT = Path("/Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "analysis" / "web_runs"
 DEFAULT_TARGETS = ["N_lixi", "dCorg", "rdt"]
 DEFAULT_PDP_ICE_FEATURES = ["Date_Semis", "Date_Recolte", "Delta_PREPA_Semis"]

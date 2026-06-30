@@ -16,7 +16,7 @@ Le point crucial est le suivant : les logs MAELIA contiennent les sorties du mod
 ## Lancer l'application web
 
 ```bash
-cd /Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA
+cd /chemin/vers/Sensitivity_analysis_MAELIA
 uvicorn maelia_sa_pipeline.api:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -46,7 +46,7 @@ Le plan actuel contient 15 paramètres : activations (`n_ferti`, `has_prepa`), p
 ## Ligne de commande sans serveur
 
 ```bash
-python -m maelia_sa_pipeline.cli   --log-dir /Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA/simulations/log_terrainSA
+python -m maelia_sa_pipeline.cli   --log-dir simulations/log_terrainSA
 ```
 
 ## Sources méthodologiques

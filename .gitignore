@@ -3,5 +3,9 @@
 __pycache__/
 *.pyc
 .vscode/
-.python-version
+.ipynb_checkpoints/
 analysis/web_runs/
+analysis/hsic_anova_results/
+simulations/log_PDP:ICE/
+simulations/log_terrainTest/
+/tmp/

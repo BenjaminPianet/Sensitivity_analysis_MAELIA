@@ -1,200 +1,67 @@
-# Analyse de sensibilité MAELIA
+# Sensitivity Analysis MAELIA — terrainSA et HSIC-ANOVA
 
-Ce dépôt regroupe les notebooks, scripts et figures utilisés pour analyser la sensibilité des sorties MAELIA. La démarche suit quatre étapes :
+Ce dépôt rassemble une chaîne de travail minimale pour explorer la sensibilité d'un modèle agro-écologique MAELIA sur un terrain contrôlé, `terrainSA`, puis visualiser les résultats avec une application web et une analyse HSIC-ANOVA.
 
-1. analyser les premiers résultats lorsque le sol et le climat varient ;
-2. isoler les opérations techniques avec `terrainSA` et entraîner un métamodèle ;
-3. identifier des seuils locaux avec des arbres de décision ;
-4. visualiser les effets moyens et individuels des principaux paramètres temporels par courbes PDP/ICE.
+## 1. Organisation du dépôt
 
-Les figures présentées ci-dessous sont celles générées par les notebooks et présentes dans le dépôt GitHub.
+Le dépôt est volontairement resserré autour des éléments utiles à la reproduction et à la lecture des résultats.
 
-## Organisation rapide
+- `maelia_sa_pipeline/` contient l'application web. Son guide d'utilisation détaillé est dans [`maelia_sa_pipeline/README.md`](maelia_sa_pipeline/README.md).
+- `communication/` contient les supports de présentation et documents de communication associés au projet.
+- `figs/` contient uniquement les figures affichées dans ce README : l'espace SMT MAELIA et les figures HSIC-ANOVA principales.
+- `simulations/` contient le notebook de génération du plan SMT, le notebook de lancement terrainSA, le script de construction du terrain projet-local, le terrain `gama_includes/terrainSA`, et les logs `log_terrainSA`.
+- `analysis/` contient le notebook `hsic_anova_analysis.ipynb` et les outils HSIC-ANOVA dans `analysis/tools/`.
 
-- `analysis/terrainSA_results/` : résultats globaux terrainSA, ANOVA, Sobol, Shapley et comparaison des métamodèles.
-- `analysis/decision_tree_thresholds/` : arbres de décision, règles de seuil et régimes locaux.
-- `analysis/pdp_ice_dynamic/` : dataset dynamique final, trajectoires temporelles et courbes PDP/ICE.
-- `figs/` : figures historiques issues des premières analyses avec sol et climat variables.
-- `simulations/` : notebooks de génération du plan SMT et de lancement des expériences GAMA.
-- `maelia_sa_pipeline/` : application web locale pour relancer la pipeline d'analyse.
+Les dépendances Python sont listées dans `requirements.txt`. Les sorties temporaires de l'application web et les caches Python sont ignorés par Git.
 
-## Partie 1 - Premières analyses : sol et climat variables
+## 2. Reproduire l'analyse
 
-Les premières analyses sont réalisées sur un terrain où le climat et le type de sol changent entre parcelles. Dans ce cadre, les sorties sont fortement structurées par le contexte pédoclimatique. Les paramètres techniques existent bien dans le signal, mais leur contribution est largement masquée par les contrastes entre zones météo et types de sol.
+**Étape 0 — Construire ou inspecter le plan SMT.**  
+Ouvrir [`simulations/smt_generation.ipynb`](simulations/smt_generation.ipynb). Ce notebook décrit l'espace de paramètres hiérarchique utilisé pour MAELIA : nombre de fertilisations, préparation du sol, dates d'opérations, profondeurs et doses. Il produit aussi la représentation de l'espace SMT/ADSG.
 
-Ce résultat est central pour l'interprétation : lorsque le sol et le climat varient, l'analyse de sensibilité répond d'abord à une question spatiale, pas seulement agronomique. Elle montre quelles zones et quels sols expliquent les variations, mais ne permet pas encore d'isoler proprement les effets des itinéraires techniques.
+**Étape 1 — Construire ou vérifier `terrainSA`.**  
+`terrainSA` est un terrain projet-local placé dans `simulations/gama_includes/terrainSA`. Il peut être reconstruit avec `simulations/build_terrainSA_project.py` à partir du terrain MAELIA de référence, sans modifier le workspace GAMA.
 
-![ANOVA terrainTest](figs/ANOVA.png)
+**Étape 2 — Lancer les simulations.**  
+Exécuter [`simulations/batch_simulations_smt_terrainSA.ipynb`](simulations/batch_simulations_smt_terrainSA.ipynb). Le notebook utilise `terrainSA`, génère les fichiers `dateDose_smt_*`, lance GAMA en headless, puis écrit les sorties dans `simulations/log_terrainSA`.
 
-![PRCC terrainTest](figs/PRCC.png)
+**Étape 3 — Vérifier les logs et le dataset.**  
+Le dossier `simulations/log_terrainSA` doit contenir les dossiers de runs `terrainSA_smt_*` ainsi que `dataset_metamodel.csv` et `dataset_metamodel_features.csv`. Le fichier `dataset_metamodel.csv` relie les sorties MAELIA à la matrice du plan SMT ; il est indispensable pour l'analyse.
 
-![Sobol S1 terrainTest](figs/SOBOL_S1.png)
+**Étape 4 — Exécuter HSIC-ANOVA.**  
+Ouvrir [`analysis/hsic_anova_analysis.ipynb`](analysis/hsic_anova_analysis.ipynb). Le notebook charge `dataset_metamodel.csv`, importe `analysis/tools/hsic_methods.py`, calcule les termes HSIC-ANOVA et génère les tableaux et figures d'influence.
 
-Les distributions par groupes sol-climat confirment cette lecture : les sorties sont nettement séparées par les contextes environnementaux.
-
-![Rendement selon sol et climat](figs/rdt_sol_climat.png)
-
-![Lixiviation azotée selon sol et climat](figs/Nlixi_sol_climat.png)
-
-![Carbone organique selon sol et climat](figs/Corg_sol_climat.png)
-
-L'entraînement d'un métamodèle XGBoost n'a pas donné de résultats suffisamment satisfaisants sur ces données pédoclimatiques variables. D'où la construction de `terrainSA`.
-
-## Partie 2 - terrainSA : opérations techniques et métamodèle
-
-Pour isoler les leviers techniques, `terrainSA` clone la parcelle `beauce_5_1`. Les simulations comparent alors des itinéraires techniques dans un contexte constant : même sol, même géométrie et même zone météo. Cette construction réduit le bruit lié au milieu et rend les effets agronomiques plus lisibles.
-
-Le plan SMT actuel encode les dates en jours de campagne, avec `1 = 1er août`. Les principaux paramètres calendaires sont `Date_Semis`, `Delta_PREPA_Semis`, `Date_F1`, `Date_F2`, `Date_F3` et `Date_Recolte`.
-
-### Métamodèle
-
-Le notebook compare ExtraTrees, XGBoost et Gaussian Process. Les meilleurs modèles retenus sont :
-
-| Sortie | Métamodèle retenu | Q2 test | R2 entraînement effectif |
-|---|---|---:|---:|
-| `N_lixi` | ExtraTrees | 0.987 | 0.999 |
-| `dCorg` | XGBoost | 0.999 | 0.999 |
-| `rdt` | ExtraTrees | 0.985 | 0.999 |
-
-Ces scores indiquent que le métamodèle est suffisamment fidèle pour soutenir les analyses globales sur `terrainSA`. Les performances très élevées sont cohérentes avec le fait que le terrain est volontairement homogénéisé : le signal provient principalement des opérations techniques et de leur calendrier.
-
-### ANOVA à un facteur
-
-L'ANOVA/Kruskal à un facteur met en évidence des leviers différents selon les sorties :
-
-| Sortie | Paramètres dominants | Lecture rapide |
-|---|---|---|
-| `N_lixi` | `Date_Semis`, `Delta_PREPA_Semis`, `has_prepa`, `Profondeur_Prepa_1`, `Date_Recolte` | la lixiviation est d'abord gouvernée par le calendrier semis-préparation-récolte ; |
-| `dCorg` | `Date_Recolte`, `Date_Semis` | le carbone organique dépend surtout de la durée et du positionnement du cycle ; |
-| `rdt` | `Delta_PREPA_Semis`, `has_prepa`, `Profondeur_Prepa_1`, `Date_Recolte`, `Date_Semis` | le rendement est sensible au délai préparation-semis et au calendrier de fin de cycle. |
-
-![ANOVA terrainSA à un facteur](analysis/terrainSA_results/anova_1facteur_top.png)
-
-### Interactions à deux facteurs
-
-Les heatmaps ci-dessous affichent uniquement le `R2_interaction`. Les interactions sont plus faibles que les effets principaux, mais elles précisent les zones où un paramètre dépend du niveau d'un autre. Pour `N_lixi`, les interactions concernent surtout la préparation du sol et le délai préparation-semis. Pour `dCorg` et `rdt`, les couples autour de `Date_Semis`, `Date_Recolte` et `Delta_PREPA_Semis` sont les plus interprétables.
-
-![Interactions ANOVA N_lixi](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_N_lixi.png)
-
-![Interactions ANOVA dCorg](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_dCorg.png)
-
-![Interactions ANOVA rdt](analysis/terrainSA_results/heatmap_anova_2facteurs_R2_interaction_rdt.png)
-
-### Sobol et Shapley
-
-Les indices de Sobol d'ordre total et les valeurs de Shapley confirment que les dates de campagne dominent les sorties :
-
-| Sortie | Principaux facteurs Sobol total |
-|---|---|
-| `N_lixi` | `Date_Semis`, `Date_Recolte`, `has_prepa`, `Delta_PREPA_Semis` |
-| `dCorg` | `Date_Recolte`, `Date_Semis` |
-| `rdt` | `Date_Recolte`, `Date_Semis`, `has_prepa`, `Delta_PREPA_Semis` |
-
-![Sobol total terrainSA](analysis/terrainSA_results/sobol_total_top.png)
-
-![Shapley terrainSA](analysis/terrainSA_results/shapley_top.png)
-
-## Partie 3 - Seuils locaux par arbres de décision
-
-Le notebook `analysis/Analyse_seuils_decision_tree.ipynb` prolonge l'analyse en cherchant des seuils interprétables. L'objectif n'est pas de remplacer le métamodèle global, mais d'obtenir des règles locales : au-delà de tel seuil, la réponse change de régime.
-
-Les arbres de régression contraints obtiennent les performances suivantes :
-
-| Sortie | Q2 test arbre | Paramètres principalement utilisés |
-|---|---:|---|
-| `N_lixi` | 0.887 | `Date_Semis`, `Delta_PREPA_Semis`, `Date_Recolte`, `has_prepa` |
-| `dCorg` | 0.966 | `Date_Recolte`, `Date_Semis` |
-| `rdt` | 0.879 | `Delta_PREPA_Semis`, `Date_Recolte`, `Date_Semis`, `has_prepa` |
-
-Pour `N_lixi`, les premiers seuils portent sur `Date_Semis` autour de 73 jours de campagne, puis sur `Date_Recolte` et `Delta_PREPA_Semis`. Pour `dCorg`, le couple `Date_Recolte` / `Date_Semis` structure fortement les régimes. Pour `rdt`, les seuils combinent surtout délai préparation-semis, date de récolte et date de semis.
-
-![Decision tree N_lixi](analysis/decision_tree_thresholds/decision_tree_N_lixi.png)
-
-![Decision tree dCorg](analysis/decision_tree_thresholds/decision_tree_dCorg.png)
-
-![Decision tree rdt](analysis/decision_tree_thresholds/decision_tree_rdt.png)
-
-Les importances internes aux arbres résument ces règles : les dates de campagne dominent, tandis que les doses et types d'engrais ont ici un effet secondaire dans le contexte homogénéisé `terrainSA`.
-
-![Importance arbre N_lixi](analysis/decision_tree_thresholds/decision_tree_importance_N_lixi.png)
-
-![Importance arbre dCorg](analysis/decision_tree_thresholds/decision_tree_importance_dCorg.png)
-
-![Importance arbre rdt](analysis/decision_tree_thresholds/decision_tree_importance_rdt.png)
-
-## Partie 4 - PDP/ICE sur les paramètres temporels principaux
-
-Le notebook `analysis/Analyse_PDP_ICE_terrainSA.ipynb` prolonge l'analyse en reconstruisant les sorties finales à partir des logs dynamiques. Le fichier central est `analysis/pdp_ice_dynamic/final_dynamic_dataset.csv` : il associe chaque point du plan SMT aux valeurs finales observées de `N_lixi`, `DeltaCorg` et `Yield`.
-
-Les courbes PDP/ICE sont volontairement limitées aux paramètres non catégoriels les plus interprétables :
-
-| Colonne SMT | Paramètre agronomique | Lecture |
-|---|---|---|
-| `feat_14` | `Date_Semis` | date de semis en jour de campagne |
-| `feat_15` | `Delta_PREPA_Semis` | délai entre préparation du sol et semis |
-| `feat_19` | `Date_Recolte` | date de récolte en jour de campagne |
-
-Les paramètres catégoriels, comme la présence ou le type de préparation du sol, sont exclus de cette lecture PDP/ICE principale. Ils restent importants pour les seuils locaux et certaines analyses globales, mais leurs courbes partielles sont moins naturelles à lire qu'une variation continue de date ou de délai.
-
-Le métamodèle final du notebook obtient de bons scores de généralisation sur le dataset dynamique final :
-
-| Sortie | Q2 test | Lecture rapide |
-|---|---:|---|
-| `N_lixi` | 0.985 | les courbes PDP/ICE peuvent être interprétées avec une bonne confiance globale |
-| `DeltaCorg` | 0.959 | le signal temporel est bien capturé malgré une variabilité résiduelle plus marquée |
-| `Yield` | 0.970 | le rendement final est correctement reproduit par le métamodèle |
-
-![Importances finales PDP ICE](analysis/pdp_ice_dynamic/final_feature_importances.png)
-
-### Date de semis
-
-La date de semis agit comme un paramètre structurant du cycle cultural. Les courbes ICE montrent la dispersion entre scénarios, tandis que la courbe noire résume l'effet moyen prédit. Pour le carbone organique, la tendance moyenne indique notamment que le positionnement du semis modifie fortement la valeur finale simulée, ce qui confirme l'importance du calendrier dans `terrainSA`.
-
-![PDP ICE N_lixi Date Semis](analysis/pdp_ice_dynamic/pdp_ice_final_N_lixi_feat_14.png)
-
-![PDP ICE DeltaCorg Date Semis](analysis/pdp_ice_dynamic/pdp_ice_final_DeltaCorg_feat_14.png)
-
-![PDP ICE Yield Date Semis](analysis/pdp_ice_dynamic/pdp_ice_final_Yield_feat_14.png)
-
-### Délai préparation-semis
-
-`Delta_PREPA_Semis` permet d'observer comment l'espacement entre la préparation du sol et le semis influence les sorties. Ce paramètre est particulièrement utile pour interpréter les régimes mis en évidence par les arbres de décision : il combine une opération technique et son positionnement temporel.
-
-![PDP ICE N_lixi Delta Prepa Semis](analysis/pdp_ice_dynamic/pdp_ice_final_N_lixi_feat_15.png)
-
-![PDP ICE DeltaCorg Delta Prepa Semis](analysis/pdp_ice_dynamic/pdp_ice_final_DeltaCorg_feat_15.png)
-
-![PDP ICE Yield Delta Prepa Semis](analysis/pdp_ice_dynamic/pdp_ice_final_Yield_feat_15.png)
-
-### Date de récolte
-
-La date de récolte contrôle la durée effective du cycle. Elle est donc naturellement liée à la dynamique du carbone organique et au rendement. Les courbes PDP/ICE permettent ici de distinguer l'effet moyen d'une modification de date et la diversité des réponses individuelles selon le reste de l'itinéraire technique.
-
-![PDP ICE N_lixi Date Recolte](analysis/pdp_ice_dynamic/pdp_ice_final_N_lixi_feat_19.png)
-
-![PDP ICE DeltaCorg Date Recolte](analysis/pdp_ice_dynamic/pdp_ice_final_DeltaCorg_feat_19.png)
-
-![PDP ICE Yield Date Recolte](analysis/pdp_ice_dynamic/pdp_ice_final_Yield_feat_19.png)
-
-Des trajectoires temporelles interactives sont également disponibles dans `analysis/pdp_ice_dynamic/` au format HTML. Elles servent à vérifier si les différences finales observées par PDP/ICE correspondent à des divergences progressives ou à des transitions plus localisées dans le temps.
-
-## App web
-
-L'app web permet de relancer une analyse complète depuis une interface locale. La synthèse ci-dessus reste toutefois fondée sur les figures générées par les notebooks et versionnées dans le dépôt.
+**Étape 5 — Explorer les résultats dans l'application web.**  
+Depuis la racine du dépôt :
 
 ```bash
-/Users/benjamin/.pyenv/versions/MAELIA_SA/bin/python -m uvicorn maelia_sa_pipeline.api:app --host 127.0.0.1 --port 8000
+python -m uvicorn maelia_sa_pipeline.api:app --reload
 ```
 
-Puis ouvrir : `http://127.0.0.1:8000`.
+L'interface demande le chemin vers les logs, par exemple `simulations/log_terrainSA`. Le README de l'application détaille les mesures affichées et les options de pipeline.
 
-## Fichiers utiles
+## 3. Résultats terrainSA
 
-- Analyse terrainSA et métamodèles : `analysis/Analyse_terrainSA.ipynb`
-- Analyse des seuils : `analysis/Analyse_seuils_decision_tree.ipynb`
-- Analyse PDP/ICE et trajectoires dynamiques : `analysis/Analyse_PDP_ICE_terrainSA.ipynb`
-- Résultats terrainSA notebook : `analysis/terrainSA_results/`
-- Résultats arbres de décision notebook : `analysis/decision_tree_thresholds/`
-- Résultats PDP/ICE dynamiques : `analysis/pdp_ice_dynamic/`
-- Notebook de lancement terrainSA : `simulations/batch_simulations_smt_terrainSA.ipynb`
-- Figures historiques terrainTest : `figs/`
+`terrainSA` est construit pour isoler l'effet des paramètres techniques. Il correspond à la parcelle `beauce_5_1` clonée 100 fois dans le même ilot `beauce_5`. Les clones partagent donc le même contexte pédologique et météorologique : même sol, même zone météo, même géométrie de référence. Ce choix réduit l'effet confondant du climat et du type de sol pour concentrer l'analyse sur les opérations agricoles.
+
+L'espace d'exploration est hiérarchique : certains paramètres n'existent que si une opération associée existe. Par exemple, les dates et doses de fertilisation ne sont actives que lorsque le scénario contient une fertilisation, et les profondeurs de préparation ne sont actives que lorsqu'une préparation du sol est présente.
+
+![Espace SMT MAELIA](figs/maelia_adsg.png)
+
+Les figures suivantes présentent les principaux termes HSIC-ANOVA par sortie. Elles ne doivent pas être lues comme des indices de Sobol : elles décomposent une dépendance statistique mesurée par noyaux entre les paramètres et chaque sortie MAELIA.
+
+![HSIC-ANOVA N_lixi](figs/hsic_anova_top_terms_N_lixi.png)
+
+![HSIC-ANOVA dCorg](figs/hsic_anova_top_terms_dCorg.png)
+
+![HSIC-ANOVA rdt](figs/hsic_anova_top_terms_rdt.png)
+
+Les histogrammes ci-dessous comptent la fréquence d'apparition des paramètres dans les principaux termes retenus. Ils donnent une lecture complémentaire : un paramètre souvent présent dans les termes importants peut agir seul ou via des interactions.
+
+![Fréquence des paramètres N_lixi](figs/influence_parametres_N_lixi.png)
+
+![Fréquence des paramètres dCorg](figs/influence_parametres_dCorg.png)
+
+![Fréquence des paramètres rdt](figs/influence_parametres_rdt.png)
+
+Dans ce cadre contrôlé, les résultats doivent être interprétés comme une sensibilité des sorties à la stratégie technique, et non comme une sensibilité générale de MAELIA à tous les contextes pédoclimatiques. L'intérêt de HSIC-ANOVA est précisément de conserver une lecture globale tout en tenant compte de dépendances non linéaires et d'interactions entre paramètres actifs dans l'espace SMT.

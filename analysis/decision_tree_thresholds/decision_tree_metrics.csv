@@ -1,4 +1,0 @@
-sortie,best_params,CV_R2_mean,R2_train,Q2_test,MAE_test,RMSE_test,n_train,n_test
-N_lixi,"{'tree__ccp_alpha': 0.0, 'tree__max_depth': 5, 'tree__min_samples_leaf': 37}",0.8879752785063714,0.8997981013473303,0.8872383695689304,0.10889593376060357,0.1497111391448105,7500,2500
-dCorg,"{'tree__ccp_alpha': 0.0, 'tree__max_depth': 5, 'tree__min_samples_leaf': 75}",0.9663288796534445,0.9692722763592503,0.9661771194705696,5.407388189646511,6.618010314836658,7500,2500
-rdt,"{'tree__ccp_alpha': 0.0, 'tree__max_depth': 5, 'tree__min_samples_leaf': 37}",0.8758203355925864,0.898969363639448,0.8789341358193041,0.034850469602525996,0.04731553822034336,7500,2500

@@ -27,8 +27,8 @@ except Exception as exc:  # pragma: no cover - message for notebooks/users
     ) from exc
 
 
-DEFAULT_MAELIA_ROOT = Path('/Users/benjamin/Workspace_GAMA/MAELIA')
-DEFAULT_PROJECT_ROOT = Path('/Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA')
+DEFAULT_MAELIA_ROOT = Path.home() / 'Workspace_GAMA' / 'MAELIA'
+DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROJECT_INCLUDES_ROOT = DEFAULT_PROJECT_ROOT / 'simulations' / 'gama_includes'
 
 SOURCE_TERRAIN_NAME = 'terraintest'
