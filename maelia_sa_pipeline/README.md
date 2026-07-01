@@ -1,8 +1,8 @@
 # Pipeline web d'analyse de sensibilité MAELIA
 
-Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal à un facteur, interactions à deux facteurs, HSIC-ANOVA, comparaison de métamodèles, indices de Sobol d'ordre 1 et total, seuils par RegressionTree et courbes PDP/ICE finales.
+Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal à un facteur, interactions à deux facteurs, HSIC-ANOVA, comparaison de métamodèles, indices de Sobol d'ordre 1 et total par PCE, seuils par RegressionTree et courbes PDP/ICE finales.
 
-Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux 15 paramètres agronomiques du plan SMT courant.
+Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. Si `dataset_metamodel_features.csv` est présent, l’app l’utilise pour retrouver les noms exacts des paramètres exportés.
 
 ## Workflow GAMA + application web
 
@@ -35,8 +35,8 @@ L'interface contient maintenant un README intégré expliquant comment utiliser 
 - `Q² test` : R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation.
 - `ANOVA/Kruskal à un facteur` : R² descriptif associé aux groupes d'un paramètre.
 - `ANOVA à deux facteurs` : matrice du R² d'interaction uniquement, donc le surplus explicatif propre au couple de paramètres.
-- `Sobol S1/ST` : indices d'ordre 1 et d'ordre total calculés via un PCE creux entraîné sur les points faisables SMT.
-- `HSIC-ANOVA` : décomposition de dépendance par noyaux, résumée par ordre d'interaction entre paramètres.
+- `Sobol par PCE S1/ST` : indices d'ordre 1 et d'ordre total calculés via un PCE creux entraîné sur les points faisables SMT.
+- `HSIC-ANOVA` : dépendance par noyaux représentée comme dans le notebook, par diagrammes en barres des principaux paramètres ou combinaisons de paramètres.
 - `Régions sensibles` : feuilles de l'arbre de décision résumées par leur moyenne et leur écart à la moyenne globale.
 - `Arbre complet` : règles de seuil successives qui définissent les régimes locaux.
 

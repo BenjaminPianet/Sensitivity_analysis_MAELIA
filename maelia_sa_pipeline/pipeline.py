@@ -26,7 +26,7 @@ ANALYSIS_LABELS = {
     "anova_2factor": "ANOVA à deux facteurs",
     "hsic_anova": "HSIC-ANOVA hiérarchique",
     "metamodel": "Comparaison / sélection du métamodèle",
-    "sobol_indices": "Indices de Sobol ordre 1 et total",
+    "sobol_indices": "Sobol par PCE ordre 1 et total",
     "pdp_ice": "PDP/ICE finales",
     "decision_tree": "Seuils par arbre de régression",
 }
@@ -35,6 +35,7 @@ DEFAULT_ANALYSES = [
     "anova_1factor",
     "anova_2factor",
     "hsic_anova",
+    "sobol_indices",
     "decision_tree",
 ]
 
@@ -61,8 +62,8 @@ def _write_html_report(manifest: dict, output_dir: Path) -> Path:
             ("anova_1factor_png", "ANOVA à un facteur"),
             ("anova_2factor_interaction_png", "Interactions à deux facteurs"),
             ("metamodel_performance_png", "Performance du métamodèle"),
-            ("pce_sobol_png", "Sobol ordre 1 et total"),
-            ("hsic_anova_order_png", "Décomposition HSIC-ANOVA"),
+            ("pce_sobol_png", "Sobol par PCE ordre 1 et total"),
+            ("hsic_anova_order_png", "Principaux effets HSIC-ANOVA"),
             ("decision_tree_regions_png", "Seuils et régions sensibles"),
             ("decision_tree_png", "Arbre de régression"),
         ]:

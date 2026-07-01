@@ -24,7 +24,7 @@ const analysisLabels = {
   anova_2factor: "ANOVA 2 facteurs",
   hsic_anova: "HSIC-ANOVA",
   metamodel: "Métamodèles",
-  sobol_indices: "Sobol S1/ST",
+  sobol_indices: "Sobol PCE S1/ST",
   pdp_ice: "PDP/ICE",
   decision_tree: "Arbres de régression",
 };
@@ -33,8 +33,8 @@ const figureLabels = {
   anova_1factor_png: "ANOVA à un facteur",
   anova_2factor_interaction_png: "Interactions à deux facteurs",
   metamodel_performance_png: "Performance du métamodèle",
-  pce_sobol_png: "Sobol ordre 1 et total",
-  hsic_anova_order_png: "HSIC-ANOVA",
+  pce_sobol_png: "Sobol par PCE S1/ST",
+  hsic_anova_order_png: "Effets principaux HSIC-ANOVA",
   decision_tree_regions_png: "Seuils et régions sensibles",
   decision_tree_png: "Arbre de régression",
   pdp_ice_pngs: "PDP/ICE finales",
@@ -56,7 +56,7 @@ const helpTexts = {
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
   random_state: "Graine aléatoire utilisée pour rendre reproductibles les séparations train/test, l'entraînement et les échantillonnages associés.",
   targets: "Sorties MAELIA analysées. Chaque sortie produit ses propres scores, figures, indices et régions sensibles.",
-  analyses_menu: "Menu des blocs à exécuter. L'app est limitée aux analyses retenues pour le workflow terrainSA : ANOVA 1/2 facteurs, HSIC-ANOVA, métamodèles, Sobol S1/ST, arbres de régression et PDP/ICE.",
+  analyses_menu: "Menu des blocs à exécuter. L'app est limitée aux analyses retenues pour le workflow terrainSA : ANOVA 1/2 facteurs, HSIC-ANOVA, métamodèles, Sobol par PCE S1/ST, arbres de régression et PDP/ICE.",
   analysis_anova_1factor: "Classe les paramètres selon leur effet descriptif individuel sur chaque sortie.",
   analysis_anova_2factor: "Calcule les interactions entre couples de paramètres et génère une matrice de R² d'interaction.",
   analysis_sobol_indices: "Calcule les indices de Sobol d'ordre 1 et d'ordre total via un PCE creux entraîné sur un sous-échantillon reproductible des points SMT faisables.",
@@ -66,7 +66,7 @@ const helpTexts = {
   analysis_metamodel: "Compare et sélectionne un métamodèle prédictif parmi les candidats disponibles. Ce modèle sert notamment aux PDP/ICE.",
   analysis_pdp_ice: "Trace les courbes PDP/ICE finales pour les paramètres temporels principaux. Ce bloc entraîne automatiquement le métamodèle prédictif.",
   
-  run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA, HSIC-ANOVA, métamodèles, Sobol S1/ST, seuils ou PDP/ICE selon les cases cochées.",
+  run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA, HSIC-ANOVA, métamodèles, Sobol par PCE S1/ST, seuils ou PDP/ICE selon les cases cochées.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
   summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan actuel compact en comporte 15.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
@@ -86,8 +86,8 @@ const helpTexts = {
   anova_1factor_png: "ANOVA/Kruskal à un facteur. La figure classe les paramètres selon leur R² descriptif, c'est-à-dire la part de variance expliquée par les groupes de ce paramètre.",
   anova_2factor_interaction_png: "Matrice d'interaction à deux facteurs. Elle affiche seulement le R² d'interaction, donc ce qui reste quand les effets additifs des deux paramètres sont retirés.",
   metamodel_performance_png: "Performance du métamodèle. Elle compare les prédictions aux valeurs observées et sépare la qualité d'entraînement de la qualité de test.",
-  pce_sobol_png: "Indices de Sobol d'ordre 1 et total calculés depuis le PCE creux web. Cette figure évite les recombinaisons Saltelli incompatibles avec les contraintes SMT.",
-  hsic_anova_order_png: "Décomposition HSIC-ANOVA par ordre. L’ordre 1 correspond aux effets simples, l’ordre 2 aux interactions deux à deux, et les ordres supérieurs aux dépendances plus combinatoires. Ce n’est pas un R² ni un indice de Sobol, mais une contribution au HSIC global.",
+  pce_sobol_png: "Indices de Sobol d'ordre 1 et total estimés par PCE creux. Cette figure évite les recombinaisons Saltelli incompatibles avec les contraintes SMT.",
+  hsic_anova_order_png: "Diagramme des principaux termes HSIC-ANOVA. Chaque barre correspond à un paramètre ou une combinaison de paramètres, classé par contribution au HSIC global. La couleur indique l’ordre d’interaction.",
   
   decision_tree_regions_png: "Régions sensibles. Chaque barre correspond à une feuille de l'arbre, donc à un ensemble de simulations partageant les mêmes règles de seuil.",
   decision_tree_png: "Arbre de décision complet. Il expose les seuils successifs utilisés pour séparer les simulations en régimes locaux.",
@@ -297,7 +297,7 @@ function renderTarget(target) {
       </div>` : "";
   const pceScores = pceMetrics ? `
       <div class="score-row pce-score-row">
-        ${textScoreCard("Sobol S1/ST", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
+        ${textScoreCard("Sobol par PCE", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
         ${scoreCard("R² entraînement PCE", pceMetrics.R2_train, "train pce", "metric_pce_R2_train")}
         ${scoreCard("Q² test PCE", pceMetrics.Q2_test, "test pce", "metric_pce_Q2_test")}
       </div>` : "";

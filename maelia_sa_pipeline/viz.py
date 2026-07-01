@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import textwrap
 
 import matplotlib
 matplotlib.use("Agg")
@@ -147,7 +148,7 @@ def plot_pce_sobol(sobol: pd.DataFrame, target: str, path: Path, top_n: int = 12
     ax.set_yticklabels(data["label"])
     ax.set_xlabel("Indice de Sobol")
     ax.set_ylabel("")
-    ax.set_title(f"Sobol ordre 1 et total — {label(target)}")
+    ax.set_title(f"Sobol par PCE — ordre 1 et total — {label(target)}")
     xmax = max(0.02, float(data[["Sobol_S1", "Sobol_ST"]].max().max()) * 1.18)
     ax.set_xlim(0, xmax)
     ax.legend(frameon=False, loc="lower right")
@@ -162,69 +163,90 @@ def plot_pce_sobol(sobol: pd.DataFrame, target: str, path: Path, top_n: int = 12
     return _save(fig, path)
 
 
-def plot_hsic_order_decomposition(hsic_terms: pd.DataFrame, target: str, path: Path) -> Path:
+def plot_hsic_order_decomposition(hsic_terms: pd.DataFrame, target: str, path: Path, top_n: int = 12) -> Path:
+    """Plot the main HSIC-ANOVA terms, matching the notebook top-terms view.
+
+    The historical function name is kept for manifest compatibility, but the
+    visualization is now a ranked bar chart of terms/parameter combinations
+    rather than a stacked decomposition by interaction order.
+    """
     setup_style()
     data = hsic_terms[hsic_terms["sortie"] == target].copy()
-    if data.empty:
+    value_col = "contribution_hsic_globale_pct"
+    if value_col not in data.columns and "global_var_pct" in data.columns:
+        value_col = "global_var_pct"
+    if data.empty or value_col not in data.columns:
         fig, ax = plt.subplots(figsize=(9, 4.2))
         ax.text(0.5, 0.5, "HSIC-ANOVA indisponible pour cette sortie", ha="center", va="center", fontsize=14)
         ax.axis("off")
         return _save(fig, path)
 
-    order_summary = (
-        data.groupby("order", as_index=False)["contribution_hsic_globale_pct"]
-        .sum()
-        .sort_values("order")
+    data = (
+        data.replace([np.inf, -np.inf], np.nan)
+        .dropna(subset=[value_col])
+        .sort_values(value_col, ascending=False)
+        .head(top_n)
+        .copy()
     )
-    represented = float(order_summary["contribution_hsic_globale_pct"].sum())
-    if represented < 99.5:
-        order_summary = pd.concat([
-            order_summary,
-            pd.DataFrame([{"order": "Non représenté", "contribution_hsic_globale_pct": max(0.0, 100.0 - represented)}]),
-        ], ignore_index=True)
+    if data.empty:
+        fig, ax = plt.subplots(figsize=(9, 4.2))
+        ax.text(0.5, 0.5, "Aucun terme HSIC exploitable", ha="center", va="center", fontsize=14)
+        ax.axis("off")
+        return _save(fig, path)
 
-    colors = {
+    def format_variables(value: str) -> str:
+        parts = [label(part.strip()) for part in str(value).split("&")]
+        return "\n".join(textwrap.wrap(" & ".join(parts), width=38, break_long_words=False))
+
+    data["order"] = pd.to_numeric(data.get("order", 1), errors="coerce").fillna(1).astype(int)
+    data["label"] = data["variables"].map(format_variables)
+    data = data.sort_values(value_col, ascending=True)
+
+    order_colors = {
         1: PALETTE["teal"],
         2: PALETTE["amber"],
         3: "#F4A261",
         4: PALETTE["coral"],
-        "Non représenté": "#CBD5E1",
     }
+    colors = data["order"].map(lambda order: order_colors.get(int(order), "#7C8DA6"))
 
-    fig, ax = plt.subplots(figsize=(10.8, 4.8))
-    left = 0.0
-    y = [0]
-    for row in order_summary.itertuples(index=False):
-        order = row.order
-        value = float(row.contribution_hsic_globale_pct)
-        label_text = f"Ordre {order}" if isinstance(order, (int, np.integer)) else str(order)
-        ax.barh(
-            y,
-            [value],
-            left=left,
-            height=0.42,
-            color=colors.get(order, "#7C8DA6"),
-            edgecolor="white",
-            linewidth=1.2,
-            label=label_text,
-        )
-        if value >= 4.0:
-            ax.text(left + value / 2, 0, f"{value:.0f}%", ha="center", va="center", fontsize=11, fontweight="bold", color=PALETTE["ink"])
-        left += value
+    fig_height = max(5.4, 0.58 * len(data) + 2.2)
+    fig, ax = plt.subplots(figsize=(11.8, fig_height))
+    bars = ax.barh(data["label"], data[value_col], color=colors, edgecolor="white", linewidth=1.2)
 
-    ax.set_xlim(0, max(100.0, left * 1.04))
-    ax.set_yticks([])
+    xmax = max(0.5, float(data[value_col].max()) * 1.20)
+    ax.set_xlim(0, xmax)
     ax.set_xlabel("Contribution au HSIC global (%)")
-    ax.set_title(f"Décomposition HSIC-ANOVA — {label(target)}")
-    ax.legend(frameon=False, ncol=min(len(order_summary), 5), loc="upper center", bbox_to_anchor=(0.5, -0.18))
+    ax.set_ylabel("")
+    ax.set_title(f"Principaux effets HSIC-ANOVA — {label(target)}")
     ax.grid(axis="x", alpha=0.28)
     ax.grid(axis="y", visible=False)
+
+    for bar, value in zip(bars, data[value_col]):
+        ax.text(
+            bar.get_width() + xmax * 0.012,
+            bar.get_y() + bar.get_height() / 2,
+            f"{value:.1f}%",
+            va="center",
+            ha="left",
+            fontsize=9,
+            color=PALETTE["ink"],
+            fontweight="bold" if value >= data[value_col].median() else "normal",
+        )
+
+    present_orders = sorted(data["order"].unique())
+    handles = [
+        plt.Rectangle((0, 0), 1, 1, color=order_colors.get(int(order), "#7C8DA6"), label=f"Ordre {int(order)}")
+        for order in present_orders
+    ]
+    if handles:
+        ax.legend(handles=handles, title="Terme", frameon=False, loc="lower right")
+
     ax.text(
         0.0,
-        -0.42,
-        "Lecture : l'ordre 1 correspond aux effets simples; l'ordre 2 aux interactions deux à deux; "
-        "les ordres supérieurs signalent des dépendances plus combinatoires. Le gris, s'il apparaît, "
-        "regroupe les termes non retenus par le filtrage HSIC.",
+        -0.18,
+        "Lecture : chaque barre est un paramètre ou une combinaison de paramètres. "
+        "La longueur indique sa contribution au HSIC global; la couleur indique l'ordre d'interaction.",
         transform=ax.transAxes,
         color=PALETTE["muted"],
         fontsize=9,

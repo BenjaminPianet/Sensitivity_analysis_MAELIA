@@ -18,7 +18,7 @@ app = FastAPI(
     title="MAELIA Sensitivity Analysis API",
     description=(
         "Pipeline web pour ANOVA 1/2 facteurs, HSIC-ANOVA, comparaison de métamodèles, "
-        "indices de Sobol ordre 1 et total, seuils par arbre de régression et courbes PDP/ICE finales."
+        "indices de Sobol par PCE ordre 1 et total, seuils par arbre de régression et courbes PDP/ICE finales."
     ),
     version="0.1.0",
 )
