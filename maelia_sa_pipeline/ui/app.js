@@ -49,8 +49,8 @@ const featureOrder = [
 ];
 
 const helpTexts = {
-  log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt. Le dataset de paramètres doit être dans ce dossier ou indiqué séparément.",
-  dataset_path: "Chemin vers dataset_metamodel.csv, exporté par le notebook de simulation. Ce fichier contient la matrice du plan SMT, donc les paramètres testés pour chaque simulation. Les logs seuls ne suffisent pas.",
+  log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt. Le dataset de paramètres doit se trouver dans ce dossier.",
+  dataset_path: "Chemin vers dataset_metamodel.csv, exporté par le notebook de simulation terrainSA. Ce fichier doit correspondre au plan SMT courant à 15 paramètres; l’app refuse les anciens manifestes à 26 paramètres.",
   n_bins: "Nombre de classes utilisées pour transformer les paramètres continus en groupes avant l'ANOVA/Kruskal. Plus de classes donne une lecture plus fine, mais exige plus de points par classe.",
   sobol_n_mc: "Paramètre de compatibilité conservé par l'API. Le bloc Sobol affiché par l'app calcule désormais S1 et ST via un PCE creux entraîné sur les points SMT faisables.",
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
@@ -68,7 +68,7 @@ const helpTexts = {
   
   run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA, HSIC-ANOVA, métamodèles, Sobol par PCE S1/ST, seuils ou PDP/ICE selon les cases cochées.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
-  summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan actuel compact en comporte 15.",
+  summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan SMT courant de l’app en comporte exactement 15.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
   summary_run: "Identifiant unique du calcul web. Les figures, CSV et rapports sont sauvegardés dans analysis/web_runs/<run_id>/.",
   summary_analyses: "Nombre de blocs d'analyse effectivement demandés pour ce run.",

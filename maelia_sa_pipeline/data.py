@@ -22,16 +22,32 @@ class DatasetBundle:
 
 
 def _candidate_paths(log_dir: Path, dataset_path: str | Path | None) -> list[Path]:
+    """Return dataset candidates constrained to the selected log directory.
+
+    The web app must analyse the dataset associated with the chosen log folder,
+    not a stale dataset located next to it. If dataset_path is supplied, it is
+    still validated later to be inside log_dir.
+    """
     candidates: list[Path] = []
     if dataset_path:
         candidates.append(Path(dataset_path).expanduser())
     candidates.extend([
         log_dir / "dataset_metamodel.csv",
         log_dir / "dataset_metamodel_terrainSA.csv",
-        log_dir.parent / "dataset_metamodel.csv",
-        log_dir.parent / "dataset_metamodel_terrainSA.csv",
     ])
     return list(dict.fromkeys(candidates))
+
+
+def _ensure_dataset_inside_log_dir(dataset_path: Path, log_dir: Path) -> None:
+    dataset_resolved = dataset_path.resolve()
+    log_resolved = log_dir.resolve()
+    if log_resolved not in dataset_resolved.parents:
+        raise ValueError(
+            "Le dataset utilisé par l'application doit se trouver dans le répertoire de logs sélectionné. "
+            f"Répertoire de logs : {log_dir}. Dataset trouvé : {dataset_path}. "
+            "Place dataset_metamodel.csv et dataset_metamodel_features.csv dans simulations/log_terrainSA "
+            "ou sélectionne le dossier de logs qui contient réellement ce dataset."
+        )
 
 
 def count_log_runs(log_dir: Path) -> int:
@@ -70,23 +86,57 @@ def read_feature_manifest(dataset_path: Path) -> dict[str, str]:
     return mapping
 
 
-def _infer_categorical_columns(df: pd.DataFrame, feature_columns: list[str]) -> list[str]:
-    categorical = [c for c in feature_columns if c in AGRI_CATEGORICAL]
-    for col in feature_columns:
-        if col in categorical or col not in df.columns:
-            continue
-        series = df[col]
-        numeric = pd.to_numeric(series, errors="coerce")
-        non_null = series.dropna()
-        if non_null.empty:
-            continue
-        numeric_share = float(numeric.notna().sum() / len(series))
-        unique_count = int(non_null.nunique())
-        # Manifest-driven legacy plans often encode categories as small integer codes.
-        # Treat only very small finite domains as categorical; dates/doses remain continuous.
-        if numeric_share < 0.8 or unique_count <= 4 and not col.lower().startswith(("date", "dose", "delta", "profondeur")):
-            categorical.append(col)
-    return list(dict.fromkeys(categorical))
+def _expected_feature_columns() -> list[str]:
+    return [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
+
+
+def _sorted_feat_columns(df: pd.DataFrame) -> list[str]:
+    return sorted(
+        [col for col in df.columns if re.fullmatch(r"feat_\d+", col)],
+        key=lambda value: int(value.split("_")[1]),
+    )
+
+
+def _validate_current_smt_schema(df: pd.DataFrame, dataset_path: Path) -> None:
+    """Ensure the dataset corresponds to the current compact 15-variable SMT plan."""
+    expected_cols = _expected_feature_columns()
+    available_feat_cols = _sorted_feat_columns(df)
+    manifest = read_feature_manifest(dataset_path)
+
+    if manifest:
+        manifest_cols = sorted(manifest, key=lambda value: int(value.split("_")[1]) if re.fullmatch(r"feat_\d+", value) else 10**9)
+        manifest_features = [manifest[col] for col in manifest_cols]
+        expected_mapping = dict(zip(expected_cols, AGRI_FEATURES))
+        if manifest != expected_mapping:
+            raise ValueError(
+                "Le dataset chargé ne correspond pas au plan SMT courant de l'application. "
+                f"Plan attendu : {len(AGRI_FEATURES)} paramètres ({', '.join(AGRI_FEATURES)}). "
+                f"Manifeste trouvé : {len(manifest_features)} paramètres ({', '.join(manifest_features)}). "
+                "Ce manifeste ressemble à un ancien plan d'expérience. Régénère dataset_metamodel.csv "
+                "et dataset_metamodel_features.csv avec simulations/batch_simulations_smt_terrainSA.ipynb, "
+                "puis relance l'application. "
+                f"Dataset concerné : {dataset_path}"
+            )
+
+    if available_feat_cols:
+        if available_feat_cols != expected_cols:
+            raise ValueError(
+                "Le dataset contient des colonnes feat_* incompatibles avec le plan SMT courant. "
+                f"Colonnes attendues : {expected_cols}. "
+                f"Colonnes trouvées : {available_feat_cols}. "
+                "L'application attend le nouveau plan compact à 15 paramètres; le dataset semble provenir "
+                "d'un ancien plan ou d'un export incomplet. Régénère le dataset depuis le notebook de simulation terrainSA."
+            )
+    elif not all(col in df.columns for col in AGRI_FEATURES):
+        raise ValueError(
+            "Le dataset doit contenir soit exactement feat_0...feat_14 du plan SMT courant, "
+            "soit les 15 colonnes agronomiques nommées. Les logs MAELIA seuls ne suffisent pas : "
+            "il faut le dataset exporté avec la matrice xt actuelle."
+        )
+
+
+def _current_categorical_columns(feature_columns: list[str]) -> list[str]:
+    return [c for c in feature_columns if c in AGRI_CATEGORICAL]
 
 
 def _validate_smt_feature_scale(df: pd.DataFrame, dataset_path: Path) -> None:
@@ -123,45 +173,33 @@ def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = 
         missing = [c for c in feature_columns if c not in df.columns]
         if missing:
             raise ValueError(f"Paramètres absents du dataset : {missing}")
+        unexpected = [c for c in feature_columns if c not in AGRI_FEATURES]
+        if unexpected:
+            raise ValueError(
+                "Les paramètres demandés ne font pas partie du plan SMT courant : "
+                f"{unexpected}. Paramètres acceptés : {AGRI_FEATURES}"
+            )
         X = df[feature_columns].copy()
     else:
-        feat_cols_available = sorted(
-            [col for col in df.columns if re.fullmatch(r"feat_\d+", col)],
-            key=lambda value: int(value.split("_")[1]),
-        )
-        manifest = read_feature_manifest(dataset_path) if dataset_path is not None else {}
-        if manifest:
-            feat_cols = [col for col in feat_cols_available if col in manifest]
-            if not feat_cols:
-                raise ValueError(
-                    "dataset_metamodel_features.csv existe mais ne correspond à aucune colonne feat_* du dataset."
-                )
-            feature_columns = [manifest[col] for col in feat_cols]
-            X = df[feat_cols].copy()
-            X.columns = feature_columns
+        expected_feat_cols = _expected_feature_columns()
+        if all(col in df.columns for col in expected_feat_cols):
+            X = df[expected_feat_cols].copy()
+            X.columns = AGRI_FEATURES
+            feature_columns = AGRI_FEATURES.copy()
             warnings.append(
-                "Les colonnes feat_* ont été renommées depuis dataset_metamodel_features.csv. "
-                "L'application utilise donc le plan d'expérience réellement exporté avec les simulations."
+                "Les colonnes feat_0...feat_14 ont été renommées selon le plan SMT courant à 15 paramètres."
             )
+        elif all(col in df.columns for col in AGRI_FEATURES):
+            feature_columns = AGRI_FEATURES.copy()
+            X = df[feature_columns].copy()
         else:
-            feat_cols = [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
-            if all(col in df.columns for col in feat_cols):
-                X = df[feat_cols].copy()
-                X.columns = AGRI_FEATURES
-                feature_columns = AGRI_FEATURES.copy()
-                warnings.append(
-                    "Les colonnes feat_* ont été renommées avec des libellés agronomiques "
-                    "pour l'affichage. Les valeurs restent celles du plan SMT exporté."
-                )
-            elif all(col in df.columns for col in AGRI_FEATURES):
-                feature_columns = AGRI_FEATURES.copy()
-                X = df[feature_columns].copy()
-            else:
-                raise ValueError(
-                    "Le dataset doit contenir soit les colonnes feat_* du plan courant, soit les colonnes agronomiques nommées. "
-                    "Les logs MAELIA seuls ne suffisent pas : il faut le dataset exporté avec la matrice xt."
-                )
-    categorical = _infer_categorical_columns(X, feature_columns)
+            raise ValueError(
+                "Le dataset doit contenir soit exactement feat_0...feat_14 du plan courant, "
+                "soit les 15 colonnes agronomiques nommées. Les logs MAELIA seuls ne suffisent pas : "
+                "il faut le dataset exporté avec la matrice xt actuelle."
+            )
+
+    categorical = _current_categorical_columns(feature_columns)
     continuous = [c for c in feature_columns if c not in categorical]
     return X, feature_columns, categorical, continuous, warnings
 
@@ -280,6 +318,108 @@ def final_dynamic_dataset(
     return final, warnings
 
 
+
+def _campaign_day_from_log_day(day: float) -> float:
+    """Convert MAELIA day-of-year logs to the SMT campaign-day convention.
+
+    The SMT plan expresses crop operations on an agricultural campaign starting
+    around August 1st: autumn dates are roughly 45-106 and spring/summer dates
+    continue above 213. MAELIA logs store day-of-year in the calendar year.
+    """
+    if pd.isna(day):
+        return float("nan")
+    value = float(day)
+    return value - 212.0 if value >= 213.0 else value + 153.0
+
+
+def _validate_dataset_matches_log_operations(log_dir: Path, df: pd.DataFrame) -> list[str]:
+    """Detect stale or mismatched X/Y exports by comparing dataset features to logs."""
+    required = {"point_idx", "parcelle", "Date_Semis", "Profondeur_Semis"}
+    if not required.issubset(df.columns):
+        return []
+    if not log_dir.exists():
+        return []
+
+    parcelles_per_run = df["parcelle"].nunique(dropna=True)
+    if not parcelles_per_run:
+        return []
+
+    sample = df[["point_idx", "parcelle", "Date_Semis", "Profondeur_Semis"]].dropna().head(40)
+    if sample.empty:
+        return []
+
+    folders_by_sim: dict[int, Path] = {}
+    for folder in log_dir.iterdir():
+        if not folder.is_dir() or not (folder / "suiviOTParParcelle.csv").exists():
+            continue
+        sim_idx = parse_sim_idx(folder.name)
+        if sim_idx is None:
+            continue
+        current = folders_by_sim.get(sim_idx)
+        if current is None or folder.stat().st_mtime > current.stat().st_mtime:
+            folders_by_sim[sim_idx] = folder
+
+    if not folders_by_sim:
+        return []
+
+    ot_cache: dict[int, pd.DataFrame] = {}
+    mismatches: list[str] = []
+    checked = 0
+
+    for row in sample.itertuples(index=False):
+        sim_idx = int(float(row.point_idx) // parcelles_per_run)
+        folder = folders_by_sim.get(sim_idx)
+        if folder is None:
+            continue
+        if sim_idx not in ot_cache:
+            try:
+                ot_cache[sim_idx] = pd.read_csv(
+                    folder / "suiviOTParParcelle.csv",
+                    sep=";",
+                    usecols=["annee", "date", "parcelle", "OT", "profondeur[cm]"],
+                )
+            except Exception:
+                continue
+        ot = ot_cache[sim_idx]
+        semis = ot[(ot["parcelle"] == row.parcelle) & (ot["OT"] == "SEMIS")]
+        if semis.empty:
+            continue
+        semis = semis.sort_values(["annee", "date"]).iloc[0]
+        checked += 1
+        log_date = _campaign_day_from_log_day(semis["date"])
+        log_depth = pd.to_numeric(pd.Series([semis["profondeur[cm]"]]), errors="coerce").iloc[0]
+        dataset_date = float(row.Date_Semis)
+        dataset_depth = float(row.Profondeur_Semis)
+        date_bad = pd.notna(log_date) and abs(dataset_date - log_date) > 2.0
+        depth_bad = pd.notna(log_depth) and abs(dataset_depth - float(log_depth)) > 1.0
+        if date_bad or depth_bad:
+            mismatches.append(
+                f"point_idx={int(row.point_idx)}, parcelle={row.parcelle}: "
+                f"Date_Semis dataset={dataset_date:.1f} vs log={log_date:.1f}; "
+                f"Profondeur_Semis dataset={dataset_depth:.1f} vs log={float(log_depth):.1f}"
+            )
+        if len(mismatches) >= 6:
+            break
+
+    if checked >= 5 and len(mismatches) / checked > 0.5:
+        examples = " | ".join(mismatches[:4])
+        raise ValueError(
+            "Le dataset_metamodel.csv est désaligné avec les logs MAELIA sélectionnés. "
+            "Les sorties semblent provenir de ces logs, mais les paramètres feat_* ne correspondent pas "
+            "aux opérations réellement exécutées dans suiviOTParParcelle.csv. "
+            "C'est typiquement ce qui arrive quand dataset_metamodel.csv est régénéré avec un nouveau plan SMT "
+            "tout en conservant d'anciens logs. Les analyses de sensibilité seraient invalides. "
+            "Régénère les simulations avec le plan courant, ou restaure le dataset qui correspond exactement "
+            "à cette série de logs. Exemples de désaccords : " + examples
+        )
+
+    if mismatches:
+        return [
+            "Quelques écarts ont été détectés entre dataset_metamodel.csv et suiviOTParParcelle.csv; "
+            "vérifie que le dataset correspond bien à la série de logs analysée."
+        ]
+    return []
+
 def load_dataset(
     log_dir: str | Path,
     dataset_path: str | Path | None = None,
@@ -312,7 +452,10 @@ def load_dataset(
             f"Dataset : {found_path}"
         )
 
+    _ensure_dataset_inside_log_dir(found_path, log_path)
+
     df_raw = pd.read_csv(found_path)
+    _validate_current_smt_schema(df_raw, found_path)
     _validate_smt_feature_scale(df_raw, found_path)
     missing_targets = [c for c in target_columns if c not in df_raw.columns]
     if missing_targets:
@@ -323,6 +466,8 @@ def load_dataset(
     for extra in ["point_idx", "parcelle", "simulation", "sim_idx"]:
         if extra in df_raw.columns:
             df[extra] = df_raw[extra]
+
+    warnings.extend(_validate_dataset_matches_log_operations(log_path, df))
 
     df = df.dropna(subset=target_columns).reset_index(drop=True)
     if len(df) < 30:

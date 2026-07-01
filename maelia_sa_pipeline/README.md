@@ -2,7 +2,7 @@
 
 Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal à un facteur, interactions à deux facteurs, HSIC-ANOVA, comparaison de métamodèles, indices de Sobol d'ordre 1 et total par PCE, seuils par RegressionTree et courbes PDP/ICE finales.
 
-Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. Si `dataset_metamodel_features.csv` est présent, l’app l’utilise pour retrouver les noms exacts des paramètres exportés.
+Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. L’app attend désormais strictement le plan SMT courant à 15 paramètres. Si `dataset_metamodel_features.csv` est présent, il doit correspondre exactement à ce plan; les anciens exports à 26 paramètres sont refusés.
 
 ## Workflow GAMA + application web
 
@@ -10,7 +10,7 @@ Le point crucial est le suivant : les logs MAELIA contiennent les sorties du mod
 2. Lancer dans GAMA l'expérience correspondant au terrain choisi, par exemple `terrainSA`.
 3. Conserver le dossier de logs généré, par exemple `simulations/log_terrainSA`.
 4. Exporter ou copier `dataset_metamodel.csv` dans ce dossier de logs. Le notebook `batch_simulations_smt_terrainSA.ipynb` le fait normalement lors de l'export final.
-5. Lancer l'application web et saisir le chemin du dossier de logs. Si le dataset n'est pas dans ce dossier, indiquer son chemin exact dans le champ optionnel.
+5. Lancer l'application web et saisir le chemin du dossier de logs. Le dataset doit se trouver dans ce dossier de logs; l'app refuse les datasets situés ailleurs pour éviter les mélanges.
 6. Sélectionner les sorties à analyser puis lancer l'analyse.
 
 ## Lancer l'application web

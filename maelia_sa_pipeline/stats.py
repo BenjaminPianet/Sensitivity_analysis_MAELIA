@@ -27,16 +27,22 @@ def discretize_factors(
         elif unique <= n_bins:
             out[col] = values.astype("object").where(values.notna(), "inactif").astype(str)
         else:
-            ranked = values.rank(method="first")
-            bins = pd.qcut(ranked, q=min(n_bins, unique), duplicates="drop")
+            # Bin the observed values themselves, not their row ranks. Ranking with
+            # method="first" splits identical inactive/default values across several
+            # groups and creates artificial ANOVA effects in hierarchical SMT plans.
+            try:
+                bins = pd.qcut(values, q=min(n_bins, unique), duplicates="drop")
+            except ValueError:
+                bins = pd.cut(values, bins=min(n_bins, unique), duplicates="drop")
+
+            categories = list(bins.cat.categories)
             labels = []
-            for idx, interval in enumerate(bins.cat.categories, start=1):
+            for idx, interval in enumerate(categories, start=1):
                 mask = bins == interval
                 lo = values[mask].min()
                 hi = values[mask].max()
-                # Prefix by the bin number so labels stay unique even when rounded
-                # ranges look identical on nearly discrete or tightly clustered values.
                 labels.append(f"Q{idx}: {lo:.6g} – {hi:.6g}")
+
             out[col] = pd.Categorical.from_codes(bins.cat.codes, categories=labels).astype("object")
             out[col] = out[col].where(out[col].notna(), "inactif").astype(str)
     return out
