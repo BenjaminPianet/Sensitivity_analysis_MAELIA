@@ -14,7 +14,7 @@ def main() -> None:
     parser.add_argument("--targets", nargs="*", default=None, help="Sorties à analyser")
     parser.add_argument("--n-bins", type=int, default=4, help="Nombre de classes ANOVA")
     parser.add_argument("--sobol-n-mc", type=int, default=2000, help="Paramètre conservé pour compatibilité API")
-    parser.add_argument("--analyses", nargs="*", default=None, help="Analyses à exécuter : anova_1factor anova_2factor hsic_anova metamodel sobol_indices decision_tree pdp_ice")
+    parser.add_argument("--analyses", nargs="*", default=None, help="Analyses à exécuter : anova_1factor hsic_anova sobol_indices pdp_subspace")
     parser.add_argument("--tree-max-depth", type=int, default=4, help="Profondeur maximale des arbres")
     args = parser.parse_args()
     manifest = run_analysis(

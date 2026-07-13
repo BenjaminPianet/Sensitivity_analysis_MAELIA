@@ -17,8 +17,8 @@ UI_DIR = Path(__file__).parent / "ui"
 app = FastAPI(
     title="MAELIA Sensitivity Analysis API",
     description=(
-        "Pipeline web pour ANOVA 1/2 facteurs, HSIC-ANOVA, comparaison de métamodèles, "
-        "indices de Sobol par PCE ordre 1 et total, seuils par arbre de régression et courbes PDP/ICE finales."
+        "Pipeline web pour ANOVA à un facteur, HSIC-ANOVA, indices de Sobol par PCE "
+        "ordre 1 et total, et courbes PDP/ICE par sous-espace de l'espace SMT hiérarchique."
     ),
     version="0.1.0",
 )
