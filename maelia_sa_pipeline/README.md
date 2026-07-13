@@ -1,6 +1,6 @@
 # Pipeline web d'analyse de sensibilité MAELIA
 
-Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles : ANOVA/Kruskal à un facteur, interactions à deux facteurs, HSIC-ANOVA, comparaison de métamodèles, indices de Sobol d'ordre 1 et total par PCE, seuils par RegressionTree et courbes PDP/ICE finales.
+Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles. Elle retient quatre analyses complémentaires : ANOVA/Kruskal à un facteur, HSIC-ANOVA, indices de Sobol d'ordre 1 et total par PCE, et courbes PDP/ICE par sous-espace de l'espace SMT hiérarchique.
 
 Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. L’app attend désormais strictement le plan SMT courant à 15 paramètres. Si `dataset_metamodel_features.csv` est présent, il doit correspondre exactement à ce plan; les anciens exports à 26 paramètres sont refusés.
 
@@ -34,11 +34,9 @@ L'interface contient maintenant un README intégré expliquant comment utiliser 
 - `R² entraînement` : part de variance expliquée sur les données d'entraînement. Il mesure l'ajustement, pas la généralisation.
 - `Q² test` : R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation.
 - `ANOVA/Kruskal à un facteur` : R² descriptif associé aux groupes d'un paramètre.
-- `ANOVA à deux facteurs` : matrice du R² d'interaction uniquement, donc le surplus explicatif propre au couple de paramètres.
 - `Sobol par PCE S1/ST` : indices d'ordre 1 et d'ordre total calculés via un PCE creux entraîné sur les points faisables SMT.
 - `HSIC-ANOVA` : dépendance par noyaux représentée comme dans le notebook, par diagrammes en barres des principaux paramètres ou combinaisons de paramètres.
-- `Régions sensibles` : feuilles de l'arbre de décision résumées par leur moyenne et leur écart à la moyenne globale.
-- `Arbre complet` : règles de seuil successives qui définissent les régimes locaux.
+- `PDP/ICE par sous-espace` : pour chacun des 12 sous-espaces de l'espace SMT hiérarchique (combinaisons de nombre d'apports, présence et nombre de préparations du sol), un métamodèle est entraîné sur les seules variables continues actives, puis les courbes PDP (effet marginal moyen) et ICE (scénarios individuels) sont tracées pour chaque variable. Chaque figure indique le nombre de simulations et le Q² du métamodèle du sous-espace.
 
 ## Paramètres du plan SMT
 

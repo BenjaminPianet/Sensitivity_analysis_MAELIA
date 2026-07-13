@@ -21,23 +21,15 @@ const targetLabels = {
 
 const analysisLabels = {
   anova_1factor: "ANOVA 1 facteur",
-  anova_2factor: "ANOVA 2 facteurs",
   hsic_anova: "HSIC-ANOVA",
-  metamodel: "Métamodèles",
   sobol_indices: "Sobol PCE S1/ST",
-  pdp_ice: "PDP/ICE",
-  decision_tree: "Arbres de régression",
+  pdp_subspace: "PDP/ICE par sous-espace",
 };
 
 const figureLabels = {
   anova_1factor_png: "ANOVA à un facteur",
-  anova_2factor_interaction_png: "Interactions à deux facteurs",
-  metamodel_performance_png: "Performance du métamodèle",
   pce_sobol_png: "Sobol par PCE S1/ST",
   hsic_anova_order_png: "Effets principaux HSIC-ANOVA",
-  decision_tree_regions_png: "Seuils et régions sensibles",
-  decision_tree_png: "Arbre de régression",
-  pdp_ice_pngs: "PDP/ICE finales",
 };
 
 const featureOrder = [
@@ -56,17 +48,12 @@ const helpTexts = {
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
   random_state: "Graine aléatoire utilisée pour rendre reproductibles les séparations train/test, l'entraînement et les échantillonnages associés.",
   targets: "Sorties MAELIA analysées. Chaque sortie produit ses propres scores, figures, indices et régions sensibles.",
-  analyses_menu: "Menu des blocs à exécuter. L'app est limitée aux analyses retenues pour le workflow terrainSA : ANOVA 1/2 facteurs, HSIC-ANOVA, métamodèles, Sobol par PCE S1/ST, arbres de régression et PDP/ICE.",
+  analyses_menu: "Menu des blocs à exécuter. L'app retient quatre analyses complémentaires pour le workflow terrainSA : ANOVA à un facteur, HSIC-ANOVA, Sobol par PCE S1/ST et PDP/ICE par sous-espace.",
   analysis_anova_1factor: "Classe les paramètres selon leur effet descriptif individuel sur chaque sortie.",
-  analysis_anova_2factor: "Calcule les interactions entre couples de paramètres et génère une matrice de R² d'interaction.",
   analysis_sobol_indices: "Calcule les indices de Sobol d'ordre 1 et d'ordre total via un PCE creux entraîné sur un sous-échantillon reproductible des points SMT faisables.",
   analysis_hsic_anova: "Décompose la dépendance non linéaire entre paramètres et sortie avec HSIC-ANOVA. La figure résume la part portée par les effets simples, les interactions à deux paramètres et les interactions plus complexes.",
-  analysis_decision_tree: "Entraîne un RegressionTree interprétable pour identifier des seuils et des régions locales de réponse.",
-  
-  analysis_metamodel: "Compare et sélectionne un métamodèle prédictif parmi les candidats disponibles. Ce modèle sert notamment aux PDP/ICE.",
-  analysis_pdp_ice: "Trace les courbes PDP/ICE finales pour les paramètres temporels principaux. Ce bloc entraîne automatiquement le métamodèle prédictif.",
-  
-  run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA, HSIC-ANOVA, métamodèles, Sobol par PCE S1/ST, seuils ou PDP/ICE selon les cases cochées.",
+  analysis_pdp_subspace: "Pour chacun des 12 sous-espaces de l'espace SMT hiérarchique (combinaisons de nombre d'apports, présence et nombre de préparations), un métamodèle est entraîné sur les seules variables continues actives, puis les courbes PDP (effet moyen) et ICE (scénarios individuels) sont tracées pour chaque variable. On isole ainsi l'effet des réglages fins à structure d'itinéraire technique fixée.",
+  run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA à un facteur, HSIC-ANOVA, Sobol par PCE S1/ST et PDP/ICE par sous-espace selon les cases cochées.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
   summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan SMT courant de l’app en comporte exactement 15.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
@@ -191,7 +178,6 @@ function collectPayload() {
     analyses: analyses.length ? analyses : [],
     n_bins: Number(data.get("n_bins")),
     sobol_n_mc: Number(data.get("sobol_n_mc")),
-    tree_max_depth: Number(data.get("tree_max_depth")),
     random_state: Number(data.get("random_state")),
   };
 }
@@ -259,43 +245,50 @@ function reportLink() {
   return `<a class="link-button primary helpable" data-help-key="action_report" href="/analyses/${encodeURIComponent(currentManifest.run_id)}/report" target="_blank" rel="noreferrer">Ouvrir le rapport complet</a>`;
 }
 
-function pdpIcePanels(artifacts) {
-  const items = artifacts.pdp_ice_pngs || [];
+function subspaceCard(item) {
+  if (!item.path) {
+    return `
+      <article class="subspace-card empty">
+        <header><h4>${escapeHtml(item.title || item.subspace)}</h4></header>
+        <p class="subspace-empty">Trop peu de simulations (${item.n_points}) pour ce sous-espace.</p>
+      </article>`;
+  }
+  const q2 = Number(item.q2);
+  const q2Text = Number.isFinite(q2) ? q2.toFixed(2) : "-";
+  return `
+    <article class="subspace-card">
+      <header>
+        <h4>${escapeHtml(item.title || item.subspace)}</h4>
+        <div class="subspace-badges">
+          <span class="badge">${item.n_points} sim.</span>
+          <span class="badge">${item.n_active_features} variables</span>
+          <span class="badge q2">Q² ${q2Text}</span>
+        </div>
+      </header>
+      <img src="${relativeAssetUrl(item.path)}" alt="PDP/ICE ${escapeHtml(item.title || item.subspace)}" loading="lazy">
+    </article>`;
+}
+
+function pdpSubspaceSection(artifacts) {
+  const items = artifacts.pdp_subspace || [];
   if (!items.length) return "";
   return `
-    <section class="subsection-title wide">
+    <section class="subsection-title">
       <div>
-        <p>${helpSpan("Lecture finale", "pdp_ice_pngs")}</p>
-        <h3>PDP/ICE principaux</h3>
+        <p>${helpSpan("Lecture par régime technique", "analysis_pdp_subspace")}</p>
+        <h3>PDP/ICE par sous-espace SMT</h3>
       </div>
     </section>
-    ${items.map((item) => figurePanelFromPath(
-      item.path,
-      `PDP/ICE — ${item.feature_label || item.feature || "paramètre"}`,
-      "pdp_ice_feature",
-      false,
-      "pdp-panel"
-    )).join("")}`;
+    <div class="subspace-grid">
+      ${items.map(subspaceCard).join("")}
+    </div>`;
 }
 
 function renderTarget(target) {
   if (!currentManifest || !currentManifest.targets[target]) return;
   const artifacts = currentManifest.targets[target];
-  const metrics = artifacts.metamodel_metrics || null;
-  const treeMetrics = artifacts.decision_tree_metrics || null;
   const pceMetrics = artifacts.pce_metrics || null;
-  const modelScores = metrics ? `
-      <div class="score-row">
-        ${textScoreCard("Métamodèle retenu", metrics.model_name, "model", "metric_selected_model")}
-        ${scoreCard("R² entraînement métamodèle", metrics.R2_train, "train", "metric_R2_train")}
-        ${scoreCard("Q² test métamodèle", metrics.Q2_test, "test", "metric_Q2_test")}
-      </div>` : "";
-  const treeScores = treeMetrics ? `
-      <div class="score-row">
-        ${scoreCard("R² entraînement arbre", treeMetrics.R2_train, "train", "metric_tree_R2_train")}
-        ${scoreCard("Q² test arbre", treeMetrics.Q2_test, "test", "metric_tree_Q2_test")}
-      </div>` : "";
-  const pceScores = pceMetrics ? `
+  const pceScores = pceMetrics && pceMetrics.status !== "error" ? `
       <div class="score-row pce-score-row">
         ${textScoreCard("Sobol par PCE", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
         ${scoreCard("R² entraînement PCE", pceMetrics.R2_train, "train pce", "metric_pce_R2_train")}
@@ -303,24 +296,22 @@ function renderTarget(target) {
       </div>` : "";
   resultsPanel.innerHTML = `
     <div class="target-view">
-      ${modelScores}
       ${pceScores}
-      ${treeScores}
       <div class="report-actions">
         ${reportLink()}
-        ${actionLink(artifacts.decision_tree_regions_csv, "Voir les régions CSV", "action_regions_csv")}
-        ${actionLink(artifacts.decision_tree_rules_txt, "Voir les règles", "action_rules_txt")}
       </div>
+      <section class="subsection-title">
+        <div>
+          <p>${helpSpan("Sensibilité globale", "analyses_menu")}</p>
+          <h3>Vue d'ensemble des paramètres</h3>
+        </div>
+      </section>
       <div class="figure-grid">
-        ${figurePanel(artifacts, "metamodel_performance_png")}
-        ${figurePanel(artifacts, "pce_sobol_png", false, "pce-panel")}
-        ${figurePanel(artifacts, "hsic_anova_order_png", false, "hsic-panel")}
-        ${pdpIcePanels(artifacts)}
         ${figurePanel(artifacts, "anova_1factor_png")}
-        ${figurePanel(artifacts, "anova_2factor_interaction_png")}
-        ${figurePanel(artifacts, "decision_tree_regions_png", true)}
-        ${figurePanel(artifacts, "decision_tree_png", true)}
+        ${figurePanel(artifacts, "hsic_anova_order_png", false, "hsic-panel")}
+        ${figurePanel(artifacts, "pce_sobol_png", false, "pce-panel")}
       </div>
+      ${pdpSubspaceSection(artifacts)}
     </div>`;
   decorateHelpables(resultsPanel);
 }
