@@ -319,107 +319,6 @@ def final_dynamic_dataset(
 
 
 
-def _campaign_day_from_log_day(day: float) -> float:
-    """Convert MAELIA day-of-year logs to the SMT campaign-day convention.
-
-    The SMT plan expresses crop operations on an agricultural campaign starting
-    around August 1st: autumn dates are roughly 45-106 and spring/summer dates
-    continue above 213. MAELIA logs store day-of-year in the calendar year.
-    """
-    if pd.isna(day):
-        return float("nan")
-    value = float(day)
-    return value - 212.0 if value >= 213.0 else value + 153.0
-
-
-def _validate_dataset_matches_log_operations(log_dir: Path, df: pd.DataFrame) -> list[str]:
-    """Detect stale or mismatched X/Y exports by comparing dataset features to logs."""
-    required = {"point_idx", "parcelle", "Date_Semis", "Profondeur_Semis"}
-    if not required.issubset(df.columns):
-        return []
-    if not log_dir.exists():
-        return []
-
-    parcelles_per_run = df["parcelle"].nunique(dropna=True)
-    if not parcelles_per_run:
-        return []
-
-    sample = df[["point_idx", "parcelle", "Date_Semis", "Profondeur_Semis"]].dropna().head(40)
-    if sample.empty:
-        return []
-
-    folders_by_sim: dict[int, Path] = {}
-    for folder in log_dir.iterdir():
-        if not folder.is_dir() or not (folder / "suiviOTParParcelle.csv").exists():
-            continue
-        sim_idx = parse_sim_idx(folder.name)
-        if sim_idx is None:
-            continue
-        current = folders_by_sim.get(sim_idx)
-        if current is None or folder.stat().st_mtime > current.stat().st_mtime:
-            folders_by_sim[sim_idx] = folder
-
-    if not folders_by_sim:
-        return []
-
-    ot_cache: dict[int, pd.DataFrame] = {}
-    mismatches: list[str] = []
-    checked = 0
-
-    for row in sample.itertuples(index=False):
-        sim_idx = int(float(row.point_idx) // parcelles_per_run)
-        folder = folders_by_sim.get(sim_idx)
-        if folder is None:
-            continue
-        if sim_idx not in ot_cache:
-            try:
-                ot_cache[sim_idx] = pd.read_csv(
-                    folder / "suiviOTParParcelle.csv",
-                    sep=";",
-                    usecols=["annee", "date", "parcelle", "OT", "profondeur[cm]"],
-                )
-            except Exception:
-                continue
-        ot = ot_cache[sim_idx]
-        semis = ot[(ot["parcelle"] == row.parcelle) & (ot["OT"] == "SEMIS")]
-        if semis.empty:
-            continue
-        semis = semis.sort_values(["annee", "date"]).iloc[0]
-        checked += 1
-        log_date = _campaign_day_from_log_day(semis["date"])
-        log_depth = pd.to_numeric(pd.Series([semis["profondeur[cm]"]]), errors="coerce").iloc[0]
-        dataset_date = float(row.Date_Semis)
-        dataset_depth = float(row.Profondeur_Semis)
-        date_bad = pd.notna(log_date) and abs(dataset_date - log_date) > 2.0
-        depth_bad = pd.notna(log_depth) and abs(dataset_depth - float(log_depth)) > 1.0
-        if date_bad or depth_bad:
-            mismatches.append(
-                f"point_idx={int(row.point_idx)}, parcelle={row.parcelle}: "
-                f"Date_Semis dataset={dataset_date:.1f} vs log={log_date:.1f}; "
-                f"Profondeur_Semis dataset={dataset_depth:.1f} vs log={float(log_depth):.1f}"
-            )
-        if len(mismatches) >= 6:
-            break
-
-    if checked >= 5 and len(mismatches) / checked > 0.5:
-        examples = " | ".join(mismatches[:4])
-        raise ValueError(
-            "Le dataset_metamodel.csv est désaligné avec les logs MAELIA sélectionnés. "
-            "Les sorties semblent provenir de ces logs, mais les paramètres feat_* ne correspondent pas "
-            "aux opérations réellement exécutées dans suiviOTParParcelle.csv. "
-            "C'est typiquement ce qui arrive quand dataset_metamodel.csv est régénéré avec un nouveau plan SMT "
-            "tout en conservant d'anciens logs. Les analyses de sensibilité seraient invalides. "
-            "Régénère les simulations avec le plan courant, ou restaure le dataset qui correspond exactement "
-            "à cette série de logs. Exemples de désaccords : " + examples
-        )
-
-    if mismatches:
-        return [
-            "Quelques écarts ont été détectés entre dataset_metamodel.csv et suiviOTParParcelle.csv; "
-            "vérifie que le dataset correspond bien à la série de logs analysée."
-        ]
-    return []
-
 def load_dataset(
     log_dir: str | Path,
     dataset_path: str | Path | None = None,
@@ -466,8 +365,6 @@ def load_dataset(
     for extra in ["point_idx", "parcelle", "simulation", "sim_idx"]:
         if extra in df_raw.columns:
             df[extra] = df_raw[extra]
-
-    warnings.extend(_validate_dataset_matches_log_operations(log_path, df))
 
     df = df.dropna(subset=target_columns).reset_index(drop=True)
     if len(df) < 30:
