@@ -57,17 +57,17 @@ L'espace d'exploration SMT/ADSG est hiérarchique : certains paramètres n'exist
 
 Les figures suivantes décomposent, pour chaque sortie, la dépendance statistique mesurée par noyaux entre les paramètres et la sortie. Elles ne doivent **pas** être lues comme des indices de Sobol : HSIC-ANOVA mesure une dépendance non linéaire globale et gère les paramètres actifs par intermittence de l'espace hiérarchique.
 
-La figure principale classe les termes par contribution au HSIC global, pour les trois sorties. La quasi-totalité des contributions sont des effets d'ordre 1 (paramètre seul) ; les interactions d'ordre 2 restent marginales (au plus ~1,3 % pour un couple date d'apport × date de récolte sur le rendement).
+La figure principale classe les termes par contribution au HSIC global, pour les trois sorties. Les effets d'ordre 1 (paramètre seul) dominent, mais des interactions d'ordre 2 apparaissent nettement pour le rendement : le couple nombre d'apports × dose du premier apport y pèse à lui seul environ 8 %.
 
 ![Principaux termes HSIC-ANOVA par sortie](figs/hsic_anova_top_terms_all_outputs.png)
 
 Lecture par sortie :
 
-- **Azote lixivié (`N_lixi`)** est piloté par la fertilisation : la date du premier apport (~22 %), la date du deuxième apport (~15 %) et la dose du premier apport (~13 %) dominent.
-- **Variation du carbone organique (`dCorg`)** dépend surtout du travail du sol et de la fenêtre culturale : profondeur de la première préparation (~22 %), délai préparation→semis (~14 %), puis date du premier apport (~14 %).
-- **Rendement (`rdt`)** répond d'abord au calendrier et à la préparation : délai préparation→semis (~17 %), profondeur de préparation (~14 %), profondeur de semis (~12 %), date du premier apport et date de récolte (~10–11 % chacune).
+- **Azote lixivié (`N_lixi`)** est piloté par la fertilisation : les doses et dates des apports dominent (dose du troisième apport ~23 %, date du deuxième apport ~19 %, dose du deuxième apport ~17 %), le nombre d'apports comptant pour ~8 %.
+- **Variation du carbone organique (`dCorg`)** dépend surtout de la fertilisation et de la fenêtre culturale : date du deuxième apport (~36 %), nombre d'apports (~20 %), dose du premier apport (~14 %), puis date de récolte (~8 %) et présence d'une préparation du sol (~5 %).
+- **Rendement (`rdt`)** répond d'abord à la quantité d'azote apportée : nombre d'apports (~37 %), dose du premier apport (~23 %) et date du deuxième apport (~20 %), avec une interaction marquée nombre d'apports × dose du premier apport (~8 %).
 
-En regroupant les paramètres par famille agronomique, la même hiérarchie se lit à un niveau plus synthétique : la fertilisation (timing + doses) domine pour l'azote lixivié, tandis que les profondeurs de travail et le calendrier semis/récolte dominent pour le carbone et le rendement.
+En regroupant les paramètres par famille agronomique, la même hiérarchie se lit à un niveau plus synthétique : la fertilisation — nombre d'apports, dates et doses réunis — domine les trois sorties, la préparation du sol et le calendrier semis/récolte jouant un rôle secondaire.
 
 ![HSIC-ANOVA par famille sémantique](figs/hsic_anova_semantic_families.png)
 
@@ -83,6 +83,6 @@ L'exemple ci-dessous correspond au sous-espace le plus riche — trois fertilisa
 
 ![PDP/ICE — sous-espace 0 apport N, sans préparation (rendement)](figs/pdp_ice_sous_espace_0ferti_sansPrepa_rdt.png)
 
-Le résultat marquant est la platitude des PDP et le faible pouvoir prédictif des métamodèles de sous-espace (Q² proche de 0). Autrement dit, **une fois la structure de l'itinéraire fixée**, le réglage fin des dates, doses et profondeurs n'explique quasiment pas la variance des sorties sur ce terrain contrôlé. La sensibilité mesurée par HSIC provient donc largement du **choix de structure** (nombre d'apports, présence et intensité de la préparation) plutôt que d'un ajustement fin à structure constante ; les faisceaux ICE, larges par rapport à des PDP plates, confirment que le peu de signal résiduel passe surtout par des interactions.
+À l'intérieur de chaque sous-espace, les métamodèles sont nettement prédictifs (Q² typiquement de 0,7 à 0,99) et les PDP révèlent des réponses agronomiques interprétables. Pour le rendement, on retrouve la courbe classique de réponse à l'azote : le rendement croît avec chaque dose d'apport puis sature au-delà d'environ 50 kgN/ha, et diminue lorsque le premier apport est trop tardif ; les profondeurs de travail et la date de semis ont un effet faible. Les faisceaux ICE resserrés autour des PDP indiquent des effets marginaux stables d'un scénario à l'autre.
 
 Dans ce cadre contrôlé, les résultats doivent être interprétés comme une sensibilité des sorties à la stratégie technique, et non comme une sensibilité générale de MAELIA à tous les contextes pédoclimatiques.
