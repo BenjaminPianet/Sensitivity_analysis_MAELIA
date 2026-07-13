@@ -6,11 +6,11 @@ Ce dépôt rassemble une chaîne de travail minimale pour explorer la sensibilit
 
 Le dépôt est volontairement resserré autour des éléments utiles à la reproduction et à la lecture des résultats.
 
-- `maelia_sa_pipeline/` contient l'application web. Son guide d'utilisation détaillé est dans [`maelia_sa_pipeline/README.md`](maelia_sa_pipeline/README.md).
+- `maelia_sa_pipeline/` contient l'application web. Son guide d'utilisation détaillé est dans [`maelia_sa_pipeline/README.md`](maelia_sa_pipeline/README.md). L'application retient quatre analyses : ANOVA à un facteur, HSIC-ANOVA, indices de Sobol par PCE et courbes PDP/ICE par sous-espace.
 - `communication/` contient les supports de présentation et documents de communication associés au projet.
-- `figs/` contient uniquement les figures affichées dans ce README : l'espace SMT MAELIA et les figures HSIC-ANOVA principales.
+- `figs/` contient uniquement les figures affichées dans ce README : l'espace SMT MAELIA, les figures HSIC-ANOVA principales et deux exemples de courbes PDP/ICE par sous-espace.
 - `simulations/` contient le notebook de génération du plan SMT, le notebook de lancement terrainSA, le script de construction du terrain projet-local, le terrain `gama_includes/terrainSA`, et les logs `log_terrainSA`.
-- `analysis/` contient le notebook `hsic_anova_analysis.ipynb` et les outils HSIC-ANOVA dans `analysis/tools/`.
+- `analysis/` contient le notebook HSIC-ANOVA `hsic_anova_analysis.ipynb`, le notebook `pdp_ice_par_sous_espace.ipynb` (courbes PDP/ICE pour chacun des 12 sous-espaces SMT) et les outils dans `analysis/tools/`.
 
 Les dépendances Python sont listées dans `requirements.txt`. Les sorties temporaires de l'application web et les caches Python sont ignorés par Git.
 
@@ -31,37 +31,58 @@ Le dossier `simulations/log_terrainSA` doit contenir les dossiers de runs `terra
 **Étape 4 — Exécuter HSIC-ANOVA.**  
 Ouvrir [`analysis/hsic_anova_analysis.ipynb`](analysis/hsic_anova_analysis.ipynb). Le notebook charge `dataset_metamodel.csv`, importe `analysis/tools/hsic_methods.py`, calcule les termes HSIC-ANOVA et génère les tableaux et figures d'influence.
 
-**Étape 5 — Explorer les résultats dans l'application web.**  
+**Étape 5 — Tracer les courbes PDP/ICE par sous-espace.**  
+Ouvrir [`analysis/pdp_ice_par_sous_espace.ipynb`](analysis/pdp_ice_par_sous_espace.ipynb). Le notebook partitionne `dataset_metamodel.csv` selon les 12 sous-espaces de l'espace SMT hiérarchique, entraîne un métamodèle par sous-espace sur ses seules variables continues actives, puis trace la courbe PDP (effet moyen) et le faisceau ICE (scénarios individuels) de chaque variable.
+
+**Étape 6 — Explorer les résultats dans l'application web.**  
 Depuis la racine du dépôt :
 
 ```bash
 python -m uvicorn maelia_sa_pipeline.api:app --reload
 ```
 
-L'interface demande le chemin vers les logs, par exemple `simulations/log_terrainSA`. Le README de l'application détaille les mesures affichées et les options de pipeline.
+L'interface demande le chemin vers les logs, par exemple `simulations/log_terrainSA`. Le README de l'application détaille les mesures affichées et les analyses disponibles.
 
 ## 3. Résultats terrainSA
 
 `terrainSA` est construit pour isoler l'effet des paramètres techniques. Il correspond à la parcelle `beauce_5_1` clonée 100 fois dans le même ilot `beauce_5`. Les clones partagent donc le même contexte pédologique et météorologique : même sol, même zone météo, même géométrie de référence. Ce choix réduit l'effet confondant du climat et du type de sol pour concentrer l'analyse sur les opérations agricoles.
 
-L'espace d'exploration est hiérarchique : certains paramètres n'existent que si une opération associée existe. Par exemple, les dates et doses de fertilisation ne sont actives que lorsque le scénario contient une fertilisation, et les profondeurs de préparation ne sont actives que lorsqu'une préparation du sol est présente.
+### Un espace de conception hiérarchique à 12 sous-espaces
 
-![Espace SMT MAELIA](figs/maelia_adsg.png)
+L'espace d'exploration SMT/ADSG est hiérarchique : certains paramètres n'existent que si une opération associée existe. Trois variables de décision structurent l'espace — le nombre de fertilisations (`0, 1, 2, 3`), la présence d'une préparation du sol (`oui/non`) et, le cas échéant, le nombre de reprises (`1, 2`). Leurs combinaisons valides définissent **12 sous-espaces**, chacun activant un sous-ensemble différent des 15 paramètres. Ainsi les dates et doses de fertilisation ne sont actives que lorsqu'une fertilisation a lieu, et les profondeurs de préparation seulement lorsqu'une préparation est prévue.
 
-Les figures suivantes présentent les principaux termes HSIC-ANOVA par sortie. Elles ne doivent pas être lues comme des indices de Sobol : elles décomposent une dépendance statistique mesurée par noyaux entre les paramètres et chaque sortie MAELIA.
+![Espace SMT MAELIA](figs/maelia_space.png)
 
-![HSIC-ANOVA N_lixi](figs/hsic_anova_top_terms_N_lixi.png)
+### Résultats HSIC-ANOVA
 
-![HSIC-ANOVA dCorg](figs/hsic_anova_top_terms_dCorg.png)
+Les figures suivantes décomposent, pour chaque sortie, la dépendance statistique mesurée par noyaux entre les paramètres et la sortie. Elles ne doivent **pas** être lues comme des indices de Sobol : HSIC-ANOVA mesure une dépendance non linéaire globale et gère les paramètres actifs par intermittence de l'espace hiérarchique.
 
-![HSIC-ANOVA rdt](figs/hsic_anova_top_terms_rdt.png)
+La figure principale classe les termes par contribution au HSIC global, pour les trois sorties. La quasi-totalité des contributions sont des effets d'ordre 1 (paramètre seul) ; les interactions d'ordre 2 restent marginales (au plus ~1,3 % pour un couple date d'apport × date de récolte sur le rendement).
 
-Les histogrammes ci-dessous comptent la fréquence d'apparition des paramètres dans les principaux termes retenus. Ils donnent une lecture complémentaire : un paramètre souvent présent dans les termes importants peut agir seul ou via des interactions.
+![Principaux termes HSIC-ANOVA par sortie](figs/hsic_anova_top_terms_all_outputs.png)
 
-![Fréquence des paramètres N_lixi](figs/influence_parametres_N_lixi.png)
+Lecture par sortie :
 
-![Fréquence des paramètres dCorg](figs/influence_parametres_dCorg.png)
+- **Azote lixivié (`N_lixi`)** est piloté par la fertilisation : la date du premier apport (~22 %), la date du deuxième apport (~15 %) et la dose du premier apport (~13 %) dominent.
+- **Variation du carbone organique (`dCorg`)** dépend surtout du travail du sol et de la fenêtre culturale : profondeur de la première préparation (~22 %), délai préparation→semis (~14 %), puis date du premier apport (~14 %).
+- **Rendement (`rdt`)** répond d'abord au calendrier et à la préparation : délai préparation→semis (~17 %), profondeur de préparation (~14 %), profondeur de semis (~12 %), date du premier apport et date de récolte (~10–11 % chacune).
 
-![Fréquence des paramètres rdt](figs/influence_parametres_rdt.png)
+En regroupant les paramètres par famille agronomique, la même hiérarchie se lit à un niveau plus synthétique : la fertilisation (timing + doses) domine pour l'azote lixivié, tandis que les profondeurs de travail et le calendrier semis/récolte dominent pour le carbone et le rendement.
 
-Dans ce cadre contrôlé, les résultats doivent être interprétés comme une sensibilité des sorties à la stratégie technique, et non comme une sensibilité générale de MAELIA à tous les contextes pédoclimatiques. L'intérêt de HSIC-ANOVA est précisément de conserver une lecture globale tout en tenant compte de dépendances non linéaires et d'interactions entre paramètres actifs dans l'espace SMT.
+![HSIC-ANOVA par famille sémantique](figs/hsic_anova_semantic_families.png)
+
+### Courbes PDP/ICE par sous-espace
+
+L'analyse HSIC agrège tout l'espace hiérarchique. Pour la compléter, le notebook [`analysis/pdp_ice_par_sous_espace.ipynb`](analysis/pdp_ice_par_sous_espace.ipynb) descend **à l'intérieur de chacun des 12 sous-espaces** : à structure d'itinéraire technique fixée, il entraîne un métamodèle (forêt aléatoire) sur les seules variables continues actives du sous-espace, puis trace pour chaque variable la courbe PDP (effet marginal moyen, ligne foncée) et le faisceau ICE (scénarios individuels, lignes claires). Chaque sortie est traitée séparément, soit 36 figures.
+
+L'exemple ci-dessous correspond au sous-espace le plus riche — trois fertilisations et deux reprises de préparation, soit douze variables actives — pour le rendement.
+
+![PDP/ICE — sous-espace 3 apports N, préparation à 2 reprises (rendement)](figs/pdp_ice_sous_espace_3ferti_prepa2_rdt.png)
+
+À l'opposé, le sous-espace minimal — aucune fertilisation, sans préparation — n'active que trois variables (dates de semis et de récolte, profondeur de semis).
+
+![PDP/ICE — sous-espace 0 apport N, sans préparation (rendement)](figs/pdp_ice_sous_espace_0ferti_sansPrepa_rdt.png)
+
+Le résultat marquant est la platitude des PDP et le faible pouvoir prédictif des métamodèles de sous-espace (Q² proche de 0). Autrement dit, **une fois la structure de l'itinéraire fixée**, le réglage fin des dates, doses et profondeurs n'explique quasiment pas la variance des sorties sur ce terrain contrôlé. La sensibilité mesurée par HSIC provient donc largement du **choix de structure** (nombre d'apports, présence et intensité de la préparation) plutôt que d'un ajustement fin à structure constante ; les faisceaux ICE, larges par rapport à des PDP plates, confirment que le peu de signal résiduel passe surtout par des interactions.
+
+Dans ce cadre contrôlé, les résultats doivent être interprétés comme une sensibilité des sorties à la stratégie technique, et non comme une sensibilité générale de MAELIA à tous les contextes pédoclimatiques.
