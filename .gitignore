@@ -6,6 +6,7 @@ __pycache__/
 .ipynb_checkpoints/
 analysis/web_runs/
 analysis/hsic_anova_results/
+analysis/pdp_ice_par_sous_espace/
 simulations/log_PDP:ICE/
 simulations/log_terrainTest/
 /tmp/
