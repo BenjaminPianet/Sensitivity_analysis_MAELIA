@@ -25,7 +25,7 @@ REPO = Path(__file__).resolve().parents[1]
 LOG_DIR = REPO / "simulations" / "log_terrainSA"
 
 AGRI_FEATURES = [
-    "n_ferti", "has_prepa", "nb_prepa",
+    "n_ferti", "nb_prepa",
     "Date_Semis", "Delta_PREPA_Semis", "Profondeur_Semis",
     "Profondeur_Prepa_1", "Profondeur_Prepa_2",
     "Date_F1", "Date_F2", "Date_F3", "Date_Recolte",
@@ -37,7 +37,7 @@ FEAT_COLS = [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
 DEFAULTS = {
     "Delta_PREPA_Semis": -20.0, "Profondeur_Prepa_1": 15.0, "Profondeur_Prepa_2": 10.0,
     "Date_F1": 259.0, "Date_F2": 383.0, "Date_F3": 393.0,
-    "Dose_F1": 55.0, "Dose_F2": 55.0, "Dose_F3": 55.0,
+    "Dose_F1": 10.0, "Dose_F2": 10.0, "Dose_F3": 10.0,
 }
 
 
@@ -93,7 +93,6 @@ def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
 
         campaigns.append({
             "n_ferti": len(ferti),
-            "has_prepa": 1 if n_prepa >= 1 else 0,
             "nb_prepa": n_prepa,
             "Date_Semis": cd_semis,
             "Delta_PREPA_Semis": delta,
@@ -114,7 +113,7 @@ def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
     cdf = pd.DataFrame(campaigns)
     out = {}
     # Catégorielles : mode (valeur la plus fréquente sur les campagnes).
-    for c in ["n_ferti", "has_prepa", "nb_prepa"]:
+    for c in ["n_ferti", "nb_prepa"]:
         out[c] = int(cdf[c].mode().iloc[0])
     # Continues : médiane sur les campagnes où la variable est active.
     for c in AGRI_FEATURES[3:]:
@@ -126,21 +125,19 @@ def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
 def encode_features(rec: dict) -> dict:
     """Vers le schéma feat_* : nb_prepa en index ordinal, défauts pour l'inactif."""
     n_ferti = rec["n_ferti"]
-    has_prepa = rec["has_prepa"]
     nb_prepa = rec["nb_prepa"]
 
     vals = {
         "n_ferti": n_ferti,
-        "has_prepa": has_prepa,
-        "nb_prepa": (nb_prepa - 1) if (has_prepa == 1 and nb_prepa >= 1) else 0,
+        "nb_prepa": nb_prepa,
         "Date_Semis": rec["Date_Semis"],
         "Profondeur_Semis": rec["Profondeur_Semis"],
         "Date_Recolte": rec["Date_Recolte"],
     }
     # Préparation
-    vals["Delta_PREPA_Semis"] = rec["Delta_PREPA_Semis"] if has_prepa else DEFAULTS["Delta_PREPA_Semis"]
-    vals["Profondeur_Prepa_1"] = rec["Profondeur_Prepa_1"] if has_prepa else DEFAULTS["Profondeur_Prepa_1"]
-    vals["Profondeur_Prepa_2"] = rec["Profondeur_Prepa_2"] if (has_prepa and nb_prepa >= 2) else DEFAULTS["Profondeur_Prepa_2"]
+    vals["Delta_PREPA_Semis"] = rec["Delta_PREPA_Semis"] if nb_prepa >= 1 else DEFAULTS["Delta_PREPA_Semis"]
+    vals["Profondeur_Prepa_1"] = rec["Profondeur_Prepa_1"] if nb_prepa >= 1 else DEFAULTS["Profondeur_Prepa_1"]
+    vals["Profondeur_Prepa_2"] = rec["Profondeur_Prepa_2"] if nb_prepa >= 2 else DEFAULTS["Profondeur_Prepa_2"]
     # Fertilisation
     for k, name in enumerate(["Date_F1", "Date_F2", "Date_F3"], start=1):
         vals[name] = rec[name] if n_ferti >= k else DEFAULTS[name]

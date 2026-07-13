@@ -67,18 +67,16 @@ def build_acting_matrix(df: pd.DataFrame, features: list[str]) -> np.ndarray:
     acting = np.ones((len(df), len(features)), dtype=bool)
     index = {name: i for i, name in enumerate(features)}
 
-    has_prepa = _raw_numeric(df, "has_prepa") > 0.5
     n_ferti = _raw_numeric(df, "n_ferti")
-    nb_prepa_raw = _raw_numeric(df, "nb_prepa")
-    second_prepa = nb_prepa_raw >= 2 if nb_prepa_raw.max() > 1.5 else nb_prepa_raw > 0.5
+    nb_prepa = _raw_numeric(df, "nb_prepa")
 
     def set_active(feature: str, mask: pd.Series | np.ndarray) -> None:
         if feature in index:
             acting[:, index[feature]] = np.asarray(mask, dtype=bool)
 
-    for feature in ["nb_prepa", "Delta_PREPA_Semis", "Profondeur_Prepa_1"]:
-        set_active(feature, has_prepa)
-    set_active("Profondeur_Prepa_2", has_prepa & second_prepa)
+    for feature in ["Delta_PREPA_Semis", "Profondeur_Prepa_1"]:
+        set_active(feature, nb_prepa >= 1)
+    set_active("Profondeur_Prepa_2", nb_prepa >= 2)
 
     for i in [1, 2, 3]:
         active = n_ferti >= i

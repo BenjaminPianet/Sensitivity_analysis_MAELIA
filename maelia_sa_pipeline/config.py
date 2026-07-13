@@ -6,18 +6,17 @@ DEFAULT_TARGETS = ["N_lixi", "dCorg", "rdt"]
 DEFAULT_PDP_ICE_FEATURES = ["Date_Semis", "Date_Recolte", "Delta_PREPA_Semis"]
 
 AGRI_FEATURES = [
-    "n_ferti", "has_prepa", "nb_prepa",
+    "n_ferti", "nb_prepa",
     "Date_Semis", "Delta_PREPA_Semis", "Profondeur_Semis",
     "Profondeur_Prepa_1", "Profondeur_Prepa_2",
     "Date_F1", "Date_F2", "Date_F3", "Date_Recolte",
     "Dose_F1", "Dose_F2", "Dose_F3",
 ]
 
-AGRI_CATEGORICAL = ["n_ferti", "has_prepa", "nb_prepa"]
+AGRI_CATEGORICAL = []
 
 FEATURE_LABELS = {
     "n_ferti": "Nombre d'apports N",
-    "has_prepa": "Préparation du sol",
     "nb_prepa": "Nombre de préparations",
     "Date_Semis": "Date de semis",
     "Delta_PREPA_Semis": "Décalage préparation-semis",
