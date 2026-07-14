@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-07-03 13:56:15",
+  "n_simu": 100,
+  "n_doe": 10000,
+  "clones_per_run": 100,
+  "seed": 42,
+  "annee_debut": 2019,
+  "nb_annees": 10,
+  "final_step": 4018,
+  "maelia_root": "/home/benjamin/Workspace_GAMA/MAELIA",
+  "gama_headless": "/home/benjamin/apps/GAMA_2026.04.9_JDK/headless/gama-headless.sh",
+  "smt_features": [
+    "n_ferti",
+    "has_prepa",
+    "nb_prepa",
+    "Date_Semis",
+    "Delta_PREPA_Semis",
+    "Profondeur_Semis",
+    "Profondeur_Prepa_1",
+    "Profondeur_Prepa_2",
+    "Date_F1",
+    "Date_F2",
+    "Date_F3",
+    "Date_Recolte",
+    "Dose_F1",
+    "Dose_F2",
+    "Dose_F3"
+  ]
+}
