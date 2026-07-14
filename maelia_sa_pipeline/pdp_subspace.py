@@ -1,8 +1,7 @@
 """Courbes PDP/ICE par sous-espace de l'espace de conception hiérarchique SMT.
 
-L'espace SMT est hiérarchique : trois variables de décision catégorielles
-(`n_ferti` in {0,1,2,3}, `has_prepa` in {Non, Oui}, `nb_prepa` in {1,2}, cette
-dernière n'existant que si `has_prepa = Oui`) définissent 12 sous-espaces. Dans
+L'espace SMT est hiérarchique : deux variables de décision ordinales
+(`n_ferti` in {0,1,2,3}, `nb_prepa` in {0,1,2}) définissent 12 sous-espaces. Dans
 chaque sous-espace, ces variables sont fixées et seul un sous-ensemble des
 variables continues est actif. On entraîne un métamodèle (forêt aléatoire) sur
 les seules variables actives de chaque sous-espace, puis on trace la PDP moyenne
@@ -36,12 +35,12 @@ _CONTINUOUS_ORDER = [
 ]
 
 
-def active_continuous(n_ferti: int, has_prepa: int, nb_prepa: int) -> list[str]:
+def active_continuous(n_ferti: int, nb_prepa: int) -> list[str]:
     """Variables continues actives pour un sous-espace donné."""
     feats = list(_ALWAYS)
-    if has_prepa == 1:
+    if nb_prepa >= 1:
         feats += ["Delta_PREPA_Semis", "Profondeur_Prepa_1"]
-        if nb_prepa == 2:
+        if nb_prepa >= 2:
             feats += ["Profondeur_Prepa_2"]
     if n_ferti >= 1:
         feats += ["Date_F1", "Dose_F1"]
@@ -52,13 +51,13 @@ def active_continuous(n_ferti: int, has_prepa: int, nb_prepa: int) -> list[str]:
     return [f for f in _CONTINUOUS_ORDER if f in feats]
 
 
-def subspace_label(n_ferti: int, has_prepa: int, nb_prepa: int) -> str:
-    prep = "sansPrepa" if has_prepa == 0 else f"prepa{nb_prepa}"
+def subspace_label(n_ferti: int, nb_prepa: int) -> str:
+    prep = "sansPrepa" if nb_prepa == 0 else f"prepa{nb_prepa}"
     return f"nferti{n_ferti}_{prep}"
 
 
-def subspace_title(n_ferti: int, has_prepa: int, nb_prepa: int) -> str:
-    if has_prepa == 0:
+def subspace_title(n_ferti: int, nb_prepa: int) -> str:
+    if nb_prepa == 0:
         prep = "sans préparation"
     else:
         prep = f"préparation ({nb_prepa} reprise{'s' if nb_prepa == 2 else ''})"
@@ -66,24 +65,20 @@ def subspace_title(n_ferti: int, has_prepa: int, nb_prepa: int) -> str:
     return f"{apports}, {prep}"
 
 
-def enumerate_subspaces() -> list[tuple[int, int, int]]:
-    """Les 12 sous-espaces valides (n_ferti, has_prepa, nb_prepa)."""
-    subs: list[tuple[int, int, int]] = []
+def enumerate_subspaces() -> list[tuple[int, int]]:
+    """Les 12 sous-espaces valides (n_ferti, nb_prepa)."""
+    subs: list[tuple[int, int]] = []
     for n_ferti in (0, 1, 2, 3):
-        subs.append((n_ferti, 0, 0))     # sans préparation
-        subs.append((n_ferti, 1, 1))     # préparation, 1 reprise
-        subs.append((n_ferti, 1, 2))     # préparation, 2 reprises
+        for nb_prepa in (0, 1, 2):
+            subs.append((n_ferti, nb_prepa))
     return subs
 
 
 def _decode_decision(df: pd.DataFrame) -> pd.DataFrame:
-    """Ajoute les variables de décision décodées (n_ferti, has_prepa, nb_prepa 1/2)."""
+    """Ajoute les variables de décision décodées (n_ferti, nb_prepa)."""
     out = df.copy()
     out["_n_ferti"] = pd.to_numeric(out["n_ferti"], errors="coerce").round().astype("Int64")
-    out["_has_prepa"] = pd.to_numeric(out["has_prepa"], errors="coerce").round().astype("Int64")
-    raw_nb = pd.to_numeric(out["nb_prepa"], errors="coerce").round()
-    # nb_prepa est un index ordinal 0/1 -> 1/2, et n'a de sens que si has_prepa == 1
-    out["_nb_prepa"] = np.where(out["_has_prepa"] == 1, (raw_nb + 1).astype("Int64"), 0)
+    out["_nb_prepa"] = pd.to_numeric(out["nb_prepa"], errors="coerce").round().astype("Int64")
     return out
 
 
@@ -148,10 +143,8 @@ def compute_subspace_pdp_ice(
     decoded = _decode_decision(df)
     results: list[dict] = []
     for sub in enumerate_subspaces():
-        n_ferti, has_prepa, nb_prepa = sub
-        sel = (decoded["_n_ferti"] == n_ferti) & (decoded["_has_prepa"] == has_prepa)
-        if has_prepa == 1:
-            sel &= decoded["_nb_prepa"] == nb_prepa
+        n_ferti, nb_prepa = sub
+        sel = (decoded["_n_ferti"] == n_ferti) & (decoded["_nb_prepa"] == nb_prepa)
         sub_df = decoded[sel]
         feats = active_continuous(*sub)
         label = subspace_label(*sub)
@@ -161,7 +154,6 @@ def compute_subspace_pdp_ice(
             "subspace": label,
             "title": subspace_title(*sub),
             "n_ferti": n_ferti,
-            "has_prepa": has_prepa,
             "nb_prepa": nb_prepa,
             "n_active_features": len(feats),
             "n_points": int(len(data)),

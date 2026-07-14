@@ -67,18 +67,16 @@ def build_acting_matrix(df: pd.DataFrame, features: list[str]) -> np.ndarray:
     acting = np.ones((len(df), len(features)), dtype=bool)
     index = {name: i for i, name in enumerate(features)}
 
-    has_prepa = _raw_numeric(df, "has_prepa") > 0.5
     n_ferti = _raw_numeric(df, "n_ferti")
-    nb_prepa_raw = _raw_numeric(df, "nb_prepa")
-    second_prepa = nb_prepa_raw >= 2 if nb_prepa_raw.max() > 1.5 else nb_prepa_raw > 0.5
+    nb_prepa = _raw_numeric(df, "nb_prepa")
 
     def set_active(feature: str, mask: pd.Series | np.ndarray) -> None:
         if feature in index:
             acting[:, index[feature]] = np.asarray(mask, dtype=bool)
 
-    for feature in ["nb_prepa", "Delta_PREPA_Semis", "Profondeur_Prepa_1"]:
-        set_active(feature, has_prepa)
-    set_active("Profondeur_Prepa_2", has_prepa & second_prepa)
+    for feature in ["Delta_PREPA_Semis", "Profondeur_Prepa_1"]:
+        set_active(feature, nb_prepa >= 1)
+    set_active("Profondeur_Prepa_2", nb_prepa >= 2)
 
     for i in [1, 2, 3]:
         active = n_ferti >= i
@@ -123,25 +121,53 @@ def compute_hsic_anova(
     num_is_decreed = np.array([feature in DEFAULT_CONDITIONALLY_ACTING for feature in features], dtype=bool)
     is_categorical = np.array([feature in categorical for feature in features], dtype=bool)
 
-    min_leaf = max(10, int(0.03 * len(X_np)))
+    # ASTUCE : Arbres plus profonds pour capter les effets des sous-branches rares
+    min_leaf = max(3, int(0.01 * len(X_np)))
     rf = RandomForestRegressor(
-        n_estimators=180,
-        max_depth=10,
+        n_estimators=300,
+        max_depth=None,
         min_samples_leaf=min_leaf,
         random_state=random_state,
         n_jobs=-1,
     )
     rf.fit(X_np, y_np)
-    perm = permutation_importance(
-        rf,
-        X_np,
-        y_np,
-        n_repeats=6,
-        random_state=random_state,
-        n_jobs=-1,
-    )
-    theta = np.maximum(0.0, perm.importances_mean) * 5.0
-    theta[perm.importances_mean < 0.005] = 0.0
+    
+    # Conditional Permutation Importance (Intrinsic)
+    n_features = X_np.shape[1]
+    importances_mean = np.zeros(n_features)
+    np.random.seed(random_state)
+    
+    for i in range(n_features):
+        active_idx = np.where(x_is_acting[:, i])[0]
+        if len(active_idx) < 2:
+            importances_mean[i] = 0.0
+            continue
+        
+        pred_base = rf.predict(X_np[active_idx])
+        mse_base = np.mean((y_np[active_idx] - pred_base)**2)
+        var_active = np.var(y_np[active_idx])
+        
+        mse_shuff = 0.0
+        n_repeats = 6
+        for _ in range(n_repeats):
+            xt_shuff = np.copy(X_np)
+            
+            # Numpy advanced indexing returns a copy, so we must extract, shuffle, and re-assign
+            shuffled_vals = np.copy(xt_shuff[active_idx, i])
+            np.random.shuffle(shuffled_vals)
+            xt_shuff[active_idx, i] = shuffled_vals
+            
+            pred_shuff = rf.predict(xt_shuff[active_idx])
+            mse_shuff += np.mean((y_np[active_idx] - pred_shuff)**2)
+        mse_shuff /= n_repeats
+        
+        if var_active > 1e-6:
+            importances_mean[i] = max(0.0, (mse_shuff - mse_base) / var_active)
+        else:
+            importances_mean[i] = 0.0
+
+    theta = importances_mean * 5.0
+    theta[importances_mean < 0.001] = 0.0
     theta_scales = theta if np.any(theta > 0) else None
 
     filtered_results, global_hsic = hsic_anova_hierarchical(
