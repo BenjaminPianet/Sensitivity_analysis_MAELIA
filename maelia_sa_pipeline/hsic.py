@@ -130,7 +130,18 @@ def compute_hsic_anova(
         random_state=random_state,
         n_jobs=-1,
     )
-    rf.fit(X_np, y_np)
+    # --- Gemini Trick: Random Marginal Imputation for RF ---
+    # Resample from the empirical distribution of ACTIVE states.
+    # This flawlessly handles continuous, ordinal, and categorical variables
+    # (they retain their exact discrete values instead of continuous noise).
+    X_rf = np.copy(X_np)
+    for i in range(X_np.shape[1]):
+        inactive_idx = np.where(~x_is_acting[:, i])[0]
+        active_idx = np.where(x_is_acting[:, i])[0]
+        if len(inactive_idx) > 0 and len(active_idx) > 0:
+            X_rf[inactive_idx, i] = rng.choice(X_np[active_idx, i], size=len(inactive_idx))
+
+    rf.fit(X_rf, y_np)
     
     # Conditional Permutation Importance (Intrinsic)
     n_features = X_np.shape[1]
