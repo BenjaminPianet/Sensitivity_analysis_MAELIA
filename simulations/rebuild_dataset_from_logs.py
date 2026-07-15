@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import re
 import shutil
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -33,11 +34,14 @@ AGRI_FEATURES = [
 ]
 FEAT_COLS = [f"feat_{i}" for i in range(len(AGRI_FEATURES))]
 
-# Défauts pour les variables continues INACTIVES (ordre AGRI continu).
+# Défaut pour les variables continues INACTIVES : sentinelle hors plage (-1), qui
+# distingue proprement "inactif" de "actif-faible" (au lieu d'une valeur en milieu
+# de plage qui se confond avec de vraies valeurs).
+_INACTIVE = -1.0
 DEFAULTS = {
-    "Delta_PREPA_Semis": -20.0, "Profondeur_Prepa_1": 15.0, "Profondeur_Prepa_2": 10.0,
-    "Date_F1": 259.0, "Date_F2": 383.0, "Date_F3": 393.0,
-    "Dose_F1": 10.0, "Dose_F2": 10.0, "Dose_F3": 10.0,
+    "Delta_PREPA_Semis": _INACTIVE, "Profondeur_Prepa_1": _INACTIVE, "Profondeur_Prepa_2": _INACTIVE,
+    "Date_F1": _INACTIVE, "Date_F2": _INACTIVE, "Date_F3": _INACTIVE,
+    "Dose_F1": _INACTIVE, "Dose_F2": _INACTIVE, "Dose_F3": _INACTIVE,
 }
 
 
@@ -46,10 +50,15 @@ def sim_idx_of(name: str) -> int | None:
     return int(m.group(1)) if m else None
 
 
-def campaign_day(doy: float) -> float:
-    """doy calendaire -> jour de campagne (1 = 1er août = doy 213)."""
-    doy = float(doy)
-    return doy - 212.0 if doy >= 213.0 else doy + 153.0
+def campaign_day(op_year: int, doy: float, semis_year: int) -> float:
+    """Jour de campagne (1 = 1er août de l'année de semis) pour une opération datée
+    (op_year, doy). Utilise la date complète, et non le seul jour de l'année : les
+    opérations de l'année N+1 (fertilisations de printemps, récolte jusqu'en août)
+    sont donc placées correctement au-delà du jour 365, au lieu d'être enroulées
+    vers le début de campagne."""
+    d = date(int(op_year), 1, 1) + timedelta(days=int(round(float(doy))) - 1)
+    ref = date(int(semis_year), 8, 1)
+    return float((d - ref).days + 1)
 
 
 def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
@@ -84,12 +93,19 @@ def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
         n_prepa = len(till)
         till_depths = pd.to_numeric(till["profondeur[cm]"], errors="coerce").to_list()
         ferti_doys = ferti["doy"].to_list()
+        ferti_years = ferti["annee"].astype(int).to_list()
         ferti_doses = pd.to_numeric(ferti["FERTI_apportNminReel[kg/ha]"], errors="coerce").to_list()
 
-        cd_semis = campaign_day(semis_doy)
-        rec_c = campaign_day(rec.iloc[0]["doy"])
+        semis_year = int(s_row["annee"])
+        cd_semis = campaign_day(semis_year, semis_doy, semis_year)
+        rec_row = rec.iloc[0]
+        rec_c = campaign_day(int(rec_row["annee"]), rec_row["doy"], semis_year)
         # Delta = jour de campagne du travail le plus tardif (le plus proche du semis) - semis.
-        delta = campaign_day(till["doy"].max()) - cd_semis if n_prepa >= 1 else np.nan
+        if n_prepa >= 1:
+            till_last = till.iloc[-1]
+            delta = campaign_day(int(till_last["annee"]), till_last["doy"], semis_year) - cd_semis
+        else:
+            delta = np.nan
 
         campaigns.append({
             "n_ferti": len(ferti),
@@ -99,9 +115,9 @@ def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
             "Profondeur_Semis": pd.to_numeric(s_row["profondeur[cm]"], errors="coerce"),
             "Profondeur_Prepa_1": till_depths[0] if n_prepa >= 1 else np.nan,
             "Profondeur_Prepa_2": till_depths[1] if n_prepa >= 2 else np.nan,
-            "Date_F1": campaign_day(ferti_doys[0]) if len(ferti_doys) >= 1 else np.nan,
-            "Date_F2": campaign_day(ferti_doys[1]) if len(ferti_doys) >= 2 else np.nan,
-            "Date_F3": campaign_day(ferti_doys[2]) if len(ferti_doys) >= 3 else np.nan,
+            "Date_F1": campaign_day(ferti_years[0], ferti_doys[0], semis_year) if len(ferti_doys) >= 1 else np.nan,
+            "Date_F2": campaign_day(ferti_years[1], ferti_doys[1], semis_year) if len(ferti_doys) >= 2 else np.nan,
+            "Date_F3": campaign_day(ferti_years[2], ferti_doys[2], semis_year) if len(ferti_doys) >= 3 else np.nan,
             "Date_Recolte": rec_c,
             "Dose_F1": ferti_doses[0] if len(ferti_doses) >= 1 else np.nan,
             "Dose_F2": ferti_doses[1] if len(ferti_doses) >= 2 else np.nan,
@@ -116,7 +132,7 @@ def reconstruct_parcelle(ops: pd.DataFrame) -> dict | None:
     for c in ["n_ferti", "nb_prepa"]:
         out[c] = int(cdf[c].mode().iloc[0])
     # Continues : médiane sur les campagnes où la variable est active.
-    for c in AGRI_FEATURES[3:]:
+    for c in AGRI_FEATURES[2:]:
         vals = cdf[c].dropna()
         out[c] = float(vals.median()) if len(vals) else np.nan
     return out
@@ -180,12 +196,16 @@ def main() -> None:
     n_missing = merged["Date_Semis_new"].isna().sum() if "Date_Semis_new" in merged else 0
     print(f"Lignes sans reconstruction : {n_missing}")
 
-    # Réécrit feat_0..14 à partir des valeurs reconstruites.
+    # Colonnes non-feature à conserver (sorties, indices, milieu).
+    meta_cols = [c for c in df.columns if not re.fullmatch(r"feat_\d+", c) and c != "si"]
+
+    # Construit un dataset au schéma courant : feat_0..feat_{len-1} + méta.
+    out = pd.DataFrame()
     for i, name in enumerate(AGRI_FEATURES):
         src = f"{name}_new" if f"{name}_new" in merged.columns else name
-        merged[f"feat_{i}"] = merged[src]
-
-    out = merged[df.columns.drop("si")].copy()
+        out[f"feat_{i}"] = merged[src].values
+    for c in meta_cols:
+        out[c] = merged[c].values
     # Supprime les lignes non reconstruites (itinéraire inconnu).
     out = out.dropna(subset=FEAT_COLS).reset_index(drop=True)
 
@@ -194,7 +214,11 @@ def main() -> None:
         shutil.copy2(dataset_path, backup)
         print(f"Sauvegarde de l'original -> {backup.name}")
     out.to_csv(dataset_path, index=False)
-    print(f"Dataset réaligné écrit : {dataset_path} ({len(out)} lignes)")
+
+    # Réécrit le manifeste feat_* -> paramètre au schéma courant.
+    manifest_path = LOG_DIR / "dataset_metamodel_features.csv"
+    pd.DataFrame({"colonne": FEAT_COLS, "parametre": AGRI_FEATURES}).to_csv(manifest_path, index=False)
+    print(f"Dataset réaligné écrit : {dataset_path} ({len(out)} lignes, {len(FEAT_COLS)} variables)")
 
 
 if __name__ == "__main__":
