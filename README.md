@@ -49,7 +49,7 @@ L'interface demande le chemin vers les logs, par exemple `simulations/log_terrai
 
 ### Un espace de conception hiérarchique à 12 sous-espaces
 
-L'espace d'exploration SMT/ADSG est hiérarchique : certains paramètres n'existent que si une opération associée existe. Trois variables de décision structurent l'espace — le nombre de fertilisations (`0, 1, 2, 3`), la présence d'une préparation du sol (`oui/non`) et, le cas échéant, le nombre de reprises (`1, 2`). Leurs combinaisons valides définissent **12 sous-espaces**, chacun activant un sous-ensemble différent des 15 paramètres. Ainsi les dates et doses de fertilisation ne sont actives que lorsqu'une fertilisation a lieu, et les profondeurs de préparation seulement lorsqu'une préparation est prévue.
+L'espace d'exploration SMT/ADSG est hiérarchique : certains paramètres n'existent que si une opération associée existe. Deux variables de décision structurent l'espace — le nombre de fertilisations (`0, 1, 2, 3`) et le nombre de préparations du sol (`0, 1, 2`, où `0` signifie pas de préparation). Leurs combinaisons définissent **12 sous-espaces**, chacun activant un sous-ensemble différent des 14 paramètres. Ainsi les dates et doses de fertilisation ne sont actives que lorsqu'une fertilisation a lieu, et les profondeurs de préparation seulement lorsqu'une préparation est prévue.
 
 ![Espace SMT MAELIA](figs/maelia_space.png)
 
@@ -57,17 +57,17 @@ L'espace d'exploration SMT/ADSG est hiérarchique : certains paramètres n'exist
 
 Les figures suivantes décomposent, pour chaque sortie, la dépendance statistique mesurée par noyaux entre les paramètres et la sortie. Elles ne doivent **pas** être lues comme des indices de Sobol : HSIC-ANOVA mesure une dépendance non linéaire globale et gère les paramètres actifs par intermittence de l'espace hiérarchique.
 
-La figure principale classe les termes par contribution au HSIC global, pour les trois sorties. Les effets d'ordre 1 (paramètre seul) dominent, mais des interactions d'ordre 2 apparaissent nettement pour le rendement : le couple nombre d'apports × dose du premier apport y pèse à lui seul environ 8 %.
+La figure principale classe les termes par contribution au HSIC global, pour les trois sorties. Les effets d'ordre 1 (paramètre seul) dominent : les doses de fertilisation, mais aussi le **nombre d'apports** (`n_ferti`), qui ressort comme un moteur structurel de premier plan. De véritables interactions d'ordre 2 et 3 apparaissent, en particulier pour le rendement où le couple nombre d'apports × dose du premier apport pèse ~8 %.
 
 ![Principaux termes HSIC-ANOVA par sortie](figs/hsic_anova_top_terms_all_outputs.png)
 
 Lecture par sortie :
 
-- **Azote lixivié (`N_lixi`)** est piloté par la fertilisation : les doses et dates des apports dominent (dose du troisième apport ~23 %, date du deuxième apport ~19 %, dose du deuxième apport ~17 %), le nombre d'apports comptant pour ~8 %.
-- **Variation du carbone organique (`dCorg`)** dépend surtout de la fertilisation et de la fenêtre culturale : date du deuxième apport (~36 %), nombre d'apports (~20 %), dose du premier apport (~14 %), puis date de récolte (~8 %) et présence d'une préparation du sol (~5 %).
-- **Rendement (`rdt`)** répond d'abord à la quantité d'azote apportée : nombre d'apports (~37 %), dose du premier apport (~23 %) et date du deuxième apport (~20 %), avec une interaction marquée nombre d'apports × dose du premier apport (~8 %).
+- **Azote lixivié (`N_lixi`)** est piloté par la fertilisation : dose du deuxième apport (~12 %), nombre d'apports (~9 %), date du deuxième apport (~9 %), dose du premier apport (~9 %) et dose du troisième apport (~7 %).
+- **Variation du carbone organique (`dCorg`)** dépend de la fenêtre culturale et de la fertilisation : date de récolte (~26 %), dose du deuxième apport (~13 %), dose du premier apport (~11 %), puis nombre d'apports (~10 %) et nombre de préparations (~9 %).
+- **Rendement (`rdt`)** répond d'abord à la quantité d'azote apportée : dose du deuxième apport (~21 %), dose du premier apport (~19 %) et nombre d'apports (~18 %), avec une interaction marquée nombre d'apports × dose du premier apport (~8 %).
 
-En regroupant les paramètres par famille agronomique, la même hiérarchie se lit à un niveau plus synthétique : la fertilisation — nombre d'apports, dates et doses réunis — domine les trois sorties, la préparation du sol et le calendrier semis/récolte jouant un rôle secondaire.
+En regroupant les paramètres par famille agronomique, les **doses de fertilisation** dominent les trois sorties (de ~37 % à ~66 % de la dépendance), mais la **structure de l'itinéraire** (nombre d'apports et de préparations) est la deuxième famille pour chaque sortie (~22 à ~28 %), devant le calendrier de fertilisation et la fenêtre semis/récolte.
 
 ![HSIC-ANOVA par famille sémantique](figs/hsic_anova_semantic_families.png)
 
