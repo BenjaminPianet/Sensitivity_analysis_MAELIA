@@ -1,0 +1,299 @@
+<svg width="812pt" height="580pt" viewBox="0.00 0.00 812.00 580.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.833333 0.833333) rotate(0) translate(4 692)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-692 970.13,-692 970.13,4 -4,4"/>
+<!-- 0 -->
+<g id="node1" class="node">
+<title>0</title>
+<ellipse fill="#ffffff" stroke="black" stroke-width="2" cx="110.73" cy="-264" rx="110.73" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="31.8" y="-260.8" font-family="Times,serif" font-weight="bold" font-size="14.00">Number_Of_Fertilisations</text>
+</g>
+<!-- 1 -->
+<g id="node2" class="node">
+<title>1</title>
+<ellipse fill="#81d4fa" stroke="black" cx="384.35" cy="-264" rx="126.88" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="384.35" y="-259.8" font-family="Times,serif" font-size="14.00">number_of_fertilisations_choice</text>
+</g>
+<!-- 0&#45;&gt;1 -->
+<g id="edge1" class="edge">
+<title>0-&gt;1</title>
+<path fill="none" stroke="black" d="M221.82,-264C229.71,-264 237.73,-264 245.75,-264"/>
+<polygon fill="black" stroke="black" points="245.58,-267.5 255.58,-264 245.58,-260.5 245.58,-267.5"/>
+</g>
+<!-- 2 -->
+<g id="node3" class="node">
+<title>2</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-351" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-346.8" font-family="Times,serif" font-size="14.00">0</text>
+</g>
+<!-- 1&#45;&gt;2 -->
+<g id="edge2" class="edge">
+<title>1-&gt;2</title>
+<path fill="none" stroke="black" d="M423.37,-281.61C457.95,-297.62 508.43,-321 541.06,-336.1"/>
+<polygon fill="black" stroke="black" points="539.47,-339.23 550.02,-340.25 542.41,-332.87 539.47,-339.23"/>
+</g>
+<!-- 3 -->
+<g id="node4" class="node">
+<title>3</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-293" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-288.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- 1&#45;&gt;3 -->
+<g id="edge3" class="edge">
+<title>1-&gt;3</title>
+<path fill="none" stroke="black" d="M472.14,-277.4C494.7,-280.88 517.81,-284.45 536.23,-287.29"/>
+<polygon fill="black" stroke="black" points="535.69,-290.75 546.11,-288.81 536.76,-283.83 535.69,-290.75"/>
+</g>
+<!-- 4 -->
+<g id="node5" class="node">
+<title>4</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-235" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-230.8" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- 1&#45;&gt;4 -->
+<g id="edge4" class="edge">
+<title>1-&gt;4</title>
+<path fill="none" stroke="black" d="M472.14,-250.6C494.7,-247.12 517.81,-243.55 536.23,-240.71"/>
+<polygon fill="black" stroke="black" points="536.76,-244.17 546.11,-239.19 535.69,-237.25 536.76,-244.17"/>
+</g>
+<!-- 5 -->
+<g id="node6" class="node">
+<title>5</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-177" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-172.8" font-family="Times,serif" font-size="14.00">3</text>
+</g>
+<!-- 1&#45;&gt;5 -->
+<g id="edge5" class="edge">
+<title>1-&gt;5</title>
+<path fill="none" stroke="black" d="M423.37,-246.39C457.95,-230.38 508.43,-207 541.06,-191.9"/>
+<polygon fill="black" stroke="black" points="542.41,-195.13 550.02,-187.75 539.47,-188.77 542.41,-195.13"/>
+</g>
+<!-- 6 -->
+<g id="node7" class="node">
+<title>6</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-308" rx="143.08" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-303.8" font-family="Times,serif" font-size="14.00">First_Fertilisation_Date  [106 .. 323]</text>
+</g>
+<!-- 3&#45;&gt;6 -->
+<g id="edge6" class="edge">
+<title>3-&gt;6</title>
+<path fill="none" stroke="black" d="M601.53,-294.75C617.58,-295.82 639.46,-297.27 662.86,-298.83"/>
+<polygon fill="black" stroke="black" points="662.35,-302.3 672.56,-299.48 662.82,-295.32 662.35,-302.3"/>
+</g>
+<!-- 7 -->
+<g id="node8" class="node">
+<title>7</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-250" rx="125.87" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-245.8" font-family="Times,serif" font-size="14.00">First_Fertilisation_Dose  [0 .. 2]</text>
+</g>
+<!-- 3&#45;&gt;7 -->
+<g id="edge7" class="edge">
+<title>3-&gt;7</title>
+<path fill="none" stroke="black" d="M600.21,-287.08C611.49,-284.48 625,-281.46 637.23,-279 659.81,-274.45 684.22,-269.91 707.12,-265.83"/>
+<polygon fill="black" stroke="black" points="707.5,-269.32 716.73,-264.12 706.28,-262.42 707.5,-269.32"/>
+</g>
+<!-- 4&#45;&gt;6 -->
+<g id="edge8" class="edge">
+<title>4-&gt;6</title>
+<path fill="none" stroke="black" d="M591.13,-249.31C603,-259.2 620.06,-271.81 637.23,-279 651.35,-284.91 666.64,-289.62 682.02,-293.36"/>
+<polygon fill="black" stroke="black" points="681.21,-296.77 691.74,-295.59 682.77,-289.94 681.21,-296.77"/>
+</g>
+<!-- 4&#45;&gt;7 -->
+<g id="edge9" class="edge">
+<title>4-&gt;7</title>
+<path fill="none" stroke="black" d="M601.53,-236.75C620.4,-238.01 647.34,-239.8 675.33,-241.66"/>
+<polygon fill="black" stroke="black" points="674.8,-245.13 685.01,-242.3 675.26,-238.15 674.8,-245.13"/>
+</g>
+<!-- 8 -->
+<g id="node9" class="node">
+<title>8</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-192" rx="153.5" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-187.8" font-family="Times,serif" font-size="14.00">Second_Fertilisation_Date  [210 .. 323]</text>
+</g>
+<!-- 4&#45;&gt;8 -->
+<g id="edge10" class="edge">
+<title>4-&gt;8</title>
+<path fill="none" stroke="black" d="M600.21,-229.08C611.49,-226.48 625,-223.46 637.23,-221 657.7,-216.87 679.69,-212.76 700.68,-208.98"/>
+<polygon fill="black" stroke="black" points="701.17,-212.45 710.4,-207.25 699.94,-205.56 701.17,-212.45"/>
+</g>
+<!-- 9 -->
+<g id="node10" class="node">
+<title>9</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-134" rx="136.29" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-129.8" font-family="Times,serif" font-size="14.00">Second_Fertilisation_Dose  [0 .. 2]</text>
+</g>
+<!-- 4&#45;&gt;9 -->
+<g id="edge11" class="edge">
+<title>4-&gt;9</title>
+<path fill="none" stroke="black" d="M589.09,-219.73C593.04,-215.33 597.33,-210.5 601.23,-206 617.55,-187.16 615.66,-175.49 637.23,-163 649.04,-156.16 662.07,-150.87 675.47,-146.77"/>
+<polygon fill="black" stroke="black" points="676.13,-150.22 684.82,-144.14 674.24,-143.48 676.13,-150.22"/>
+</g>
+<!-- 5&#45;&gt;6 -->
+<g id="edge12" class="edge">
+<title>5-&gt;6</title>
+<path fill="none" stroke="black" d="M590.09,-192.01C593.97,-196.33 597.97,-201.18 601.23,-206 621.49,-235.97 608.3,-257.28 637.23,-279 646.04,-285.62 655.87,-290.91 666.22,-295.12"/>
+<polygon fill="black" stroke="black" points="664.7,-298.29 675.29,-298.45 667.11,-291.72 664.7,-298.29"/>
+</g>
+<!-- 5&#45;&gt;7 -->
+<g id="edge13" class="edge">
+<title>5-&gt;7</title>
+<path fill="none" stroke="black" d="M591.13,-191.31C603,-201.2 620.06,-213.81 637.23,-221 653.3,-227.73 670.9,-232.89 688.4,-236.86"/>
+<polygon fill="black" stroke="black" points="687.28,-240.2 697.79,-238.87 688.74,-233.36 687.28,-240.2"/>
+</g>
+<!-- 5&#45;&gt;8 -->
+<g id="edge14" class="edge">
+<title>5-&gt;8</title>
+<path fill="none" stroke="black" d="M601.53,-178.75C615.91,-179.71 634.97,-180.97 655.61,-182.35"/>
+<polygon fill="black" stroke="black" points="655.15,-185.83 665.36,-183 655.62,-178.84 655.15,-185.83"/>
+</g>
+<!-- 5&#45;&gt;9 -->
+<g id="edge15" class="edge">
+<title>5-&gt;9</title>
+<path fill="none" stroke="black" d="M600.21,-171.08C611.49,-168.48 625,-165.46 637.23,-163 658.98,-158.62 682.43,-154.25 704.59,-150.28"/>
+<polygon fill="black" stroke="black" points="704.98,-153.77 714.21,-148.57 703.75,-146.87 704.98,-153.77"/>
+</g>
+<!-- 10 -->
+<g id="node11" class="node">
+<title>10</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-76" rx="146.72" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-71.8" font-family="Times,serif" font-size="14.00">Third_Fertilisation_Date  [240 .. 323]</text>
+</g>
+<!-- 5&#45;&gt;10 -->
+<g id="edge16" class="edge">
+<title>5-&gt;10</title>
+<path fill="none" stroke="black" d="M584.97,-160.04C595.58,-143.23 614.15,-118.14 637.23,-105 648.08,-98.82 659.93,-93.9 672.14,-90"/>
+<polygon fill="black" stroke="black" points="672.89,-93.43 681.5,-87.25 670.92,-86.71 672.89,-93.43"/>
+</g>
+<!-- 11 -->
+<g id="node12" class="node">
+<title>11</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-18" rx="129.51" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-13.8" font-family="Times,serif" font-size="14.00">Third_Fertilisation_Dose  [0 .. 2]</text>
+</g>
+<!-- 5&#45;&gt;11 -->
+<g id="edge17" class="edge">
+<title>5-&gt;11</title>
+<path fill="none" stroke="black" d="M578.4,-159.01C584.43,-130.43 600.42,-75.02 637.23,-47 647.43,-39.24 659.01,-33.29 671.2,-28.78"/>
+<polygon fill="black" stroke="black" points="672.23,-32.12 680.61,-25.64 670.01,-25.48 672.23,-32.12"/>
+</g>
+<!-- 12 -->
+<g id="node13" class="node">
+<title>12</title>
+<ellipse fill="#ffffff" stroke="black" stroke-width="2" cx="110.73" cy="-496" rx="110.21" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="32.19" y="-492.8" font-family="Times,serif" font-weight="bold" font-size="14.00">Number_Of_Preparations</text>
+</g>
+<!-- 13 -->
+<g id="node14" class="node">
+<title>13</title>
+<ellipse fill="#81d4fa" stroke="black" cx="384.35" cy="-496" rx="126.35" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="384.35" y="-491.8" font-family="Times,serif" font-size="14.00">number_of_preparations_choice</text>
+</g>
+<!-- 12&#45;&gt;13 -->
+<g id="edge18" class="edge">
+<title>12-&gt;13</title>
+<path fill="none" stroke="black" d="M221.42,-496C229.62,-496 237.95,-496 246.29,-496"/>
+<polygon fill="black" stroke="black" points="246.14,-499.5 256.14,-496 246.14,-492.5 246.14,-499.5"/>
+</g>
+<!-- 14 -->
+<g id="node15" class="node">
+<title>14</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-554" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-549.8" font-family="Times,serif" font-size="14.00">0</text>
+</g>
+<!-- 13&#45;&gt;14 -->
+<g id="edge19" class="edge">
+<title>13-&gt;14</title>
+<path fill="none" stroke="black" d="M439.19,-512.62C471.21,-522.51 510.88,-534.75 538.73,-543.35"/>
+<polygon fill="black" stroke="black" points="537.48,-546.63 548.07,-546.23 539.55,-539.94 537.48,-546.63"/>
+</g>
+<!-- 15 -->
+<g id="node16" class="node">
+<title>15</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-496" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-491.8" font-family="Times,serif" font-size="14.00">1</text>
+</g>
+<!-- 13&#45;&gt;15 -->
+<g id="edge20" class="edge">
+<title>13-&gt;15</title>
+<path fill="none" stroke="black" d="M511.19,-496C519.77,-496 527.95,-496 535.39,-496"/>
+<polygon fill="black" stroke="black" points="535.27,-499.5 545.27,-496 535.27,-492.5 535.27,-499.5"/>
+</g>
+<!-- 16 -->
+<g id="node17" class="node">
+<title>16</title>
+<ellipse fill="#ffffff" stroke="black" cx="574.23" cy="-438" rx="27" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="574.23" y="-433.8" font-family="Times,serif" font-size="14.00">2</text>
+</g>
+<!-- 13&#45;&gt;16 -->
+<g id="edge21" class="edge">
+<title>13-&gt;16</title>
+<path fill="none" stroke="black" d="M439.19,-479.38C471.21,-469.49 510.88,-457.25 538.73,-448.65"/>
+<polygon fill="black" stroke="black" points="539.55,-452.06 548.07,-445.77 537.48,-445.37 539.55,-452.06"/>
+</g>
+<!-- 17 -->
+<g id="node18" class="node">
+<title>17</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-438" rx="164.45" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-433.8" font-family="Times,serif" font-size="14.00">Preparation_To_Sowing_Delay  [-44 .. -4]</text>
+</g>
+<!-- 15&#45;&gt;17 -->
+<g id="edge22" class="edge">
+<title>15-&gt;17</title>
+<path fill="none" stroke="black" d="M595.91,-484.66C607.71,-478.61 622.95,-471.52 637.23,-467 652.78,-462.08 669.45,-457.91 685.97,-454.41"/>
+<polygon fill="black" stroke="black" points="686.21,-457.94 695.31,-452.51 684.82,-451.08 686.21,-457.94"/>
+</g>
+<!-- 18 -->
+<g id="node19" class="node">
+<title>18</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-496" rx="115.42" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-491.8" font-family="Times,serif" font-size="14.00">First_Tillage_Depth  [1 .. 25]</text>
+</g>
+<!-- 15&#45;&gt;18 -->
+<g id="edge23" class="edge">
+<title>15-&gt;18</title>
+<path fill="none" stroke="black" d="M601.53,-496C620.21,-496 646.81,-496 674.51,-496"/>
+<polygon fill="black" stroke="black" points="674.48,-499.5 684.48,-496 674.48,-492.5 674.48,-499.5"/>
+</g>
+<!-- 16&#45;&gt;17 -->
+<g id="edge24" class="edge">
+<title>16-&gt;17</title>
+<path fill="none" stroke="black" d="M601.53,-438C608.47,-438 616.51,-438 625.29,-438"/>
+<polygon fill="black" stroke="black" points="625.26,-441.5 635.26,-438 625.26,-434.5 625.26,-441.5"/>
+</g>
+<!-- 16&#45;&gt;18 -->
+<g id="edge25" class="edge">
+<title>16-&gt;18</title>
+<path fill="none" stroke="black" d="M595.91,-449.34C607.71,-455.39 622.95,-462.48 637.23,-467 657.26,-473.34 679.13,-478.42 700.18,-482.45"/>
+<polygon fill="black" stroke="black" points="699.48,-485.87 709.94,-484.24 700.74,-478.99 699.48,-485.87"/>
+</g>
+<!-- 19 -->
+<g id="node20" class="node">
+<title>19</title>
+<ellipse fill="#dce775" stroke="black" cx="801.68" cy="-380" rx="125.85" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="801.68" y="-375.8" font-family="Times,serif" font-size="14.00">Second_Tillage_Depth  [1 .. 25]</text>
+</g>
+<!-- 16&#45;&gt;19 -->
+<g id="edge26" class="edge">
+<title>16-&gt;19</title>
+<path fill="none" stroke="black" d="M595.91,-426.66C607.71,-420.61 622.95,-413.52 637.23,-409 655.92,-403.08 676.22,-398.26 695.95,-394.38"/>
+<polygon fill="black" stroke="black" points="696.5,-397.83 705.68,-392.53 695.2,-390.96 696.5,-397.83"/>
+</g>
+<!-- 20 -->
+<g id="node21" class="node">
+<title>20</title>
+<ellipse fill="#dce775" stroke="black" stroke-width="2" cx="110.73" cy="-554" rx="101.35" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="38.79" y="-550.8" font-family="Times,serif" font-weight="bold" font-size="14.00">Sowing_Date  [45 .. 106]</text>
+</g>
+<!-- 21 -->
+<g id="node22" class="node">
+<title>21</title>
+<ellipse fill="#dce775" stroke="black" stroke-width="2" cx="110.73" cy="-612" rx="93.01" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="45" y="-608.8" font-family="Times,serif" font-weight="bold" font-size="14.00">Sowing_Depth  [1 .. 4]</text>
+</g>
+<!-- 22 -->
+<g id="node23" class="node">
+<title>22</title>
+<ellipse fill="#dce775" stroke="black" stroke-width="2" cx="110.73" cy="-670" rx="108.63" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="33.36" y="-666.8" font-family="Times,serif" font-weight="bold" font-size="14.00">Harvest_Date  [323 .. 384]</text>
+</g>
+</g>
+</svg>
