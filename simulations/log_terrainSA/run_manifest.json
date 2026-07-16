@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-03 13:56:15",
-  "n_simu": 100,
-  "n_doe": 10000,
+  "generated_at": "2026-07-15 12:31:58",
+  "n_simu": 50,
+  "n_doe": 5000,
   "clones_per_run": 100,
   "seed": 42,
   "annee_debut": 2019,
@@ -11,7 +11,6 @@
   "gama_headless": "/home/benjamin/apps/GAMA_2026.04.9_JDK/headless/gama-headless.sh",
   "smt_features": [
     "n_ferti",
-    "has_prepa",
     "nb_prepa",
     "Date_Semis",
     "Delta_PREPA_Semis",
