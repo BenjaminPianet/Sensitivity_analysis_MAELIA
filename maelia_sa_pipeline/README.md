@@ -2,7 +2,7 @@
 
 Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles. Elle retient quatre analyses complémentaires : ANOVA/Kruskal à un facteur, HSIC-ANOVA, indices de Sobol d'ordre 1 et total par PCE, et courbes PDP/ICE par sous-espace de l'espace SMT hiérarchique.
 
-Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. L’app attend désormais strictement le plan SMT courant à 15 paramètres. Si `dataset_metamodel_features.csv` est présent, il doit correspondre exactement à ce plan; les anciens exports à 26 paramètres sont refusés.
+Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. L’app attend désormais strictement le plan SMT courant à 14 paramètres. Si `dataset_metamodel_features.csv` est présent, il doit correspondre exactement à ce plan; les exports d'un ancien plan sont refusés.
 
 ## Workflow GAMA + application web
 
@@ -27,7 +27,7 @@ Documentation API interactive : http://127.0.0.1:8000/docs
 
 ## Aide intégrée
 
-L'interface contient maintenant un README intégré expliquant comment utiliser GAMA avec l'application et comment lire les mesures. Les champs, sorties, figures, métriques et 15 paramètres du plan SMT disposent aussi d'une aide contextuelle : survoler un terme pendant deux secondes affiche sa définition.
+L'interface contient maintenant un README intégré expliquant comment utiliser GAMA avec l'application et comment lire les mesures. Les champs, sorties, figures, métriques et 14 paramètres du plan SMT disposent aussi d'une aide contextuelle : survoler un terme pendant deux secondes affiche sa définition.
 
 ## Mesures affichées
 
@@ -40,7 +40,7 @@ L'interface contient maintenant un README intégré expliquant comment utiliser 
 
 ## Paramètres du plan SMT
 
-Le plan actuel contient 15 paramètres : activations (`n_ferti`, `has_prepa`), préparation du sol (`nb_prepa`, `Delta_PREPA_Semis`, `Profondeur_Prepa_1`, `Profondeur_Prepa_2`), profondeur de semis (`Profondeur_Semis`), dates (`Date_Semis`, `Date_F1`, `Date_F2`, `Date_F3`, `Date_Recolte`) et doses (`Dose_F1`, `Dose_F2`, `Dose_F3`). Les dates sont exprimées en jours de campagne, avec `1 = 1er août`. Le fertilisant est fixé à l'engrais minéral `AN`; les variables dépendantes ne doivent être interprétées que si leur événement parent est actif.
+Le plan actuel contient 14 paramètres : activations (`n_ferti`, `nb_prepa`), préparation du sol (`Delta_PREPA_Semis`, `Profondeur_Prepa_1`, `Profondeur_Prepa_2`), profondeur de semis (`Profondeur_Semis`), dates (`Date_Semis`, `Date_F1`, `Date_F2`, `Date_F3`, `Date_Recolte`) et doses (`Dose_F1`, `Dose_F2`, `Dose_F3`). `nb_prepa` vaut 0, 1 ou 2 (nombre de reprises) et remplace l'ancien couple `has_prepa`/`nb_prepa`. Les dates sont exprimées en jours de campagne, avec `1 = 1er août`. Le fertilisant est fixé à l'engrais minéral `AN`; les variables dépendantes ne doivent être interprétées que si leur événement parent est actif.
 
 ## Ligne de commande sans serveur
 

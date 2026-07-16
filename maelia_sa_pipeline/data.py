@@ -98,8 +98,9 @@ def _sorted_feat_columns(df: pd.DataFrame) -> list[str]:
 
 
 def _validate_current_smt_schema(df: pd.DataFrame, dataset_path: Path) -> None:
-    """Ensure the dataset corresponds to the current compact 15-variable SMT plan."""
+    """Ensure the dataset corresponds to the current compact SMT plan (14 variables)."""
     expected_cols = _expected_feature_columns()
+    n_expected = len(AGRI_FEATURES)
     available_feat_cols = _sorted_feat_columns(df)
     manifest = read_feature_manifest(dataset_path)
 
@@ -124,14 +125,14 @@ def _validate_current_smt_schema(df: pd.DataFrame, dataset_path: Path) -> None:
                 "Le dataset contient des colonnes feat_* incompatibles avec le plan SMT courant. "
                 f"Colonnes attendues : {expected_cols}. "
                 f"Colonnes trouvées : {available_feat_cols}. "
-                "L'application attend le nouveau plan compact à 15 paramètres; le dataset semble provenir "
+                f"L'application attend le plan compact courant à {n_expected} paramètres; le dataset semble provenir "
                 "d'un ancien plan ou d'un export incomplet. Régénère le dataset depuis le notebook de simulation terrainSA."
             )
     elif not all(col in df.columns for col in AGRI_FEATURES):
         raise ValueError(
-            "Le dataset doit contenir soit exactement feat_0...feat_14 du plan SMT courant, "
-            "soit les 15 colonnes agronomiques nommées. Les logs MAELIA seuls ne suffisent pas : "
-            "il faut le dataset exporté avec la matrice xt actuelle."
+            f"Le dataset doit contenir soit exactement feat_0...feat_{n_expected - 1} du plan SMT courant, "
+            f"soit les {n_expected} colonnes agronomiques nommées. Les logs MAELIA seuls ne suffisent pas : "
+            "il faut le dataset reconstruit depuis les itinéraires exécutés (dataset_metamodel.csv)."
         )
 
 
@@ -181,22 +182,23 @@ def infer_features(df: pd.DataFrame, requested_features: Iterable[str] | None = 
             )
         X = df[feature_columns].copy()
     else:
+        n_expected = len(AGRI_FEATURES)
         expected_feat_cols = _expected_feature_columns()
         if all(col in df.columns for col in expected_feat_cols):
             X = df[expected_feat_cols].copy()
             X.columns = AGRI_FEATURES
             feature_columns = AGRI_FEATURES.copy()
             warnings.append(
-                "Les colonnes feat_0...feat_14 ont été renommées selon le plan SMT courant à 15 paramètres."
+                f"Les colonnes feat_0...feat_{n_expected - 1} ont été renommées selon le plan SMT courant à {n_expected} paramètres."
             )
         elif all(col in df.columns for col in AGRI_FEATURES):
             feature_columns = AGRI_FEATURES.copy()
             X = df[feature_columns].copy()
         else:
             raise ValueError(
-                "Le dataset doit contenir soit exactement feat_0...feat_14 du plan courant, "
-                "soit les 15 colonnes agronomiques nommées. Les logs MAELIA seuls ne suffisent pas : "
-                "il faut le dataset exporté avec la matrice xt actuelle."
+                f"Le dataset doit contenir soit exactement feat_0...feat_{n_expected - 1} du plan courant, "
+                f"soit les {n_expected} colonnes agronomiques nommées. Les logs MAELIA seuls ne suffisent pas : "
+                "il faut le dataset reconstruit depuis les itinéraires exécutés (dataset_metamodel.csv)."
             )
 
     categorical = _current_categorical_columns(feature_columns)

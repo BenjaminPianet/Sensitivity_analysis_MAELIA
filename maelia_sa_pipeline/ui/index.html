@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MAELIA Sensitivity Studio</title>
-  <link rel="stylesheet" href="/ui/static/styles.css?v=subspace1">
+  <link rel="stylesheet" href="/ui/static/styles.css?v=slider1">
 </head>
 <body>
   <div class="shell">
@@ -25,10 +25,12 @@
             placeholder="/chemin/vers/log_terrainSA" required>
         </label>
 
-        <label>
-          <span class="helpable" data-help-key="dataset_path">Dataset exporté (optionnel)</span>
-          <input id="dataset-path" name="dataset_path" type="text" autocomplete="off" spellcheck="false"
-            placeholder="Laisser vide si dataset_metamodel.csv est dans le dossier de logs">
+        <label class="slider-field">
+          <span class="slider-label">
+            <span class="helpable" data-help-key="sample_size">Simulations utilisées</span>
+            <output id="sample-size-value">2000</output>
+          </span>
+          <input id="sample-size" name="sample_size" type="range" min="200" max="5000" step="100" value="2000">
         </label>
 
         <div class="field-grid">
@@ -68,7 +70,7 @@
 
       <div class="note">
         <strong>Pré-requis</strong>
-        <p>Le dossier doit contenir ou accompagner un <code>dataset_metamodel.csv</code> exporté avec le plan SMT courant à 15 paramètres. Les anciens exports à 26 paramètres sont refusés.</p>
+        <p>Le dossier de logs doit contenir un <code>dataset_metamodel.csv</code> (accompagné de <code>dataset_metamodel_features.csv</code>) reconstruit depuis les itinéraires réellement exécutés, au plan SMT courant à 14 paramètres. Les exports d'un ancien plan sont refusés.</p>
       </div>
     </aside>
 
@@ -95,6 +97,6 @@
     </main>
   </div>
 
-  <script src="/ui/static/app.js?v=subspace1"></script>
+  <script src="/ui/static/app.js?v=slider1"></script>
 </body>
 </html>

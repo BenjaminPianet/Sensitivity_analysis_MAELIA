@@ -112,6 +112,29 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.14);
 }
 
+.slider-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.slider-label output {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--teal);
+  background: rgba(42, 157, 143, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

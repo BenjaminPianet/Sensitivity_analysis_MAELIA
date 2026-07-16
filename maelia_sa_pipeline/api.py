@@ -34,6 +34,12 @@ class AnalysisRequest(BaseModel):
     targets: list[str] | None = Field(None, description="Sorties à analyser, par défaut N_lixi, dCorg, rdt")
     features: list[str] | None = Field(None, description="Colonnes de paramètres à utiliser. Par défaut : les colonnes du plan SMT courant")
     analyses: list[str] | None = Field(None, description="Blocs d'analyse à exécuter. Par défaut : profil rapide recommandé")
+    sample_size: int | None = Field(
+        2000,
+        ge=100,
+        le=200000,
+        description="Nombre de simulations tirées du dataset pour les analyses (sous-échantillonnage reproductible). Plafonné au nombre de lignes disponibles.",
+    )
     n_bins: int = Field(4, ge=2, le=8, description="Nombre de classes pour discrétiser les variables continues en ANOVA")
     sobol_n_mc: int = Field(2000, ge=200, le=50000, description="Paramètre conservé pour compatibilité API ; le bloc Sobol actuel estime S1/ST via PCE creux")
     tree_max_depth: int = Field(4, ge=1, le=8, description="Profondeur maximale des arbres de décision")

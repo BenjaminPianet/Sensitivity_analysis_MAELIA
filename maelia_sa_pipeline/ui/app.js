@@ -33,7 +33,7 @@ const figureLabels = {
 };
 
 const featureOrder = [
-  "n_ferti", "has_prepa", "nb_prepa",
+  "n_ferti", "nb_prepa",
   "Date_Semis", "Delta_PREPA_Semis", "Profondeur_Semis",
   "Profondeur_Prepa_1", "Profondeur_Prepa_2",
   "Date_F1", "Date_F2", "Date_F3", "Date_Recolte",
@@ -41,8 +41,8 @@ const featureOrder = [
 ];
 
 const helpTexts = {
-  log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt. Le dataset de paramètres doit se trouver dans ce dossier.",
-  dataset_path: "Chemin vers dataset_metamodel.csv, exporté par le notebook de simulation terrainSA. Ce fichier doit correspondre au plan SMT courant à 15 paramètres; l’app refuse les anciens manifestes à 26 paramètres.",
+  log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt, ainsi que le dataset_metamodel.csv reconstruit depuis ces logs.",
+  sample_size: "Nombre de simulations tirées du dataset pour alimenter les analyses (sous-échantillonnage aléatoire reproductible selon la graine). Moins de points = calcul plus rapide ; plus de points = estimations plus fines. La valeur est plafonnée au nombre de simulations disponibles.",
   n_bins: "Nombre de classes utilisées pour transformer les paramètres continus en groupes avant l'ANOVA/Kruskal. Plus de classes donne une lecture plus fine, mais exige plus de points par classe.",
   sobol_n_mc: "Paramètre de compatibilité conservé par l'API. Le bloc Sobol affiché par l'app calcule désormais S1 et ST via un PCE creux entraîné sur les points SMT faisables.",
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
@@ -55,7 +55,7 @@ const helpTexts = {
   analysis_pdp_subspace: "Pour chacun des 12 sous-espaces de l'espace SMT hiérarchique (combinaisons de nombre d'apports, présence et nombre de préparations), un métamodèle est entraîné sur les seules variables continues actives, puis les courbes PDP (effet moyen) et ICE (scénarios individuels) sont tracées pour chaque variable. On isole ainsi l'effet des réglages fins à structure d'itinéraire technique fixée.",
   run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA à un facteur, HSIC-ANOVA, Sobol par PCE S1/ST et PDP/ICE par sous-espace selon les cases cochées.",
   summary_rows: "Nombre de simulations exploitables dans le dataset après chargement et alignement avec les logs.",
-  summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan SMT courant de l’app en comporte exactement 15.",
+  summary_features: "Nombre de paramètres agronomiques utilisés comme variables d'entrée de l'analyse. Le plan SMT courant de l’app en comporte exactement 14.",
   summary_targets: "Nombre de sorties MAELIA demandées pour l'analyse en cours.",
   summary_run: "Identifiant unique du calcul web. Les figures, CSV et rapports sont sauvegardés dans analysis/web_runs/<run_id>/.",
   summary_analyses: "Nombre de blocs d'analyse effectivement demandés pour ce run.",
@@ -85,8 +85,7 @@ const helpTexts = {
   action_regions_csv: "Ouvre le CSV des régions sensibles. Il contient les règles de seuil, la taille de chaque région et la moyenne de sortie associée.",
   action_rules_txt: "Ouvre les règles textuelles brutes de l'arbre de décision.",
   feature_n_ferti: "Nombre d'événements de fertilisation azotée activés dans l'itinéraire. Le produit est fixé à AN; seules les dates et doses des apports varient.",
-  feature_has_prepa: "Indique si une préparation du sol est activée avant le semis. Cette variable active le nombre de préparations, le délai préparation-semis et les profondeurs de travail du sol.",
-  feature_nb_prepa: "Nombre d'opérations de préparation du sol effectuées sur l'unique date de préparation. Le plan autorise une ou deux profondeurs de travail.",
+  feature_nb_prepa: "Nombre de préparations du sol avant le semis : 0 (aucune préparation), 1 ou 2 reprises. Cette variable active le délai préparation-semis et les profondeurs de travail correspondantes.",
   feature_Date_Semis: "Date de semis exprimée en jour de campagne, avec 1 = 1er août. C'est un moteur majeur des fenêtres culturales.",
   feature_Delta_PREPA_Semis: "Délai entre préparation du sol et semis. La valeur est négative: -25 signifie environ 25 jours avant le semis.",
   feature_Profondeur_Semis: "Profondeur du semis en centimètres. Dans MAELIA, elle agit comme un petit travail du sol associé au semis.",
@@ -173,9 +172,9 @@ function collectPayload() {
   const analyses = [...form.querySelectorAll('input[name="analyses"]:checked')].map((item) => item.value);
   return {
     log_dir: data.get("log_dir").trim(),
-    dataset_path: data.get("dataset_path").trim() || null,
     targets: targets.length ? targets : null,
     analyses: analyses.length ? analyses : [],
+    sample_size: Number(data.get("sample_size")),
     n_bins: Number(data.get("n_bins")),
     sobol_n_mc: Number(data.get("sobol_n_mc")),
     random_state: Number(data.get("random_state")),
@@ -427,8 +426,20 @@ function setupHelpTooltips() {
 }
 
 
+function setupSampleSizeSlider() {
+  const slider = document.getElementById("sample-size");
+  const output = document.getElementById("sample-size-value");
+  if (!slider || !output) return;
+  const sync = () => {
+    output.textContent = Number(slider.value).toLocaleString("fr-FR");
+  };
+  slider.addEventListener("input", sync);
+  sync();
+}
+
 runButton.dataset.helpKey = "run_button";
 runButton.classList.add("helpable");
 runButton.addEventListener("click", runAnalysis);
 form.addEventListener("submit", runAnalysis);
+setupSampleSizeSlider();
 setupHelpTooltips();

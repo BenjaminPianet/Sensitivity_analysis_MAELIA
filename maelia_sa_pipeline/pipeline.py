@@ -125,6 +125,7 @@ def run_analysis(
     targets: list[str] | None = None,
     features: list[str] | None = None,
     analyses: list[str] | None = None,
+    sample_size: int | None = None,
     n_bins: int = 4,
     sobol_n_mc: int = 2000,
     tree_max_depth: int = 4,
@@ -139,13 +140,22 @@ def run_analysis(
     bundle = load_dataset(log_dir=log_dir, dataset_path=dataset_path, targets=targets, features=features)
     df = bundle.dataframe
 
+    # Sous-échantillonnage reproductible : le curseur "Simulations utilisées" plafonne le
+    # nombre de points alimentant TOUTES les analyses (y compris les plafonds internes HSIC/PCE).
+    n_available = int(len(df))
+    if sample_size and sample_size < n_available:
+        df = df.sample(n=int(sample_size), random_state=random_state).reset_index(drop=True)
+    n_used = int(len(df))
+
     manifest: dict = {
         "run_id": run_id,
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "log_dir": str(Path(log_dir).expanduser()),
         "dataset_path": str(bundle.dataset_path),
         "output_dir": str(out),
-        "n_rows": int(len(df)),
+        "n_rows": n_used,
+        "n_rows_available": n_available,
+        "sample_size": int(sample_size) if sample_size else None,
         "output_source": "dataset_metamodel",
         "n_features": int(len(bundle.feature_columns)),
         "features": bundle.feature_columns,
@@ -191,7 +201,7 @@ def run_analysis(
                     bundle.categorical_columns,
                     bundle.continuous_columns,
                     max_terms=60,
-                    max_train=1200,
+                    max_train=n_used,
                     random_state=random_state + 1000 + bundle.target_columns.index(target),
                 )
                 pce_path = target_dir / f"pce_sobol_indices_{target}.csv"
@@ -214,7 +224,7 @@ def run_analysis(
                     bundle.categorical_columns,
                     bundle.continuous_columns,
                     max_order=3,
-                    max_samples=1200,
+                    max_samples=n_used,
                     random_state=random_state + 3000 + bundle.target_columns.index(target),
                 )
                 hsic_path = target_dir / f"hsic_anova_terms_{target}.csv"
