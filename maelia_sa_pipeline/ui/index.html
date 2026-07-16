@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MAELIA Sensitivity Studio</title>
-  <link rel="stylesheet" href="/ui/static/styles.css?v=slider1">
+  <link rel="stylesheet" href="/ui/static/styles.css?v=downloads1">
 </head>
 <body>
   <div class="shell">
@@ -38,7 +38,6 @@
             <span class="helpable" data-help-key="n_bins">Classes ANOVA</span>
             <input id="n-bins" name="n_bins" type="number" min="2" max="8" value="4">
           </label>
-          <input id="sobol-n-mc" name="sobol_n_mc" type="hidden" value="2000">
           <label>
             <span class="helpable" data-help-key="random_state">Graine</span>
             <input id="random-state" name="random_state" type="number" value="42">
@@ -57,7 +56,7 @@
           <div class="analysis-options">
             <label class="check"><input type="checkbox" name="analyses" value="anova_1factor" checked> <span class="helpable" data-help-key="analysis_anova_1factor">ANOVA à un facteur</span></label>
             <label class="check"><input type="checkbox" name="analyses" value="hsic_anova" checked> <span class="helpable" data-help-key="analysis_hsic_anova">HSIC-ANOVA</span></label>
-            <label class="check"><input type="checkbox" name="analyses" value="sobol_indices" checked> <span class="helpable" data-help-key="analysis_sobol_indices">Sobol par PCE S1/ST</span></label>
+            <label class="check"><input type="checkbox" name="analyses" value="metamodel_comparison" checked> <span class="helpable" data-help-key="analysis_metamodel_comparison">Comparaison de métamodèles</span></label>
             <label class="check"><input type="checkbox" name="analyses" value="pdp_subspace" checked> <span class="helpable" data-help-key="analysis_pdp_subspace">PDP/ICE par sous-espace</span></label>
           </div>
         </details>
@@ -67,6 +66,15 @@
           Lancer l'analyse
         </button>
       </form>
+
+      <div class="download-config">
+        <label>
+          <span class="helpable" data-help-key="dest_dir">Dossier de téléchargement</span>
+          <input id="dest-dir" type="text" autocomplete="off" spellcheck="false"
+            placeholder="~/Downloads/maelia_figures">
+        </label>
+        <p class="download-hint">Précise un dossier local ; l'icône ⬇ de chaque figure (et le CSV des métamodèles) y copiera le fichier.</p>
+      </div>
 
       <div class="note">
         <strong>Pré-requis</strong>
@@ -97,6 +105,6 @@
     </main>
   </div>
 
-  <script src="/ui/static/app.js?v=slider1"></script>
+  <script src="/ui/static/app.js?v=downloads1"></script>
 </body>
 </html>

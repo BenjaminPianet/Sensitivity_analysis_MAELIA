@@ -278,6 +278,47 @@ def plot_metamodel_performance(metrics: dict, target: str, path: Path) -> Path:
     return _save(fig, path)
 
 
+def plot_metamodel_comparison(comparison: pd.DataFrame, target: str, path: Path) -> Path:
+    setup_style()
+    data = comparison.copy()
+    if "status" in data.columns:
+        data = data[data["status"] == "ok"].copy()
+    if data.empty:
+        fig, ax = plt.subplots(figsize=(9, 4))
+        ax.text(0.5, 0.5, "Aucun métamodèle disponible pour cette sortie", ha="center", va="center", fontsize=14)
+        ax.axis("off")
+        return _save(fig, path)
+
+    data = data.sort_values("Q2_test", ascending=True).reset_index(drop=True)
+    models = data["model"].tolist()
+    best_name = models[int(data["Q2_test"].to_numpy().argmax())]
+    ylabels = [f"{m} — meilleur" if m == best_name else m for m in models]
+    y = np.arange(len(models))
+    h = 0.38
+    fig, ax = plt.subplots(figsize=(11.0, max(4.2, 1.05 * len(models) + 1.8)))
+    bars_train = ax.barh(y + h / 2, data["R2_train"], height=h, color=PALETTE["muted"],
+                         edgecolor="white", linewidth=1.1, label="R² (entraînement)")
+    bars_test = ax.barh(y - h / 2, data["Q2_test"], height=h, color=PALETTE["teal"],
+                        edgecolor="white", linewidth=1.1, label="Q² (test)")
+    ax.set_yticks(y)
+    ax.set_yticklabels(ylabels)
+    ax.set_xlim(0, 1.14)
+    ax.set_xlabel("Part de variance expliquée")
+    ax.set_title(f"Comparaison de métamodèles — {label(target)}")
+    ax.bar_label(bars_train, labels=[f"{v:.2f}" for v in data["R2_train"]], padding=3, fontsize=9)
+    ax.bar_label(bars_test, labels=[f"{v:.2f}" for v in data["Q2_test"]], padding=3, fontsize=9)
+
+    ax.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=False, fontsize=9)
+    ax.text(
+        0.0, -0.16,
+        "Q² (test) = généralisation sur des simulations non vues ; le comparer à R² (entraînement) : "
+        "un grand écart signale du surapprentissage. Un Q² proche de 1 = les paramètres expliquent bien la sortie. "
+        "Le modèle noté « meilleur » a le Q² le plus élevé.",
+        transform=ax.transAxes, color=PALETTE["muted"], fontsize=9,
+    )
+    return _save(fig, path)
+
+
 def plot_regions(regions: pd.DataFrame, target: str, path: Path, top_n: int = 10) -> Path:
     setup_style()
     data = regions.head(top_n).copy()

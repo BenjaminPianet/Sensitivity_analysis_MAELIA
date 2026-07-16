@@ -22,13 +22,13 @@ const targetLabels = {
 const analysisLabels = {
   anova_1factor: "ANOVA 1 facteur",
   hsic_anova: "HSIC-ANOVA",
-  sobol_indices: "Sobol PCE S1/ST",
+  metamodel_comparison: "Comparaison de métamodèles",
   pdp_subspace: "PDP/ICE par sous-espace",
 };
 
 const figureLabels = {
   anova_1factor_png: "ANOVA à un facteur",
-  pce_sobol_png: "Sobol par PCE S1/ST",
+  metamodel_comparison_png: "Comparaison de métamodèles (R²/Q²)",
   hsic_anova_order_png: "Effets principaux HSIC-ANOVA",
 };
 
@@ -43,14 +43,14 @@ const featureOrder = [
 const helpTexts = {
   log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt, ainsi que le dataset_metamodel.csv reconstruit depuis ces logs.",
   sample_size: "Nombre de simulations tirées du dataset pour alimenter les analyses (sous-échantillonnage aléatoire reproductible selon la graine). Moins de points = calcul plus rapide ; plus de points = estimations plus fines. La valeur est plafonnée au nombre de simulations disponibles.",
+  dest_dir: "Dossier local où sont copiés les fichiers quand tu cliques sur l'icône ⬇ d'une figure (ou le CSV des métamodèles). C'est un chemin de ta machine, l'application tournant en local, par exemple ~/Downloads/maelia_figures ; il est créé automatiquement s'il n'existe pas. La valeur est mémorisée dans le navigateur d'une session à l'autre.",
   n_bins: "Nombre de classes utilisées pour transformer les paramètres continus en groupes avant l'ANOVA/Kruskal. Plus de classes donne une lecture plus fine, mais exige plus de points par classe.",
-  sobol_n_mc: "Paramètre de compatibilité conservé par l'API. Le bloc Sobol affiché par l'app calcule désormais S1 et ST via un PCE creux entraîné sur les points SMT faisables.",
   tree_max_depth: "Profondeur maximale des arbres de décision. Une profondeur faible donne des seuils lisibles; une profondeur élevée capture plus de détails mais devient plus difficile à interpréter.",
   random_state: "Graine aléatoire utilisée pour rendre reproductibles les séparations train/test, l'entraînement et les échantillonnages associés.",
   targets: "Sorties MAELIA analysées. Chaque sortie produit ses propres scores, figures, indices et régions sensibles.",
-  analyses_menu: "Menu des blocs à exécuter. L'app retient quatre analyses complémentaires pour le workflow terrainSA : ANOVA à un facteur, HSIC-ANOVA, Sobol par PCE S1/ST et PDP/ICE par sous-espace.",
+  analyses_menu: "Menu des blocs à exécuter. L'app retient quatre analyses complémentaires pour le workflow terrainSA : ANOVA à un facteur, HSIC-ANOVA, comparaison de métamodèles (R²/Q²) et PDP/ICE par sous-espace.",
   analysis_anova_1factor: "Classe les paramètres selon leur effet descriptif individuel sur chaque sortie.",
-  analysis_sobol_indices: "Calcule les indices de Sobol d'ordre 1 et d'ordre total via un PCE creux entraîné sur un sous-échantillon reproductible des points SMT faisables.",
+  analysis_metamodel_comparison: "Entraîne une sélection de métamodèles (ExtraTrees, RandomForest, HistGradientBoosting, XGBoost si disponible) sur un même partage entraînement/test, puis affiche le R² (entraînement) et le Q² (test) de chacun. À quoi ça sert : le Q² mesure quelle part de la sortie les 14 paramètres permettent de prédire sur des simulations non vues (proche de 1 = les paramètres expliquent bien la sortie) ; l'écart R²−Q² révèle le surapprentissage ; comparer plusieurs familles de modèles indique si la relation paramètres→sortie est robuste et non un artefact d'un modèle unique.",
   analysis_hsic_anova: "Décompose la dépendance non linéaire entre paramètres et sortie avec HSIC-ANOVA. La figure résume la part portée par les effets simples, les interactions à deux paramètres et les interactions plus complexes.",
   analysis_pdp_subspace: "Pour chacun des 12 sous-espaces de l'espace SMT hiérarchique (combinaisons de nombre d'apports, présence et nombre de préparations), un métamodèle est entraîné sur les seules variables continues actives, puis les courbes PDP (effet moyen) et ICE (scénarios individuels) sont tracées pour chaque variable. On isole ainsi l'effet des réglages fins à structure d'itinéraire technique fixée.",
   run_button: "Lance la pipeline sélectionnée : chargement logs + dataset, contrôle des colonnes, ANOVA à un facteur, HSIC-ANOVA, Sobol par PCE S1/ST et PDP/ICE par sous-espace selon les cases cochées.",
@@ -62,18 +62,15 @@ const helpTexts = {
   target_N_lixi: "Azote lixivié. Sortie environnementale représentant les pertes d'azote par lixiviation, généralement interprétées comme une pression sur l'eau et le sol.",
   target_dCorg: "Variation de carbone organique du sol. Sortie décrivant l'évolution simulée du stock de carbone organique; elle dépend fortement de la fenêtre culturale et de la dynamique du sol.",
   target_rdt: "Rendement. Sortie agronomique de production, utile pour comparer les effets techniques sur la performance de la culture.",
-  metric_R2_train: "R² d'entraînement. Part de variance expliquée par le modèle sur les données utilisées pour l'entraîner. Un bon R² seul ne suffit pas: il faut le comparer au Q² de test.",
-  metric_Q2_test: "Q² de test. R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation du métamodèle ou de l'arbre.",
-  metric_selected_model: "Métamodèle sélectionné automatiquement pour cette sortie. Les candidats sont comparés sur le même dataset final dynamique et classés principalement par Q² de test, avec une petite pénalité de surapprentissage.",
-  metric_pce_model: "Métamodèle polynomial du chaos creux utilisé pour calculer Sobol S1/ST sur l'espace SMT faisable, sans générer de recombinaisons Saltelli invalides.",
-  metric_pce_R2_train: "R² d'entraînement du PCE creux. Il indique à quel point le polynôme approxime les points utilisés pour son ajustement.",
-  metric_pce_Q2_test: "Q² de test du PCE creux. C'est le meilleur signal pour savoir si les indices Sobol S1/ST reposent sur une approximation fiable.",
+  metric_R2_train: "R² d'entraînement. Part de variance de la sortie expliquée par le métamodèle sur les données utilisées pour l'ajuster. Utilité : mesure l'ajustement brut, mais un R² élevé seul peut cacher du surapprentissage — toujours le comparer au Q² de test.",
+  metric_Q2_test: "Q² de test. R² calculé sur des simulations mises de côté (non vues à l'entraînement). Utilité : c'est l'indicateur principal — il dit quelle part de la sortie les paramètres permettent réellement de prédire (proche de 1 = les paramètres expliquent bien la sortie). Un écart R²−Q² important signale du surapprentissage.",
+  metric_selected_model: "Meilleur métamodèle pour cette sortie (Q² de test le plus élevé, avec une légère pénalité de surapprentissage). Comparer plusieurs familles de modèles vérifie que la relation paramètres→sortie est robuste et non l'artefact d'un modèle unique.",
   metric_tree_R2_train: "R² de l'arbre sur l'ensemble d'entraînement. Il mesure à quel point l'arbre interprétable capture la structure des données d'apprentissage.",
   metric_tree_Q2_test: "Q² de l'arbre sur l'ensemble de test. Il indique si les seuils affichés par l'arbre restent prédictifs sur des simulations non vues.",
   anova_1factor_png: "ANOVA/Kruskal à un facteur. La figure classe les paramètres selon leur R² descriptif, c'est-à-dire la part de variance expliquée par les groupes de ce paramètre.",
   anova_2factor_interaction_png: "Matrice d'interaction à deux facteurs. Elle affiche seulement le R² d'interaction, donc ce qui reste quand les effets additifs des deux paramètres sont retirés.",
   metamodel_performance_png: "Performance du métamodèle. Elle compare les prédictions aux valeurs observées et sépare la qualité d'entraînement de la qualité de test.",
-  pce_sobol_png: "Indices de Sobol d'ordre 1 et total estimés par PCE creux. Cette figure évite les recombinaisons Saltelli incompatibles avec les contraintes SMT.",
+  metamodel_comparison_png: "Comparaison de métamodèles : pour chaque famille de modèle, R² (entraînement) et Q² (test) côte à côte. Le ★ marque le meilleur Q². Utilité : lire d'un coup d'œil quelle part de la sortie est prédictible (hauteur des barres Q²), quel modèle généralise le mieux, et si l'écart R²−Q² trahit du surapprentissage.",
   hsic_anova_order_png: "Diagramme des principaux termes HSIC-ANOVA. Chaque barre correspond à un paramètre ou une combinaison de paramètres, classé par contribution au HSIC global. La couleur indique l’ordre d’interaction.",
   
   decision_tree_regions_png: "Régions sensibles. Chaque barre correspond à une feuille de l'arbre, donc à un ensemble de simulations partageant les mêmes règles de seuil.",
@@ -156,14 +153,66 @@ function helpSpan(label, key) {
   return `<span class="helpable" data-help-key="${escapeHtml(key)}">${escapeHtml(label)}</span>`;
 }
 
-function relativeAssetUrl(path) {
+function assetRelativePath(path) {
   if (!currentManifest || !path) return "";
   const outputDir = currentManifest.output_dir.replace(/\/$/, "");
-  let relative = path;
   if (path.startsWith(outputDir)) {
-    relative = path.slice(outputDir.length).replace(/^\//, "");
+    return path.slice(outputDir.length).replace(/^\//, "");
   }
+  return path;
+}
+
+function relativeAssetUrl(path) {
+  if (!currentManifest || !path) return "";
+  const relative = assetRelativePath(path);
   return `/analyses/${encodeURIComponent(currentManifest.run_id)}/${relative.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function downloadButton(path, label) {
+  const rel = assetRelativePath(path);
+  if (!rel) return "";
+  const safe = escapeHtml(label || "ce fichier");
+  return `<button type="button" class="download-btn" data-asset="${escapeHtml(rel)}" title="Télécharger « ${safe} » dans le dossier de téléchargement" aria-label="Télécharger ${safe}">⬇</button>`;
+}
+
+let toastTimer = null;
+function flashToast(message, kind = "ok") {
+  let node = document.getElementById("app-toast");
+  if (!node) {
+    node = document.createElement("div");
+    node.id = "app-toast";
+    document.body.appendChild(node);
+  }
+  node.textContent = message;
+  node.className = `app-toast ${kind} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { node.className = "app-toast"; }, 4600);
+}
+
+async function exportAsset(relPath, button) {
+  if (!currentManifest || !relPath) return;
+  const destInput = document.getElementById("dest-dir");
+  const destDir = (destInput && destInput.value || "").trim();
+  if (!destDir) {
+    flashToast("Précise d'abord un dossier de téléchargement (barre latérale).", "error");
+    if (destInput) destInput.focus();
+    return;
+  }
+  if (button) button.disabled = true;
+  try {
+    const resp = await fetch("/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ run_id: currentManifest.run_id, relative_path: relPath, dest_dir: destDir }),
+    });
+    const body = await resp.json();
+    if (!resp.ok) throw new Error(body.detail || "Échec du téléchargement.");
+    flashToast(`Enregistré : ${body.path}`, "ok");
+  } catch (error) {
+    flashToast(error.message, "error");
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
 function collectPayload() {
@@ -176,7 +225,6 @@ function collectPayload() {
     analyses: analyses.length ? analyses : [],
     sample_size: Number(data.get("sample_size")),
     n_bins: Number(data.get("n_bins")),
-    sobol_n_mc: Number(data.get("sobol_n_mc")),
     random_state: Number(data.get("random_state")),
   };
 }
@@ -225,7 +273,10 @@ function figurePanelFromPath(path, label, helpKey, wide = false, extraClass = ""
   if (!path) return "";
   return `
     <section class="figure-panel ${wide ? "wide" : ""} ${extraClass}">
-      <h3>${helpSpan(label, helpKey)}</h3>
+      <div class="figure-head">
+        <h3>${helpSpan(label, helpKey)}</h3>
+        ${downloadButton(path, label)}
+      </div>
       <img src="${relativeAssetUrl(path)}" alt="${escapeHtml(label)}">
     </section>`;
 }
@@ -257,7 +308,10 @@ function subspaceCard(item) {
   return `
     <article class="subspace-card">
       <header>
-        <h4>${escapeHtml(item.title || item.subspace)}</h4>
+        <div class="subspace-title">
+          <h4>${escapeHtml(item.title || item.subspace)}</h4>
+          ${downloadButton(item.path, item.title || item.subspace)}
+        </div>
         <div class="subspace-badges">
           <span class="badge">${item.n_points} sim.</span>
           <span class="badge">${item.n_active_features} variables</span>
@@ -283,19 +337,42 @@ function pdpSubspaceSection(artifacts) {
     </div>`;
 }
 
+function metamodelScores(artifacts) {
+  const scores = (artifacts.metamodel_scores || []).slice();
+  if (!scores.length) return "";
+  const best = artifacts.metamodel_metrics || {};
+  const bestName = best.model_name || null;
+  scores.sort((a, b) => Number(b.Q2_test) - Number(a.Q2_test));
+  const cards = scores.map((s) => {
+    const isBest = s.model === bestName;
+    return `
+      <article class="metamodel-card ${isBest ? "best" : ""}">
+        <header>${escapeHtml(s.model)}${isBest ? '<span class="best-badge">★ meilleur</span>' : ""}</header>
+        <div class="metamodel-metrics">
+          ${scoreCard("R² (train)", s.R2_train, "train", "metric_R2_train")}
+          ${scoreCard("Q² (test)", s.Q2_test, "test", "metric_Q2_test")}
+        </div>
+      </article>`;
+  }).join("");
+  const csvButton = artifacts.metamodel_comparison_csv
+    ? `<div class="subsection-actions">${downloadButton(artifacts.metamodel_comparison_csv, "scores des métamodèles (CSV)")}<span class="download-label">Scores (CSV)</span></div>`
+    : "";
+  return `
+    <section class="subsection-title">
+      <div>
+        <p>${helpSpan("Qualité prédictive des métamodèles", "analysis_metamodel_comparison")}</p>
+        <h3>Comparaison de métamodèles (R²/Q²)</h3>
+      </div>
+      ${csvButton}
+    </section>
+    <div class="metamodel-grid">${cards}</div>`;
+}
+
 function renderTarget(target) {
   if (!currentManifest || !currentManifest.targets[target]) return;
   const artifacts = currentManifest.targets[target];
-  const pceMetrics = artifacts.pce_metrics || null;
-  const pceScores = pceMetrics && pceMetrics.status !== "error" ? `
-      <div class="score-row pce-score-row">
-        ${textScoreCard("Sobol par PCE", pceMetrics.model_name || "SparsePCE", "model pce", "metric_pce_model")}
-        ${scoreCard("R² entraînement PCE", pceMetrics.R2_train, "train pce", "metric_pce_R2_train")}
-        ${scoreCard("Q² test PCE", pceMetrics.Q2_test, "test pce", "metric_pce_Q2_test")}
-      </div>` : "";
   resultsPanel.innerHTML = `
     <div class="target-view">
-      ${pceScores}
       <div class="report-actions">
         ${reportLink()}
       </div>
@@ -308,8 +385,9 @@ function renderTarget(target) {
       <div class="figure-grid">
         ${figurePanel(artifacts, "anova_1factor_png")}
         ${figurePanel(artifacts, "hsic_anova_order_png", false, "hsic-panel")}
-        ${figurePanel(artifacts, "pce_sobol_png", false, "pce-panel")}
+        ${figurePanel(artifacts, "metamodel_comparison_png", false, "metamodel-panel")}
       </div>
+      ${metamodelScores(artifacts)}
       ${pdpSubspaceSection(artifacts)}
     </div>`;
   decorateHelpables(resultsPanel);
@@ -437,9 +515,30 @@ function setupSampleSizeSlider() {
   sync();
 }
 
+function setupDestDir() {
+  const input = document.getElementById("dest-dir");
+  if (!input) return;
+  const saved = localStorage.getItem("maelia_dest_dir");
+  if (saved) input.value = saved;
+  input.addEventListener("change", () => {
+    localStorage.setItem("maelia_dest_dir", input.value.trim());
+  });
+}
+
+function setupDownloadButtons() {
+  resultsPanel.addEventListener("click", (event) => {
+    const btn = event.target.closest(".download-btn");
+    if (!btn) return;
+    event.preventDefault();
+    exportAsset(btn.dataset.asset, btn);
+  });
+}
+
 runButton.dataset.helpKey = "run_button";
 runButton.classList.add("helpable");
 runButton.addEventListener("click", runAnalysis);
 form.addEventListener("submit", runAnalysis);
 setupSampleSizeSlider();
+setupDestDir();
+setupDownloadButtons();
 setupHelpTooltips();

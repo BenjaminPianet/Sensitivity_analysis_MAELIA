@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -41,7 +42,7 @@ class AnalysisRequest(BaseModel):
         description="Nombre de simulations tirées du dataset pour les analyses (sous-échantillonnage reproductible). Plafonné au nombre de lignes disponibles.",
     )
     n_bins: int = Field(4, ge=2, le=8, description="Nombre de classes pour discrétiser les variables continues en ANOVA")
-    sobol_n_mc: int = Field(2000, ge=200, le=50000, description="Paramètre conservé pour compatibilité API ; le bloc Sobol actuel estime S1/ST via PCE creux")
+    sobol_n_mc: int = Field(2000, ge=200, le=50000, description="Déprécié : non utilisé. L'app compare désormais des métamodèles (R²/Q²) au lieu d'estimer des indices de Sobol.")
     tree_max_depth: int = Field(4, ge=1, le=8, description="Profondeur maximale des arbres de décision")
     random_state: int = Field(42, description="Graine aléatoire")
 
@@ -73,6 +74,39 @@ def create_analysis(request: AnalysisRequest) -> dict[str, Any]:
         return run_analysis(**payload)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+class ExportRequest(BaseModel):
+    run_id: str = Field(..., description="Identifiant du run dont provient le fichier.")
+    relative_path: str = Field(..., description="Chemin du fichier relatif au dossier du run, ex. rdt/metamodel_comparison_rdt.png")
+    dest_dir: str = Field(..., description="Répertoire local de destination choisi par l'utilisateur.")
+
+
+@app.post("/export")
+def export_asset(request: ExportRequest) -> dict[str, str]:
+    """Copie une figure ou un CSV du run vers un répertoire local choisi par l'utilisateur.
+
+    L'application étant lancée en local, la destination est un chemin de la machine
+    de l'utilisateur. La source est contrainte au dossier de résultats du run.
+    """
+    root = (DEFAULT_OUTPUT_ROOT / request.run_id).resolve()
+    src = (root / request.relative_path).resolve()
+    if root not in src.parents and src != root:
+        raise HTTPException(status_code=400, detail="Chemin source hors du dossier de résultats.")
+    if not src.exists() or not src.is_file():
+        raise HTTPException(status_code=404, detail=f"Fichier introuvable : {request.relative_path}")
+
+    dest_dir_raw = request.dest_dir.strip()
+    if not dest_dir_raw:
+        raise HTTPException(status_code=400, detail="Précise un répertoire de destination.")
+    dest_dir = Path(dest_dir_raw).expanduser()
+    try:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        target = dest_dir / src.name
+        shutil.copy2(src, target)
+    except OSError as exc:
+        raise HTTPException(status_code=400, detail=f"Impossible d'écrire dans {dest_dir} : {exc}") from exc
+    return {"status": "ok", "path": str(target), "filename": src.name}
 
 
 @app.get("/analyses/{run_id}/manifest")

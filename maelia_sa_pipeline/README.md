@@ -1,6 +1,6 @@
 # Pipeline web d'analyse de sensibilité MAELIA
 
-Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles. Elle retient quatre analyses complémentaires : ANOVA/Kruskal à un facteur, HSIC-ANOVA, indices de Sobol d'ordre 1 et total par PCE, et courbes PDP/ICE par sous-espace de l'espace SMT hiérarchique.
+Cette application transforme un répertoire de logs MAELIA/GAMA et le fichier `dataset_metamodel.csv` associé en analyses de sensibilité lisibles. Elle retient quatre analyses complémentaires : ANOVA/Kruskal à un facteur, HSIC-ANOVA, comparaison de métamodèles (R²/Q²), et courbes PDP/ICE par sous-espace de l'espace SMT hiérarchique.
 
 Le point crucial est le suivant : les logs MAELIA contiennent les sorties du modèle, mais pas le plan de paramètres SMT. Le fichier `dataset_metamodel.csv` est donc indispensable, car il relie chaque simulation aux paramètres agronomiques du plan. L’app attend désormais strictement le plan SMT courant à 14 paramètres. Si `dataset_metamodel_features.csv` est présent, il doit correspondre exactement à ce plan; les exports d'un ancien plan sont refusés.
 
@@ -34,7 +34,7 @@ L'interface contient maintenant un README intégré expliquant comment utiliser 
 - `R² entraînement` : part de variance expliquée sur les données d'entraînement. Il mesure l'ajustement, pas la généralisation.
 - `Q² test` : R² calculé sur des simulations non vues pendant l'entraînement. C'est l'indicateur principal de généralisation.
 - `ANOVA/Kruskal à un facteur` : R² descriptif associé aux groupes d'un paramètre.
-- `Sobol par PCE S1/ST` : indices d'ordre 1 et d'ordre total calculés via un PCE creux entraîné sur les points faisables SMT.
+- `Comparaison de métamodèles (R²/Q²)` : plusieurs familles de métamodèles (ExtraTrees, RandomForest, HistGradientBoosting, XGBoost si disponible) sont entraînées sur un même partage entraînement/test ; l'app affiche pour chacune le R² (entraînement) et le Q² (test). Le Q² indique quelle part de la sortie les 14 paramètres permettent de prédire sur des simulations non vues ; l'écart R²−Q² révèle le surapprentissage ; comparer plusieurs modèles vérifie que la relation paramètres→sortie est robuste.
 - `HSIC-ANOVA` : dépendance par noyaux représentée comme dans le notebook, par diagrammes en barres des principaux paramètres ou combinaisons de paramètres.
 - `PDP/ICE par sous-espace` : pour chacun des 12 sous-espaces de l'espace SMT hiérarchique (combinaisons de nombre d'apports, présence et nombre de préparations du sol), un métamodèle est entraîné sur les seules variables continues actives, puis les courbes PDP (effet marginal moyen) et ICE (scénarios individuels) sont tracées pour chaque variable. Chaque figure indique le nombre de simulations et le Q² du métamodèle du sous-espace.
 

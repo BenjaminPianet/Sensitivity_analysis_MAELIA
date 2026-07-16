@@ -10,10 +10,10 @@ import pandas as pd
 from .config import DEFAULT_OUTPUT_ROOT, TARGET_LABELS
 from .data import load_dataset
 from .hsic import compute_hsic_anova
-from .models import train_sparse_pce_sobol
+from .models import select_best_metamodel
 from .pdp_subspace import compute_subspace_pdp_ice
 from .stats import discretize_factors, one_factor_anova
-from .viz import plot_one_factor, plot_hsic_order_decomposition, plot_pce_sobol
+from .viz import plot_one_factor, plot_hsic_order_decomposition, plot_metamodel_comparison
 
 
 def _safe_name(value: str) -> str:
@@ -23,14 +23,14 @@ def _safe_name(value: str) -> str:
 ANALYSIS_LABELS = {
     "anova_1factor": "ANOVA à un facteur",
     "hsic_anova": "HSIC-ANOVA hiérarchique",
-    "sobol_indices": "Sobol par PCE ordre 1 et total",
+    "metamodel_comparison": "Comparaison de métamodèles (R²/Q²)",
     "pdp_subspace": "PDP/ICE par sous-espace",
 }
 
 DEFAULT_ANALYSES = [
     "anova_1factor",
     "hsic_anova",
-    "sobol_indices",
+    "metamodel_comparison",
     "pdp_subspace",
 ]
 
@@ -52,7 +52,7 @@ def _write_html_report(manifest: dict, output_dir: Path) -> Path:
         cards.append(f"<h2>{title}</h2>")
         for key, label in [
             ("anova_1factor_png", "ANOVA à un facteur"),
-            ("pce_sobol_png", "Sobol par PCE ordre 1 et total"),
+            ("metamodel_comparison_png", "Comparaison de métamodèles (R²/Q²)"),
             ("hsic_anova_order_png", "Principaux effets HSIC-ANOVA"),
         ]:
             path = artifacts.get(key)
@@ -180,7 +180,7 @@ def run_analysis(
         anova.to_csv(anova_path, index=False)
         manifest["tables"]["anova_1factor"] = str(anova_path)
 
-    pce_metric_rows = []
+    metamodel_metric_rows = []
     hsic_metric_rows = []
     subspace_rows = []
     for target in bundle.target_columns:
@@ -192,28 +192,30 @@ def run_analysis(
             p = plot_one_factor(anova, target, target_dir / f"anova_1facteur_{target}.png")
             target_artifacts["anova_1factor_png"] = str(p)
 
-        if "sobol_indices" in analysis_set:
+        if "metamodel_comparison" in analysis_set:
             try:
-                pce_sobol, pce_metrics = train_sparse_pce_sobol(
+                _, best_metrics, comparison = select_best_metamodel(
                     df,
                     target,
                     bundle.feature_columns,
                     bundle.categorical_columns,
                     bundle.continuous_columns,
-                    max_terms=60,
-                    max_train=n_used,
                     random_state=random_state + 1000 + bundle.target_columns.index(target),
                 )
-                pce_path = target_dir / f"pce_sobol_indices_{target}.csv"
-                pce_sobol.to_csv(pce_path, index=False)
-                target_artifacts["pce_sobol_csv"] = str(pce_path)
-                target_artifacts["pce_metrics"] = pce_metrics
-                pce_metric_rows.append({"sortie": target, **pce_metrics})
-                p = plot_pce_sobol(pce_sobol, target, target_dir / f"pce_sobol_indices_{target}.png")
-                target_artifacts["pce_sobol_png"] = str(p)
+                comp_path = target_dir / f"metamodel_comparison_{target}.csv"
+                comparison.to_csv(comp_path, index=False)
+                target_artifacts["metamodel_comparison_csv"] = str(comp_path)
+                target_artifacts["metamodel_metrics"] = best_metrics
+                ok_models = comparison[comparison["status"] == "ok"]
+                target_artifacts["metamodel_scores"] = ok_models[
+                    ["model", "R2_train", "Q2_test", "RMSE_test", "overfit_gap"]
+                ].round(4).to_dict("records")
+                metamodel_metric_rows.append({"sortie": target, **best_metrics})
+                p = plot_metamodel_comparison(comparison, target, target_dir / f"metamodel_comparison_{target}.png")
+                target_artifacts["metamodel_comparison_png"] = str(p)
             except Exception as exc:
-                bundle.warnings.append(f"PCE creux indisponible pour {target}: {exc}")
-                target_artifacts["pce_metrics"] = {"model_name": "SparsePCE", "status": "error", "error": str(exc)}
+                bundle.warnings.append(f"Comparaison de métamodèles indisponible pour {target}: {exc}")
+                target_artifacts["metamodel_metrics"] = {"model_name": "metamodels", "status": "error", "error": str(exc)}
 
         if "hsic_anova" in analysis_set:
             try:
@@ -256,10 +258,10 @@ def run_analysis(
 
         manifest["targets"][target] = target_artifacts
 
-    if pce_metric_rows:
-        pce_metrics_path = out / "pce_metamodel_metrics.csv"
-        pd.DataFrame(pce_metric_rows).to_csv(pce_metrics_path, index=False)
-        manifest["tables"]["pce_metamodel_metrics"] = str(pce_metrics_path)
+    if metamodel_metric_rows:
+        metamodel_metrics_path = out / "metamodel_best_metrics.csv"
+        pd.DataFrame(metamodel_metric_rows).to_csv(metamodel_metrics_path, index=False)
+        manifest["tables"]["metamodel_best_metrics"] = str(metamodel_metrics_path)
 
     if hsic_metric_rows:
         hsic_metrics_path = out / "hsic_anova_metrics.csv"
