@@ -175,6 +175,8 @@ def compute_subspace_pdp_ice(
         path = out_dir / f"pdp_ice_{label}_{target}.png"
         _plot_subspace(sub, target, model, X, feats, q2, len(data), path)
         entry["q2"] = round(q2, 3)
-        entry["path"] = str(path)
+        # as_posix() : ce chemin part dans le manifeste et sert à reconstruire une URL
+        # côté navigateur, qui suppose des séparateurs "/".
+        entry["path"] = path.as_posix()
         results.append(entry)
     return results

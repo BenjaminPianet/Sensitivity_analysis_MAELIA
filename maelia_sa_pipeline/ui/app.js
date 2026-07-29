@@ -1,3 +1,6 @@
+// Interface de l'app : ni framework ni étape de build. On appelle l'API FastAPI en
+// fetch() et on injecte le manifeste renvoyé directement dans le DOM.
+
 const form = document.getElementById("analysis-form");
 const runButton = document.getElementById("run-button");
 const statusBand = document.getElementById("status-band");
@@ -7,12 +10,14 @@ const targetTabs = document.getElementById("target-tabs");
 const resultsPanel = document.getElementById("results-panel");
 
 
-let currentManifest = null;
-let currentTarget = null;
+let currentManifest = null; // dernier manifeste renvoyé par POST /analyses
+let currentTarget = null;   // onglet de sortie affiché (N_lixi/dCorg/rdt)
 let tooltipTimer = null;
 let tooltipNode = null;
 let currentHelpTarget = null;
 
+// À garder aligné avec TARGET_LABELS dans config.py : le manifeste ne renvoie pas
+// les libellés.
 const targetLabels = {
   N_lixi: "Azote lixivié",
   dCorg: "Carbone organique",
@@ -26,12 +31,15 @@ const analysisLabels = {
   pdp_subspace: "PDP/ICE par sous-espace",
 };
 
+// Titre de chaque panneau de figure, indexé par la clé du manifeste qui porte son
+// chemin (cf. target_artifacts dans pipeline.py).
 const figureLabels = {
   anova_1factor_png: "ANOVA à un facteur",
   metamodel_comparison_png: "Comparaison de métamodèles (R²/Q²)",
   hsic_anova_order_png: "Effets principaux HSIC-ANOVA",
 };
 
+// Ordre des 14 paramètres du plan SMT ; doit correspondre à AGRI_FEATURES.
 const featureOrder = [
   "n_ferti", "nb_prepa",
   "Date_Semis", "Delta_PREPA_Semis", "Profondeur_Semis",
@@ -40,6 +48,7 @@ const featureOrder = [
   "Dose_F1", "Dose_F2", "Dose_F3",
 ];
 
+// Texte des infobulles, indexé par l'attribut data-help-key porté par l'élément.
 const helpTexts = {
   log_dir: "Dossier où GAMA a écrit les logs d'une série de simulations MAELIA. Il doit contenir les fichiers de sortie utilisés pour calculer N_lixi, dCorg et rdt, ainsi que le dataset_metamodel.csv reconstruit depuis ces logs.",
   sample_size: "Nombre de simulations tirées du dataset pour alimenter les analyses (sous-échantillonnage aléatoire reproductible selon la graine). Moins de points = calcul plus rapide ; plus de points = estimations plus fines. La valeur est plafonnée au nombre de simulations disponibles.",
@@ -140,6 +149,8 @@ function showError(message) {
     </div>`;
 }
 
+// L'échappement est manuel ici : toute valeur non constante insérée dans un innerHTML
+// doit passer par escapeHtml.
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -153,21 +164,30 @@ function helpSpan(label, key) {
   return `<span class="helpable" data-help-key="${escapeHtml(key)}">${escapeHtml(label)}</span>`;
 }
 
-function assetRelativePath(path) {
-  if (!currentManifest || !path) return "";
-  const outputDir = currentManifest.output_dir.replace(/\/$/, "");
-  if (path.startsWith(outputDir)) {
-    return path.slice(outputDir.length).replace(/^\//, "");
-  }
-  return path;
+// Les chemins du manifeste arrivent toujours en "/" (as_posix côté Python) ; ce filet
+// de sécurité couvre le cas où un chemin Windows brut passerait quand même.
+function normalizeSlashes(path) {
+  return path.replaceAll("\\", "/");
 }
 
+function assetRelativePath(path) {
+  if (!currentManifest || !path) return "";
+  const outputDir = normalizeSlashes(currentManifest.output_dir).replace(/\/$/, "");
+  const normalizedPath = normalizeSlashes(path);
+  if (normalizedPath.startsWith(outputDir)) {
+    return normalizedPath.slice(outputDir.length).replace(/^\//, "");
+  }
+  return normalizedPath;
+}
+
+// URL correspondant à la route GET /analyses/{run_id}/{relative_path}.
 function relativeAssetUrl(path) {
   if (!currentManifest || !path) return "";
   const relative = assetRelativePath(path);
   return `/analyses/${encodeURIComponent(currentManifest.run_id)}/${relative.split("/").map(encodeURIComponent).join("/")}`;
 }
 
+// Le chemin relatif au run est porté par data-asset, relu par setupDownloadButtons.
 function downloadButton(path, label) {
   const rel = assetRelativePath(path);
   if (!rel) return "";
@@ -189,6 +209,8 @@ function flashToast(message, kind = "ok") {
   toastTimer = setTimeout(() => { node.className = "app-toast"; }, 4600);
 }
 
+// Copie via POST /export : le dossier de destination est un chemin de la machine
+// locale, saisi une fois et mémorisé dans localStorage.
 async function exportAsset(relPath, button) {
   if (!currentManifest || !relPath) return;
   const destInput = document.getElementById("dest-dir");
@@ -534,6 +556,7 @@ function setupDownloadButtons() {
   });
 }
 
+// Le script est chargé en fin de <body>, les éléments ci-dessus existent déjà.
 runButton.dataset.helpKey = "run_button";
 runButton.classList.add("helpable");
 runButton.addEventListener("click", runAnalysis);

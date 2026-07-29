@@ -1,3 +1,8 @@
+"""Enchaînement d'un run complet : chargement du dataset, exécution des blocs d'analyse
+demandés pour chaque sortie, écriture des figures et CSV dans le dossier du run, puis
+manifest.json et report.html. Utilisé par l'API web comme par la CLI. Le manifeste
+renvoyé par run_analysis est aussi le JSON affiché par l'interface."""
+
 from __future__ import annotations
 
 import json
@@ -17,6 +22,8 @@ from .viz import plot_one_factor, plot_hsic_order_decomposition, plot_metamodel_
 
 
 def _safe_name(value: str) -> str:
+    """Nom de dossier/fichier sûr pour une sortie. Restreint à alnum/-/_ : Windows
+    interdit aussi : \\ / * ? " < > |, tous exclus ici."""
     return "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in value)
 
 
@@ -46,6 +53,8 @@ def _normalise_analyses(analyses: list[str] | None) -> set[str]:
 
 
 def _write_html_report(manifest: dict, output_dir: Path) -> Path:
+    """Écrit un report.html autonome dans le dossier du run, avec les mêmes figures que
+    l'interface, pour pouvoir archiver ou transmettre un run hors de l'app."""
     cards = []
     for target, artifacts in manifest["targets"].items():
         title = TARGET_LABELS.get(target, target)
@@ -131,6 +140,9 @@ def run_analysis(
     tree_max_depth: int = 4,
     random_state: int = 42,
 ) -> dict:
+    """Exécute la pipeline et renvoie le manifeste, également écrit dans manifest.json.
+    output_dir passe par expanduser() pour que le "~" soit résolu quel que soit l'OS ; à
+    défaut, un dossier horodaté est créé sous analysis/web_runs/<run_id>."""
     analysis_set = _normalise_analyses(analyses)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + uuid4().hex[:8]
@@ -152,7 +164,9 @@ def run_analysis(
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "log_dir": str(Path(log_dir).expanduser()),
         "dataset_path": str(bundle.dataset_path),
-        "output_dir": str(out),
+        # as_posix() et non str() : l'interface retire ce préfixe des chemins de figures
+        # puis découpe le reste sur "/". Sous Windows, str() donnerait des antislashs.
+        "output_dir": out.as_posix(),
         "n_rows": n_used,
         "n_rows_available": n_available,
         "sample_size": int(sample_size) if sample_size else None,
@@ -178,7 +192,7 @@ def run_analysis(
         anova = one_factor_anova(df, factor_frame, bundle.feature_columns, bundle.target_columns)
         anova_path = out / "anova_1facteur.csv"
         anova.to_csv(anova_path, index=False)
-        manifest["tables"]["anova_1factor"] = str(anova_path)
+        manifest["tables"]["anova_1factor"] = anova_path.as_posix()
 
     metamodel_metric_rows = []
     hsic_metric_rows = []
@@ -190,7 +204,9 @@ def run_analysis(
 
         if "anova_1factor" in analysis_set:
             p = plot_one_factor(anova, target, target_dir / f"anova_1facteur_{target}.png")
-            target_artifacts["anova_1factor_png"] = str(p)
+            # as_posix() pour tous les chemins d'artefacts : ils sont découpés sur "/"
+            # côté navigateur, cf. output_dir plus haut.
+            target_artifacts["anova_1factor_png"] = p.as_posix()
 
         if "metamodel_comparison" in analysis_set:
             try:
@@ -204,7 +220,7 @@ def run_analysis(
                 )
                 comp_path = target_dir / f"metamodel_comparison_{target}.csv"
                 comparison.to_csv(comp_path, index=False)
-                target_artifacts["metamodel_comparison_csv"] = str(comp_path)
+                target_artifacts["metamodel_comparison_csv"] = comp_path.as_posix()
                 target_artifacts["metamodel_metrics"] = best_metrics
                 ok_models = comparison[comparison["status"] == "ok"]
                 target_artifacts["metamodel_scores"] = ok_models[
@@ -212,7 +228,7 @@ def run_analysis(
                 ].round(4).to_dict("records")
                 metamodel_metric_rows.append({"sortie": target, **best_metrics})
                 p = plot_metamodel_comparison(comparison, target, target_dir / f"metamodel_comparison_{target}.png")
-                target_artifacts["metamodel_comparison_png"] = str(p)
+                target_artifacts["metamodel_comparison_png"] = p.as_posix()
             except Exception as exc:
                 bundle.warnings.append(f"Comparaison de métamodèles indisponible pour {target}: {exc}")
                 target_artifacts["metamodel_metrics"] = {"model_name": "metamodels", "status": "error", "error": str(exc)}
@@ -231,11 +247,11 @@ def run_analysis(
                 )
                 hsic_path = target_dir / f"hsic_anova_terms_{target}.csv"
                 hsic_terms.to_csv(hsic_path, index=False)
-                target_artifacts["hsic_anova_terms_csv"] = str(hsic_path)
+                target_artifacts["hsic_anova_terms_csv"] = hsic_path.as_posix()
                 target_artifacts["hsic_anova_metrics"] = hsic_metrics
                 hsic_metric_rows.append({"sortie": target, **hsic_metrics})
                 p = plot_hsic_order_decomposition(hsic_terms, target, target_dir / f"hsic_anova_decomposition_{target}.png")
-                target_artifacts["hsic_anova_order_png"] = str(p)
+                target_artifacts["hsic_anova_order_png"] = p.as_posix()
             except Exception as exc:
                 bundle.warnings.append(f"HSIC-ANOVA indisponible pour {target}: {exc}")
                 target_artifacts["hsic_anova_metrics"] = {"model_name": "HSIC-ANOVA", "status": "error", "error": str(exc)}
@@ -261,22 +277,22 @@ def run_analysis(
     if metamodel_metric_rows:
         metamodel_metrics_path = out / "metamodel_best_metrics.csv"
         pd.DataFrame(metamodel_metric_rows).to_csv(metamodel_metrics_path, index=False)
-        manifest["tables"]["metamodel_best_metrics"] = str(metamodel_metrics_path)
+        manifest["tables"]["metamodel_best_metrics"] = metamodel_metrics_path.as_posix()
 
     if hsic_metric_rows:
         hsic_metrics_path = out / "hsic_anova_metrics.csv"
         pd.DataFrame(hsic_metric_rows).to_csv(hsic_metrics_path, index=False)
-        manifest["tables"]["hsic_anova_metrics"] = str(hsic_metrics_path)
+        manifest["tables"]["hsic_anova_metrics"] = hsic_metrics_path.as_posix()
 
     if subspace_rows:
         subspace_path = out / "pdp_ice_sous_espaces_synthese.csv"
         pd.DataFrame(subspace_rows).to_csv(subspace_path, index=False)
-        manifest["tables"]["pdp_subspace_summary"] = str(subspace_path)
+        manifest["tables"]["pdp_subspace_summary"] = subspace_path.as_posix()
 
     report_path = _write_html_report(manifest, out)
-    manifest["report_html"] = str(report_path)
+    manifest["report_html"] = report_path.as_posix()
 
     manifest_path = out / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    manifest["manifest_json"] = str(manifest_path)
+    manifest["manifest_json"] = manifest_path.as_posix()
     return manifest

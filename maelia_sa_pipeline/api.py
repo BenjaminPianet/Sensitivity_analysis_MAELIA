@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 from .config import DEFAULT_OUTPUT_ROOT
 from .pipeline import run_analysis
 
+# L'app tourne en local : le navigateur et l'API sont sur la même machine, donc les
+# chemins saisis dans l'interface désignent bien le disque de l'utilisateur.
 UI_DIR = Path(__file__).parent / "ui"
 
 app = FastAPI(
@@ -69,10 +71,14 @@ def health() -> dict[str, str]:
 
 @app.post("/analyses")
 def create_analysis(request: AnalysisRequest) -> dict[str, Any]:
+    """Lance la pipeline et renvoie le manifeste, consommé tel quel par l'interface."""
     try:
+        # model_dump() en pydantic v2, dict() en v1.
         payload = request.model_dump() if hasattr(request, "model_dump") else request.dict()
         return run_analysis(**payload)
     except Exception as exc:
+        # Erreurs de saisie (log_dir invalide, plan SMT non conforme...) : on renvoie le
+        # message d'origine en 400, il est affiché tel quel dans l'interface.
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -89,6 +95,8 @@ def export_asset(request: ExportRequest) -> dict[str, str]:
     L'application étant lancée en local, la destination est un chemin de la machine
     de l'utilisateur. La source est contrainte au dossier de résultats du run.
     """
+    # relative_path vient du navigateur : resolve() puis vérification d'appartenance à
+    # root, sinon un "../.." donnerait accès à n'importe quel fichier de la machine.
     root = (DEFAULT_OUTPUT_ROOT / request.run_id).resolve()
     src = (root / request.relative_path).resolve()
     if root not in src.parents and src != root:
@@ -127,8 +135,11 @@ def get_report(run_id: str) -> HTMLResponse:
 
 @app.get("/analyses/{run_id}/file")
 def get_file(run_id: str, relative_path: str):
+    """Variante de get_generated_asset avec le chemin en paramètre de requête, pour les
+    chemins contenant des caractères mal supportés directement dans l'URL."""
     root = (DEFAULT_OUTPUT_ROOT / run_id).resolve()
     path = (root / relative_path).resolve()
+    # Même garde que dans export_asset.
     if root not in path.parents and path != root:
         raise HTTPException(status_code=400, detail="Chemin hors du dossier de résultats.")
     if not path.exists() or not path.is_file():
@@ -138,8 +149,11 @@ def get_file(run_id: str, relative_path: str):
 
 @app.get("/analyses/{run_id}/{relative_path:path}")
 def get_generated_asset(run_id: str, relative_path: str):
+    """Sert une figure ou un CSV d'un run : c'est la cible des balises <img> et des liens
+    construits côté navigateur."""
     root = (DEFAULT_OUTPUT_ROOT / run_id).resolve()
     path = (root / relative_path).resolve()
+    # Même garde que dans export_asset.
     if root not in path.parents and path != root:
         raise HTTPException(status_code=400, detail="Chemin hors du dossier de résultats.")
     if not path.exists() or not path.is_file():
