@@ -1,88 +1,70 @@
-# Sensitivity Analysis MAELIA — terrainSA et HSIC-ANOVA
+# Sensitivity Analysis MAELIA
 
-Ce dépôt rassemble une chaîne de travail minimale pour explorer la sensibilité d'un modèle agro-écologique MAELIA sur un terrain contrôlé, `terrainSA`, puis visualiser les résultats avec une application web et une analyse HSIC-ANOVA.
+Analyse de sensibilité du modèle agro-écologique MAELIA sur un terrain contrôlé, `terrainSA`. On y explore l'effet des règles de décision de l'agriculteur, du climat et du type de sol sur trois sorties : le rendement, l'azote lixivié et la variation du carbone organique du sol.
 
-## 1. Organisation du dépôt
+## Organisation du dépôt
 
-Le dépôt est volontairement resserré autour des éléments utiles à la reproduction et à la lecture des résultats.
+**`app_maelia/`** est l'application. Elle fait tout le parcours, de la description de l'espace à explorer jusqu'aux résultats, en passant par la génération des fichiers d'entrée MAELIA et le lancement de GAMA. Elle vit dans un seul dossier et n'écrit que dedans.
 
-- `maelia_sa_pipeline/` contient l'application web. Son guide d'utilisation détaillé est dans [`maelia_sa_pipeline/README.md`](maelia_sa_pipeline/README.md). L'application retient quatre analyses : ANOVA à un facteur, HSIC-ANOVA, indices de Sobol par PCE et courbes PDP/ICE par sous-espace.
-- `communication/` contient les supports de présentation et documents de communication associés au projet.
-- `figs/` contient uniquement les figures affichées dans ce README : l'espace SMT MAELIA, les figures HSIC-ANOVA principales et deux exemples de courbes PDP/ICE par sous-espace.
-- `simulations/` contient le notebook de génération du plan SMT, le notebook de lancement terrainSA, le script de construction du terrain projet-local, le terrain `gama_includes/terrainSA`, et les logs `log_terrainSA`.
-- `analysis/` contient le notebook HSIC-ANOVA `hsic_anova_analysis.ipynb`, le notebook `pdp_ice_par_sous_espace.ipynb` (courbes PDP/ICE pour chacun des 12 sous-espaces SMT) et les outils dans `analysis/tools/`.
+Pour la prendre en main, le mieux est de suivre **[le tutoriel](app_maelia/TUTORIEL.md)**. Il part de zéro, sans aucune simulation, et va jusqu'aux résultats commentés. Chaque étape indique ce que vous devez voir à l'écran pour savoir que vous êtes sur la bonne voie. Le [README de l'application](app_maelia/README.md) détaille ensuite le fonctionnement : les deux modes de travail, la façon dont le plan est tiré, les chemins vers MAELIA et GAMA, et comment ouvrir le terrain dans QGIS.
 
-Les dépendances Python sont listées dans `requirements.txt`. Les sorties temporaires de l'application web et les caches Python sont ignorés par Git.
+**`analysis/`** contient les deux notebooks de référence. [`hsic_anova_analysis.ipynb`](analysis/hsic_anova_analysis.ipynb) applique la décomposition HSIC-ANOVA hiérarchique aux sorties MAELIA. [`pdp_ice_par_sous_espace.ipynb`](analysis/pdp_ice_par_sous_espace.ipynb) trace les courbes PDP et ICE dans chacun des douze sous-espaces. Les outils communs sont dans `analysis/tools/`.
 
-## 2. Reproduire l'analyse
+**`simulations/`** garde les scripts de la première campagne, celle des 5000 points. On y trouve aussi `doe_matrix_terrainSA.npy`, qui est la seule trace du tirage utilisé à l'époque. Ce tirage n'était reproductible par aucune graine, donc le fichier compte.
 
-**Étape 0 — Construire ou inspecter le plan SMT.**  
-Ouvrir [`simulations/smt_generation.ipynb`](simulations/smt_generation.ipynb). Ce notebook décrit l'espace de paramètres hiérarchique utilisé pour MAELIA : nombre de fertilisations, préparation du sol, dates d'opérations, profondeurs et doses. Il produit aussi la représentation de l'espace SMT/ADSG.
+**`figs/`** ne contient que les figures reprises ci-dessous.
 
-**Étape 1 — Construire ou vérifier `terrainSA`.**  
-`terrainSA` est un terrain projet-local placé dans `simulations/gama_includes/terrainSA`. Il peut être reconstruit avec `simulations/build_terrainSA_project.py` à partir du terrain MAELIA de référence, sans modifier le workspace GAMA.
+Les dépendances sont dans `requirements.txt`.
 
-**Étape 2 — Lancer les simulations.**  
-Exécuter [`simulations/batch_simulations_smt_terrainSA.ipynb`](simulations/batch_simulations_smt_terrainSA.ipynb). Le notebook utilise `terrainSA`, génère les fichiers `dateDose_smt_*`, lance GAMA en headless, puis écrit les sorties dans `simulations/log_terrainSA`.
+## Ce que le terrain permet de voir
 
-**Étape 3 — Vérifier les logs et le dataset.**  
-Le dossier `simulations/log_terrainSA` doit contenir les dossiers de runs `terrainSA_smt_*` ainsi que `dataset_metamodel.csv` et `dataset_metamodel_features.csv`. Le fichier `dataset_metamodel.csv` relie les sorties MAELIA à la matrice du plan SMT ; il est indispensable pour l'analyse.
+`terrainSA` isole l'effet des paramètres techniques. C'est la parcelle `beauce_5_1`, clonée 100 fois dans le même ilot. Les clones partagent le sol, la zone météo et la géométrie, ce qui écarte l'effet confondant du contexte pédoclimatique.
 
-**Étape 4 — Exécuter HSIC-ANOVA.**  
-Ouvrir [`analysis/hsic_anova_analysis.ipynb`](analysis/hsic_anova_analysis.ipynb). Le notebook charge `dataset_metamodel.csv`, importe `analysis/tools/hsic_methods.py`, calcule les termes HSIC-ANOVA et génère les tableaux et figures d'influence.
+Le climat et le sol peuvent maintenant varier à leur tour, mais pas par le même mécanisme. MAELIA affecte le climat à l'ilot en retenant la zone météo qui le recouvre le plus, donc faire varier le climat demande des ilots séparés dans l'espace. Le sol, lui, est un simple attribut de l'ilot. Rien ne se déplace, donc plusieurs ilots peuvent tenir au même endroit avec des sols différents. Les deux se croisent alors dans un même plan.
 
-**Étape 5 — Tracer les courbes PDP/ICE par sous-espace.**  
-Ouvrir [`analysis/pdp_ice_par_sous_espace.ipynb`](analysis/pdp_ice_par_sous_espace.ipynb). Le notebook partitionne `dataset_metamodel.csv` selon les 12 sous-espaces de l'espace SMT hiérarchique, entraîne un métamodèle par sous-espace sur ses seules variables continues actives, puis trace la courbe PDP (effet moyen) et le faisceau ICE (scénarios individuels) de chaque variable.
+## L'espace de conception
 
-**Étape 6 — Explorer les résultats dans l'application web.**  
-Depuis la racine du dépôt :
+L'espace est hiérarchique. Certains paramètres n'existent que si l'opération correspondante a lieu. Deux variables de décision le structurent : le nombre de fertilisations (0 à 3) et le nombre de préparations du sol (0 à 2). Leurs combinaisons donnent **12 sous-espaces**, chacun activant un sous-ensemble différent des 14 paramètres.
 
-```bash
-python -m uvicorn maelia_sa_pipeline.api:app --reload
-```
+<img src="figs/maelia_space.svg" alt="Espace de conception SMT MAELIA" width="100%">
 
-L'interface demande le chemin vers les logs, par exemple `simulations/log_terrainSA`. Le README de l'application détaille les mesures affichées et les analyses disponibles.
+Le plan est tiré en fixant d'abord ce squelette. Chacune des douze combinaisons reçoit la même part du budget, puis un hypercube latin répartit les paramètres à l'intérieur. Aucun sous-espace ne se retrouve sous-doté par hasard, et le même numéro de graine redonne le même plan.
 
-## 3. Résultats terrainSA
+## Résultats
 
-`terrainSA` est construit pour isoler l'effet des paramètres techniques. Il correspond à la parcelle `beauce_5_1` clonée 100 fois dans le même ilot `beauce_5`. Les clones partagent donc le même contexte pédologique et météorologique : même sol, même zone météo, même géométrie de référence. Ce choix réduit l'effet confondant du climat et du type de sol pour concentrer l'analyse sur les opérations agricoles.
+### L'itinéraire technique
 
-### Un espace de conception hiérarchique à 12 sous-espaces
-
-L'espace d'exploration SMT/ADSG est hiérarchique : certains paramètres n'existent que si une opération associée existe. Deux variables de décision structurent l'espace — le nombre de fertilisations (`0, 1, 2, 3`) et le nombre de préparations du sol (`0, 1, 2`, où `0` signifie pas de préparation). Leurs combinaisons définissent **12 sous-espaces**, chacun activant un sous-ensemble différent des 14 paramètres. Ainsi les dates et doses de fertilisation ne sont actives que lorsqu'une fertilisation a lieu, et les profondeurs de préparation seulement lorsqu'une préparation est prévue.
-
-![Espace SMT MAELIA](figs/maelia_space.png)
-
-### Résultats HSIC-ANOVA
-
-Les figures suivantes décomposent, pour chaque sortie, la dépendance statistique mesurée par noyaux entre les paramètres et la sortie. Elles ne doivent **pas** être lues comme des indices de Sobol : HSIC-ANOVA mesure une dépendance non linéaire globale et gère les paramètres actifs par intermittence de l'espace hiérarchique.
-
-La figure principale classe les termes par contribution au HSIC global, pour les trois sorties. Les effets d'ordre 1 (paramètre seul) dominent : les doses de fertilisation, mais aussi le **nombre d'apports** (`n_ferti`), qui ressort comme un moteur structurel de premier plan. De véritables interactions d'ordre 2 et 3 apparaissent, en particulier pour le rendement où le couple nombre d'apports × dose du premier apport pèse ~8 %.
+Sur les 5000 simulations à climat et sol fixés, la fertilisation domine les trois sorties. Les figures ci-dessous décomposent la dépendance mesurée par noyaux entre paramètres et sorties. Ce ne sont pas des indices de Sobol : HSIC-ANOVA mesure une dépendance non linéaire et sait traiter des paramètres qui n'existent que par intermittence.
 
 ![Principaux termes HSIC-ANOVA par sortie](figs/hsic_anova_top_terms_all_outputs.png)
 
-Lecture par sortie :
+Les effets d'ordre 1 dominent, avec les doses de fertilisation mais aussi le nombre d'apports, qui ressort comme un moteur structurel. De vraies interactions d'ordre 2 et 3 apparaissent, en particulier pour le rendement où le couple nombre d'apports x dose du premier apport pèse environ 8 %.
 
-- **Azote lixivié (`N_lixi`)** est piloté par la fertilisation : dose du deuxième apport (~12 %), nombre d'apports (~9 %), date du deuxième apport (~9 %), dose du premier apport (~9 %) et dose du troisième apport (~7 %).
-- **Variation du carbone organique (`dCorg`)** dépend de la fenêtre culturale et de la fertilisation : date de récolte (~26 %), dose du deuxième apport (~13 %), dose du premier apport (~11 %), puis nombre d'apports (~10 %) et nombre de préparations (~9 %).
-- **Rendement (`rdt`)** répond d'abord à la quantité d'azote apportée : dose du deuxième apport (~21 %), dose du premier apport (~19 %) et nombre d'apports (~18 %), avec une interaction marquée nombre d'apports × dose du premier apport (~8 %).
+Par sortie :
 
-En regroupant les paramètres par famille agronomique, les **doses de fertilisation** dominent les trois sorties (de ~37 % à ~66 % de la dépendance), mais la **structure de l'itinéraire** (nombre d'apports et de préparations) est la deuxième famille pour chaque sortie (~22 à ~28 %), devant le calendrier de fertilisation et la fenêtre semis/récolte.
+- **Azote lixivié.** Dose du deuxième apport 12 %, nombre d'apports 9 %, date du deuxième apport 9 %, dose du premier apport 9 %, dose du troisième 7 %.
+- **Carbone organique.** Date de récolte 26 %, dose du deuxième apport 13 %, dose du premier 11 %, nombre d'apports 10 %, nombre de préparations 9 %.
+- **Rendement.** Dose du deuxième apport 21 %, dose du premier 19 %, nombre d'apports 18 %, plus l'interaction nombre d'apports x dose du premier apport à 8 %.
+
+Regroupés par famille, les doses pèsent de 37 % à 66 % selon la sortie. La structure de l'itinéraire, c'est-à-dire le nombre d'apports et de préparations, arrive deuxième partout, entre 22 % et 28 %.
 
 ![HSIC-ANOVA par famille sémantique](figs/hsic_anova_semantic_families.png)
 
-### Courbes PDP/ICE par sous-espace
 
-L'analyse HSIC agrège tout l'espace hiérarchique. Pour la compléter, le notebook [`analysis/pdp_ice_par_sous_espace.ipynb`](analysis/pdp_ice_par_sous_espace.ipynb) descend **à l'intérieur de chacun des 12 sous-espaces** : à structure d'itinéraire technique fixée, il entraîne un métamodèle (forêt aléatoire) sur les seules variables continues actives du sous-espace, puis trace pour chaque variable la courbe PDP (effet marginal moyen, ligne foncée) et le faisceau ICE (scénarios individuels, lignes claires). Chaque sortie est traitée séparément, soit 36 figures.
+### Courbes PDP et ICE
 
-L'exemple ci-dessous correspond au sous-espace le plus riche — trois fertilisations et deux reprises de préparation, soit douze variables actives — pour le rendement.
+HSIC agrège tout l'espace. Pour voir ce qui se passe à structure d'itinéraire fixée, le notebook [`pdp_ice_par_sous_espace.ipynb`](analysis/pdp_ice_par_sous_espace.ipynb) entre dans chacun des douze sous-espaces. Il entraîne un métamodèle sur les seules variables actives, puis trace pour chaque variable l'effet marginal moyen en ligne foncée et les scénarios individuels en lignes claires.
 
-![PDP/ICE — sous-espace 3 apports N, préparation à 2 reprises (rendement)](figs/pdp_ice_sous_espace_3ferti_prepa2_rdt.png)
+Le sous-espace le plus riche, trois fertilisations et deux reprises, compte douze variables actives.
 
-À l'opposé, le sous-espace minimal — aucune fertilisation, sans préparation — n'active que trois variables (dates de semis et de récolte, profondeur de semis).
+![PDP et ICE, sous-espace 3 apports et 2 préparations, rendement](figs/pdp_ice_sous_espace_3ferti_prepa2_rdt.png)
 
-![PDP/ICE — sous-espace 0 apport N, sans préparation (rendement)](figs/pdp_ice_sous_espace_0ferti_sansPrepa_rdt.png)
+Le plus pauvre n'en a que trois : dates de semis et de récolte, profondeur de semis.
 
-À l'intérieur de chaque sous-espace, les métamodèles sont nettement prédictifs (Q² typiquement de 0,7 à 0,99) et les PDP révèlent des réponses agronomiques interprétables. Pour le rendement, on retrouve la courbe classique de réponse à l'azote : le rendement croît avec chaque dose d'apport puis sature au-delà d'environ 50 kgN/ha, et diminue lorsque le premier apport est trop tardif ; les profondeurs de travail et la date de semis ont un effet faible. Les faisceaux ICE resserrés autour des PDP indiquent des effets marginaux stables d'un scénario à l'autre.
+![PDP et ICE, sous-espace 0 apport et sans préparation, rendement](figs/pdp_ice_sous_espace_0ferti_sansPrepa_rdt.png)
 
-Dans ce cadre contrôlé, les résultats doivent être interprétés comme une sensibilité des sorties à la stratégie technique, et non comme une sensibilité générale de MAELIA à tous les contextes pédoclimatiques.
+Les métamodèles y sont prédictifs, avec des Q² de 0,7 à 0,99, et les courbes se lisent en agronome. Le rendement suit la réponse classique à l'azote : il croît avec chaque dose puis sature au-delà d'environ 50 kgN/ha, et baisse quand le premier apport arrive trop tard. Les profondeurs de travail et la date de semis pèsent peu. Les faisceaux ICE restent serrés autour des courbes moyennes, signe d'effets marginaux stables d'un scénario à l'autre.
+
+## Portée
+
+Ces résultats mesurent la sensibilité des sorties à la stratégie technique, sur un terrain construit pour cela. Ils ne disent pas la sensibilité de MAELIA à tous les contextes pédoclimatiques. La campagne climat élargit la portée sur un axe, celle du sol reste à faire.
