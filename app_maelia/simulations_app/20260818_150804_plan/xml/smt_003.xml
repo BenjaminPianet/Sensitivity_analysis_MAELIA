@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Experiment_plan>
+  <Simulation experiment="simulationBase" finalStep="4018" id="0" seed="1.0" sourcePath="/Users/benjamin/Workspace_GAMA/MAELIA/models/main/launcherBase.gaml">
+    <Parameters>
+      <Parameter name="executerSurCluster: " type="BOOLEAN" value="false" var="executerSurCluster" />
+      <Parameter name="cheminRacineMaelia" type="STRING" value="/Users/benjamin/Workspace_GAMA/MAELIA/" var="cheminRacineMaelia" />
+      <Parameter name="cheminModeleVersDonnees" type="STRING" value="/Users/benjamin/files/Repositories/Sensitivity_analysis_MAELIA/app_maelia/terrains_app/" var="cheminModeleVersDonnees" />
+      <Parameter name="cheminSorties" type="STRING" value="/Users/benjamin/Workspace_GAMA/MAELIA/models/main/log" var="cheminRelatifDuDossierDeSortieDeSimulation" />
+      <Parameter name="anneeDebutSimulation : " type="INT" value="2019" var="anneeDebutSimulation" />
+      <Parameter name="nbAnneesSimulation : " type="INT" value="10" var="nbAnneesSimulation" />
+      <Parameter name="nomSimulation : " type="STRING" value="smt_003" var="nomSimulation" />
+      <Parameter name="nomDecoupageZonePourLectureFichiers : " type="STRING" value="terrainSA" var="nomDecoupageZonePourLectureFichiers" />
+      <Parameter name="modeVerbeux :" type="BOOLEAN" value="false" var="verboseMode" />
+      <Parameter name="simulationSurParcelle : " type="BOOLEAN" value="false" var="executerUneSeuleParcelle" />
+      <Parameter name="idParcelleASimuler : " type="STRING" value="beauce_5_sa_000" var="nomParcelleAffichee" />
+      <Parameter name="executerModeleAgricole : " type="BOOLEAN" value="true" var="executerModeleAgricole" />
+      <Parameter name="nomChoixAssolement : " type="STRING" value="DateDose" var="nomChoixAssolement" />
+      <Parameter name="fichierDateDose : " type="STRING" value="/modeleAgricole/agriculteurs/variants_SMT/dateDose_smt_003.csv" var="fichierDateDose" />
+      <Parameter name="avecContrainteDeMainOeuvre : " type="BOOLEAN" value="false" var="avecContrainteDeMainOeuvre" />
+      <Parameter name="isIrrigationSimulee : " type="BOOLEAN" value="false" var="isIrrigationSimulee" />
+      <Parameter name="executerModeleHydrographique : " type="BOOLEAN" value="false" var="executerModeleHydrographique" />
+      <Parameter name="executerModeleNormatif : " type="BOOLEAN" value="false" var="executerModeleNormatif" />
+      <Parameter name="executerEcritureFichiers : " type="BOOLEAN" value="true" var="executerEcritureFichiers" />
+      <Parameter name="sorties eau" type="BOOLEAN" value="true" var="sorties_eau" />
+      <Parameter name="sorties azote" type="BOOLEAN" value="true" var="sorties_azote" />
+      <Parameter name="sorties carbone et GES" type="BOOLEAN" value="true" var="sorties_carboneGES" />
+      <Parameter name="Sortie N_Cstock_Parcelles" type="BOOLEAN" value="true" var="N_Cstock_Parcelles" />
+      <Parameter name="Sortie N_lixi_Parcelles" type="BOOLEAN" value="true" var="N_lixi_Parcelles" />
+    </Parameters>
+    <Outputs />
+  </Simulation>
+</Experiment_plan>

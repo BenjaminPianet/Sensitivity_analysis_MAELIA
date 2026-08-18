@@ -1,0 +1,90 @@
+{
+  "source": "ERA5 via Open-Meteo (archive-api.open-meteo.com)",
+  "licence": "CC-BY 4.0 — Copernicus / ECMWF ERA5",
+  "telecharge_le": "2026-08-11 16:36:43",
+  "annees_source": [
+    2014,
+    2024
+  ],
+  "annees_cible": [
+    2019,
+    2029
+  ],
+  "decalage_annees": 5,
+  "note_decalage": "La réanalyse s'arrête à l'année écoulée : onze années réelles sont réétiquetées sur les campagnes simulées. Seul le 29 février est retouché.",
+  "note_lignes": "Une ligne par jour et par zone. Les fichiers de référence MAELIA en comptent trois par date, mais lectureData n'en conserve que la dernière.",
+  "types": [
+    {
+      "code": 1,
+      "id_pdg": 90001,
+      "nom": "Climat de montagne",
+      "site": "Briançon",
+      "latitude": 44.9,
+      "longitude": 6.65,
+      "motif": "Altitude 1300 m : température annuelle basse, nombreux jours de gel fort."
+    },
+    {
+      "code": 2,
+      "id_pdg": 90002,
+      "nom": "Climat semi-continental et marges montagnardes",
+      "site": "Nancy",
+      "latitude": 48.69,
+      "longitude": 6.18,
+      "motif": "Lorraine : hivers froids sans être montagnards, forte amplitude, position de transition."
+    },
+    {
+      "code": 3,
+      "id_pdg": 90003,
+      "nom": "Climat océanique dégradé des plaines du Centre et du Nord",
+      "site": "Orléans",
+      "latitude": 47.9,
+      "longitude": 1.9,
+      "motif": "Beauce : le climat du terrain actuel, précipitations faibles, été sec."
+    },
+    {
+      "code": 4,
+      "id_pdg": 90004,
+      "nom": "Climat océanique altéré",
+      "site": "Poitiers",
+      "latitude": 46.58,
+      "longitude": 0.34,
+      "motif": "Seuil du Poitou : transition entre océanique franc et dégradé."
+    },
+    {
+      "code": 5,
+      "id_pdg": 90005,
+      "nom": "Climat océanique franc",
+      "site": "Brest",
+      "latitude": 48.39,
+      "longitude": -4.49,
+      "motif": "Finistère : amplitude thermique minimale, pluies abondantes et fréquentes."
+    },
+    {
+      "code": 6,
+      "id_pdg": 90006,
+      "nom": "Climat méditerranéen altéré",
+      "site": "Valence",
+      "latitude": 44.93,
+      "longitude": 4.89,
+      "motif": "Vallée du Rhône : influence méditerranéenne atténuée, été chaud et sec."
+    },
+    {
+      "code": 7,
+      "id_pdg": 90007,
+      "nom": "Climat du Bassin du Sud-Ouest",
+      "site": "Toulouse",
+      "latitude": 43.6,
+      "longitude": 1.44,
+      "motif": "Bassin aquitain : température élevée, forte amplitude, pluies estivales orageuses."
+    },
+    {
+      "code": 8,
+      "id_pdg": 90008,
+      "nom": "Climat méditerranéen franc",
+      "site": "Montpellier",
+      "latitude": 43.61,
+      "longitude": 3.88,
+      "motif": "Littoral languedocien : été aride, fort rapport automne/été des précipitations."
+    }
+  ]
+}

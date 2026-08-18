@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "name": "terrainSA — plan SMT courant (14 paramètres)",
+  "sentinel_inactive": -1,
+  "notes": [
+    "Les domaines sont exprimés dans l'unité agronomique, celle des données reconstruites et celle que saisit l'utilisateur.",
+    "Dose_F* : le plan SMT échantillonne log10 sur [0, 2] ; les logs et donc le dataset portent la dose physique 10**x sur [1, 100]. Le champ scale porte cette conversion, appliquée à la génération du DOE.",
+    "Date_F2 et Date_F3 : le domaine déclaré est celui qui est échantillonné. L'itinéraire réalisé le dépasse de un à deux jours (324 sur 7 lignes, 325 sur 17) parce que generate_ops_for_parcelle décale les dates pour satisfaire les contraintes de calendrier. check_data signale cet écart, qui est attendu."
+  ],
+  "meta_variables": [
+    {
+      "name": "n_ferti",
+      "label": "Nombre d'apports d'azote",
+      "kind": "ordinal",
+      "levels": [
+        {"value": 0, "tag": "0_ferti", "label": "0 apport", "activates": []},
+        {"value": 1, "tag": "1_ferti", "label": "1 apport", "activates": ["Date_F1", "Dose_F1"]},
+        {"value": 2, "tag": "2_ferti", "label": "2 apports", "activates": ["Date_F1", "Dose_F1", "Date_F2", "Dose_F2"]},
+        {"value": 3, "tag": "3_ferti", "label": "3 apports", "activates": ["Date_F1", "Dose_F1", "Date_F2", "Dose_F2", "Date_F3", "Dose_F3"]}
+      ],
+      "domain": [0, 1, 2, 3],
+      "window": [0, 1, 2, 3]
+    },
+    {
+      "name": "nb_prepa",
+      "label": "Nombre de préparations du sol",
+      "kind": "ordinal",
+      "levels": [
+        {"value": 0, "tag": "0_prepa", "label": "aucune", "activates": []},
+        {"value": 1, "tag": "1_prepa", "label": "1 reprise", "activates": ["Delta_PREPA_Semis", "Profondeur_Prepa_1"]},
+        {"value": 2, "tag": "2_prepa", "label": "2 reprises", "activates": ["Delta_PREPA_Semis", "Profondeur_Prepa_1", "Profondeur_Prepa_2"]}
+      ],
+      "domain": [0, 1, 2],
+      "window": [0, 1, 2]
+    }
+  ],
+  "variables": [
+    {"name": "Date_Semis", "label": "Date de semis", "kind": "continuous", "domain": [45, 106], "window": [45, 106], "always_active": true},
+    {"name": "Delta_PREPA_Semis", "label": "Décalage préparation-semis", "kind": "continuous", "domain": [-44, -4], "window": [-44, -4]},
+    {"name": "Profondeur_Semis", "label": "Profondeur de semis", "kind": "continuous", "domain": [1, 4], "window": [1, 4], "always_active": true},
+    {"name": "Profondeur_Prepa_1", "label": "Profondeur préparation 1", "kind": "continuous", "domain": [1, 25], "window": [1, 25]},
+    {"name": "Profondeur_Prepa_2", "label": "Profondeur préparation 2", "kind": "continuous", "domain": [1, 25], "window": [1, 25]},
+    {"name": "Date_F1", "label": "Date apport 1", "kind": "continuous", "domain": [106, 323], "window": [106, 323]},
+    {"name": "Date_F2", "label": "Date apport 2", "kind": "continuous", "domain": [210, 323], "window": [210, 323]},
+    {"name": "Date_F3", "label": "Date apport 3", "kind": "continuous", "domain": [240, 323], "window": [240, 323]},
+    {"name": "Date_Recolte", "label": "Date de récolte", "kind": "continuous", "domain": [323, 384], "window": [323, 384], "always_active": true},
+    {"name": "Dose_F1", "label": "Dose N apport 1", "kind": "continuous", "domain": [1, 100], "window": [1, 100], "scale": "log10"},
+    {"name": "Dose_F2", "label": "Dose N apport 2", "kind": "continuous", "domain": [1, 100], "window": [1, 100], "scale": "log10"},
+    {"name": "Dose_F3", "label": "Dose N apport 3", "kind": "continuous", "domain": [1, 100], "window": [1, 100], "scale": "log10"}
+  ]
+}

@@ -1,0 +1,289 @@
+parcelle,ilot,climat_code,climat,site,id_pdg,sol_id,sol
+clim1_briançon_sol0_p00,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p01,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p02,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p03,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p04,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p05,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p06,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p07,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p08,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p09,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p10,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol0_p11,clim1_briançon_sol0,1,Climat de montagne,Briançon,90001,330104_330367_1,limono-sableux
+clim1_briançon_sol1_p00,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p01,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p02,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p03,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p04,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p05,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p06,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p07,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p08,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p09,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p10,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol1_p11,clim1_briançon_sol1,1,Climat de montagne,Briançon,90001,18960_27491,limoneux
+clim1_briançon_sol2_p00,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p01,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p02,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p03,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p04,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p05,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p06,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p07,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p08,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p09,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p10,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim1_briançon_sol2_p11,clim1_briançon_sol2,1,Climat de montagne,Briançon,90001,330151_330489_1,argilo-calcaire
+clim2_nancy_sol0_p00,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p01,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p02,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p03,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p04,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p05,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p06,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p07,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p08,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p09,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p10,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol0_p11,clim2_nancy_sol0,2,Climat semi-continental et marges montagnardes,Nancy,90002,330104_330367_1,limono-sableux
+clim2_nancy_sol1_p00,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p01,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p02,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p03,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p04,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p05,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p06,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p07,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p08,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p09,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p10,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol1_p11,clim2_nancy_sol1,2,Climat semi-continental et marges montagnardes,Nancy,90002,18960_27491,limoneux
+clim2_nancy_sol2_p00,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p01,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p02,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p03,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p04,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p05,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p06,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p07,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p08,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p09,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p10,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim2_nancy_sol2_p11,clim2_nancy_sol2,2,Climat semi-continental et marges montagnardes,Nancy,90002,330151_330489_1,argilo-calcaire
+clim3_orléans_sol0_p00,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p01,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p02,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p03,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p04,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p05,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p06,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p07,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p08,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p09,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p10,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol0_p11,clim3_orléans_sol0,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330104_330367_1,limono-sableux
+clim3_orléans_sol1_p00,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p01,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p02,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p03,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p04,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p05,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p06,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p07,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p08,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p09,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p10,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol1_p11,clim3_orléans_sol1,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,18960_27491,limoneux
+clim3_orléans_sol2_p00,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p01,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p02,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p03,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p04,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p05,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p06,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p07,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p08,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p09,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p10,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim3_orléans_sol2_p11,clim3_orléans_sol2,3,Climat océanique dégradé des plaines du Centre et du Nord,Orléans,90003,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol0_p00,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p01,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p02,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p03,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p04,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p05,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p06,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p07,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p08,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p09,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p10,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol0_p11,clim4_poitiers_sol0,4,Climat océanique altéré,Poitiers,90004,330104_330367_1,limono-sableux
+clim4_poitiers_sol1_p00,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p01,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p02,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p03,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p04,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p05,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p06,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p07,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p08,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p09,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p10,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol1_p11,clim4_poitiers_sol1,4,Climat océanique altéré,Poitiers,90004,18960_27491,limoneux
+clim4_poitiers_sol2_p00,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p01,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p02,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p03,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p04,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p05,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p06,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p07,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p08,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p09,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p10,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim4_poitiers_sol2_p11,clim4_poitiers_sol2,4,Climat océanique altéré,Poitiers,90004,330151_330489_1,argilo-calcaire
+clim5_brest_sol0_p00,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p01,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p02,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p03,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p04,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p05,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p06,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p07,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p08,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p09,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p10,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol0_p11,clim5_brest_sol0,5,Climat océanique franc,Brest,90005,330104_330367_1,limono-sableux
+clim5_brest_sol1_p00,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p01,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p02,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p03,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p04,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p05,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p06,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p07,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p08,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p09,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p10,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol1_p11,clim5_brest_sol1,5,Climat océanique franc,Brest,90005,18960_27491,limoneux
+clim5_brest_sol2_p00,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p01,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p02,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p03,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p04,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p05,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p06,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p07,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p08,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p09,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p10,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim5_brest_sol2_p11,clim5_brest_sol2,5,Climat océanique franc,Brest,90005,330151_330489_1,argilo-calcaire
+clim6_valence_sol0_p00,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p01,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p02,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p03,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p04,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p05,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p06,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p07,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p08,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p09,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p10,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol0_p11,clim6_valence_sol0,6,Climat méditerranéen altéré,Valence,90006,330104_330367_1,limono-sableux
+clim6_valence_sol1_p00,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p01,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p02,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p03,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p04,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p05,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p06,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p07,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p08,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p09,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p10,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol1_p11,clim6_valence_sol1,6,Climat méditerranéen altéré,Valence,90006,18960_27491,limoneux
+clim6_valence_sol2_p00,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p01,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p02,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p03,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p04,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p05,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p06,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p07,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p08,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p09,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p10,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim6_valence_sol2_p11,clim6_valence_sol2,6,Climat méditerranéen altéré,Valence,90006,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol0_p00,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p01,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p02,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p03,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p04,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p05,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p06,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p07,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p08,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p09,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p10,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol0_p11,clim7_toulouse_sol0,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330104_330367_1,limono-sableux
+clim7_toulouse_sol1_p00,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p01,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p02,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p03,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p04,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p05,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p06,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p07,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p08,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p09,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p10,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol1_p11,clim7_toulouse_sol1,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,18960_27491,limoneux
+clim7_toulouse_sol2_p00,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p01,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p02,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p03,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p04,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p05,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p06,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p07,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p08,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p09,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p10,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim7_toulouse_sol2_p11,clim7_toulouse_sol2,7,Climat du Bassin du Sud-Ouest,Toulouse,90007,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol0_p00,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p01,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p02,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p03,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p04,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p05,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p06,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p07,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p08,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p09,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p10,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol0_p11,clim8_montpellier_sol0,8,Climat méditerranéen franc,Montpellier,90008,330104_330367_1,limono-sableux
+clim8_montpellier_sol1_p00,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p01,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p02,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p03,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p04,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p05,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p06,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p07,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p08,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p09,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p10,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol1_p11,clim8_montpellier_sol1,8,Climat méditerranéen franc,Montpellier,90008,18960_27491,limoneux
+clim8_montpellier_sol2_p00,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p01,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p02,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p03,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p04,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p05,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p06,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p07,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p08,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p09,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p10,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire
+clim8_montpellier_sol2_p11,clim8_montpellier_sol2,8,Climat méditerranéen franc,Montpellier,90008,330151_330489_1,argilo-calcaire

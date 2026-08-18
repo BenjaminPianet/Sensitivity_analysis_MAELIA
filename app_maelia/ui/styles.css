@@ -1,0 +1,470 @@
+* { box-sizing: border-box; }
+
+:root {
+  --ink: #243238;
+  --text: #34434a;
+  --muted: #6f7b82;
+  --line: #dce3e6;
+  --paper: #f7f9f8;
+  --panel: #ffffff;
+  --teal: #2a9d8f;
+  --teal-dark: #1f756c;
+  --blue: #356a94;
+  --amber: #e4a13d;
+  --coral: #d5655d;
+  --shadow: 0 12px 30px rgba(36, 50, 56, 0.08);
+}
+
+/* La page elle-même ne défile jamais : elle occupe exactement la fenêtre, et
+   seules deux zones internes défilent — l'arborescence et la colonne de droite. */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 15px;
+}
+
+button, input { font: inherit; }
+
+.shell {
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(360px, 430px) 1fr;
+}
+
+/* ── Colonne de gauche ─────────────────────────────────────────────────── */
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100vh;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.brand { display: flex; align-items: center; gap: 11px; flex: none; }
+
+.brand h1 { margin: 0; font-size: 16px; }
+.brand p { margin: 1px 0 0; font-size: 12px; color: var(--muted); }
+
+/* `min-width: 0` lève la largeur minimale intrinsèque : sans lui, un conteneur
+   flex est aussi large que son contenu et sort de la colonne. */
+.champ { display: flex; flex-direction: column; gap: 3px; flex: none; min-width: 0; }
+.champ > span {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .05em; font-weight: 600;
+}
+/* Un menu déroulant se dimensionne sur sa plus longue option — ici 70 caractères.
+   On le borne à la colonne ; le texte entier reste lisible une fois déroulé. */
+.champ select, .champ input[type=text] {
+  padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--panel); color: var(--ink); font-size: 13px;
+  width: 100%; max-width: 100%; min-width: 0;
+}
+.aide-inline {
+  margin: 2px 0 0; font-size: 11px; color: var(--muted); line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.tree-actions {
+  display: flex; gap: 8px; flex: none;
+  position: sticky; bottom: 0; z-index: 5;
+  padding: 8px 0; margin-bottom: -8px;
+  background: linear-gradient(to bottom, transparent, var(--panel) 22%);
+}
+
+button {
+  border: none; border-radius: 8px; padding: 8px 12px;
+  background: var(--teal); color: white; font-weight: 600; font-size: 13.5px;
+  cursor: pointer;
+}
+button:hover { background: var(--teal-dark); }
+button:disabled { background: #b9c4c8; cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+button.ghost:hover { background: #f1f5f4; color: var(--ink); }
+#run-btn { flex: 1; }
+
+/* L'arborescence ne défile plus pour elle-même : c'est la colonne entière qui
+   défile, ce qui évite deux barres imbriquées et rend tout accessible. */
+.tree { flex: none; padding-right: 2px; }
+.tree ul { list-style: none; margin: 0; padding: 0; }
+.tree .root > .node { margin-bottom: 10px; }
+
+.node.group {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: #fcfdfd;
+}
+
+.group-head { display: flex; flex-direction: column; gap: 3px; margin-bottom: 6px; }
+
+.node-label { display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 0; }
+.node-name { font-weight: 600; font-size: 13px; overflow-wrap: anywhere; min-width: 0; }
+/* En-tête du groupe des variables actives partout : un intitulé, pas une variable. */
+.node-name.always {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+}
+
+.levels { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 8px; }
+
+.level {
+  background: #eef2f4; color: var(--muted);
+  border: 1px solid transparent;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 500;
+}
+.level:hover { background: #e3eaed; color: var(--ink); }
+.level.on {
+  background: #e6f4f1; color: var(--teal-dark);
+  border-color: #bfe2dc; font-weight: 600;
+}
+
+.children { border-left: 2px solid var(--line); margin-left: 5px; padding-left: 10px; }
+
+.node.var {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 5px 0;
+  border-bottom: 1px dashed #eaeff1;
+}
+.node.var:last-child { border-bottom: none; }
+.node.var .badges { grid-column: 1 / -1; }
+.node.var.unreachable { opacity: .5; }
+.node.var.unreachable .node-name { text-decoration: line-through; }
+
+.range { display: flex; align-items: center; gap: 4px; }
+.range input, .frozen-input input {
+  width: 64px; padding: 3px 6px;
+  border: 1px solid var(--line); border-radius: 6px;
+  text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums;
+}
+.range input:focus, .frozen-input input:focus { outline: 2px solid #bfe2dc; border-color: var(--teal); }
+.arrows { color: var(--muted); font-size: 11px; }
+.frozen-input { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.frozen-note { font-size: 11.5px; color: var(--muted); font-style: italic; }
+
+.badges { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 10.5px; }
+.badge { padding: 1px 7px; border-radius: 999px; font-weight: 600; }
+.badge.status-inconditionnelle { background: #e6f4f1; color: #17685e; }
+.badge.status-decretee { background: #fdf1e0; color: #8a5a12; }
+.badge.status-inatteignable { background: #f2f4f5; color: var(--muted); }
+.badge.narrowed { background: #fdeceb; color: #9c3a33; }
+.badge.ordinal { background: #e8eff6; color: #2c567d; }
+.badge.categorielle { background: #efe8f6; color: #5c3d7d; }
+.domain { color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.unit { color: var(--muted); font-weight: 400; font-size: 11px; }
+
+/* ── Colonne de droite ─────────────────────────────────────────────────── */
+.workspace {
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px clamp(14px, 2vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Le bandeau de couverture reste toujours visible ; le reste défile sous lui. */
+.workspace-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.eyebrow {
+  margin: 0; text-transform: uppercase; letter-spacing: .09em;
+  font-size: 10px; color: var(--muted); font-weight: 700;
+}
+
+.coverage {
+  flex: none;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow);
+}
+.coverage-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.coverage h2 { margin: 3px 0 1px; font-size: 23px; font-variant-numeric: tabular-nums; }
+.cov-sub { margin: 0; color: var(--muted); font-size: 12.5px; }
+
+.cov-stats, .plan-grid { display: flex; gap: 7px; flex-wrap: wrap; }
+.stat {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 9px;
+  padding: 5px 10px; min-width: 88px;
+}
+.stat span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.stat strong { font-size: 17px; font-variant-numeric: tabular-nums; }
+
+.verdicts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.verdict {
+  display: flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 11px; font-size: 11.5px; background: var(--paper);
+}
+.verdict .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.verdict.ok .dot { background: var(--teal); }
+.verdict.ko .dot { background: var(--coral); }
+.verdict-label { font-weight: 600; }
+.verdict-reason { color: var(--muted); }
+
+.panel {
+  flex: none;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 16px;
+}
+.panel h3 { margin: 0 0 7px; font-size: 15px; }
+.panel.warn { border-color: #f0d9b5; background: #fffcf6; }
+.panel.warn ul { margin: 0; padding-left: 18px; color: #8a5a12; font-size: 12.5px; }
+.hint { color: var(--muted); font-size: 12.5px; margin: 5px 0 0; }
+.plan-names { margin: 9px 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+code { background: #eef2f7; padding: 1px 6px; border-radius: 4px; font-size: 11.5px; }
+
+/* ── Génération du plan ────────────────────────────────────────────────── */
+.generate-bar {
+  display: flex; align-items: flex-end; gap: 9px; flex-wrap: wrap;
+  margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.points-field { display: flex; flex-direction: column; gap: 3px; }
+.points-field span {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .05em; font-weight: 600;
+}
+.points-field input {
+  width: 92px; padding: 6px 9px; border: 1px solid var(--line);
+  border-radius: 7px; text-align: right; font-variant-numeric: tabular-nums;
+}
+/* Le compteur de runs reste discret ; le temps estimé n'apparaît qu'au survol. */
+.cost-hint {
+  color: var(--muted); font-size: 12.5px; margin-bottom: 7px; flex: 1;
+  cursor: help;
+}
+
+.verdict-block {
+  margin-top: 12px; padding: 11px 13px; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--paper);
+}
+.verdict-block.ok { border-color: #bfe2dc; background: #f4fbfa; }
+.verdict-block.ko { border-color: #efc4c0; background: #fffaf9; }
+.verdict-block strong { display: block; margin-bottom: 5px; font-size: 13.5px; }
+.warn-list { margin: 6px 0 0; padding-left: 18px; color: #8a5a12; font-size: 12.5px; }
+.warn-list li { margin-bottom: 2px; }
+.error-text { color: var(--coral); }
+
+.commands { margin-top: 13px; }
+.commands h4 { margin: 12px 0 4px; font-size: 13px; }
+.commands pre {
+  margin: 5px 0 0; padding: 10px 12px; overflow-x: auto;
+  background: #263238; color: #e6edf0; border-radius: 8px;
+  font-size: 11.5px; line-height: 1.45;
+}
+
+/* ── Résultats ─────────────────────────────────────────────────────────── */
+.results { display: flex; flex-direction: column; gap: 12px; }
+
+.score-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.score {
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 9px; padding: 7px 12px; min-width: 108px;
+}
+.score span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.score strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.score.test strong { color: var(--teal-dark); }
+
+.table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.table th {
+  text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px;
+}
+.table td { padding: 6px 8px; border-bottom: 1px solid #f1f4f5; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.table .muted { color: var(--muted); }
+.table .top { font-weight: 700; color: var(--teal-dark); }
+.table .rang { color: var(--muted); font-size: 10px; margin-left: 3px; }
+.table-scroll { overflow-x: auto; max-width: 100%; }
+.strata-title { margin: 14px 0 4px; font-size: 13px; color: var(--muted);
+                text-transform: uppercase; letter-spacing: .05em; }
+
+.empty-state {
+  border: 1px dashed var(--line); border-radius: 12px;
+  padding: 30px 20px; text-align: center; background: var(--panel);
+}
+.empty-state h3 { margin: 0 0 6px; font-size: 15px; }
+.empty-state p { margin: 0; color: var(--muted); font-size: 13px; }
+.empty-state.error { border-color: #efc4c0; background: #fffaf9; }
+
+/* Sous une fenêtre étroite, la colonne unique reprend le défilement normal. */
+@media (max-width: 900px) {
+  html, body { overflow: auto; }
+  .shell { grid-template-columns: 1fr; height: auto; }
+  .sidebar, .workspace { height: auto; overflow: visible; }
+  .tree, .workspace-scroll { overflow: visible; }
+}
+
+/* ── Figures ───────────────────────────────────────────────────────────────
+   Les axes et la grille sont en retrait : ce sont des repères, pas de la donnée.
+   Le tableau reste accessible sous chaque figure — rien n'est réservé à l'œil. */
+.chart { margin: 12px 0 0; }
+.chart figcaption {
+  font-size: 12px; color: var(--muted); margin-bottom: 4px;
+  display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;
+}
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart-note { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chart-vide { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+
+.chart .barre, .chart .marque { cursor: default; }
+.chart .barre:hover path, .chart .marque:hover path { fill: var(--teal-dark); }
+.chart .marque:hover circle { fill: var(--teal-dark); r: 5; }
+.chart .barre:focus-visible, .chart .marque:focus-visible { outline: 2px solid var(--teal); }
+
+.chart-legende {
+  display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0 10px;
+  font-size: 11.5px; color: var(--muted);
+}
+.chart-legende .cle { display: flex; align-items: center; gap: 5px; }
+
+.pdp-grille {
+  display: grid; gap: 10px; margin-top: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+}
+.pdp-carte {
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 10px; background: var(--paper);
+}
+.pdp-titre {
+  margin: 0; font-size: 11.5px; font-weight: 600;
+  display: flex; justify-content: space-between; gap: 6px; align-items: baseline;
+}
+.chart-pdp figcaption { font-size: 11px; }
+
+.table-view { margin-top: 12px; }
+.table-view summary {
+  cursor: pointer; font-size: 12px; color: var(--muted);
+  padding: 4px 0; user-select: none;
+}
+.table-view summary:hover { color: var(--ink); }
+
+.chart-tooltip {
+  position: fixed; z-index: 40; pointer-events: none;
+  background: var(--ink); color: #fff; padding: 5px 9px; border-radius: 7px;
+  font-size: 11.5px; max-width: 230px; box-shadow: var(--shadow);
+}
+
+.analyses {
+  border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px 9px;
+  margin: 0; flex: none; display: flex; flex-direction: column; gap: 3px;
+}
+.analyses legend {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .05em; font-weight: 600; padding: 0 4px;
+}
+.analyses label {
+  display: flex; align-items: center; gap: 7px; font-size: 12.5px; cursor: pointer;
+  min-width: 0; flex-wrap: wrap;
+}
+.analyses .cout {
+  font-size: 10px; color: var(--amber); font-weight: 600;
+  border: 1px solid currentColor; border-radius: 999px; padding: 0 5px;
+}
+
+/* ── Blocs de paramétrage ──────────────────────────────────────────────────
+   Un bloc par question, avec sa légende documentée. L'utilisateur suit l'ordre
+   de haut en bas : que faire, sur quelles données, avec quelles analyses. */
+/* Un <fieldset> porte une largeur minimale intrinsèque que seul `min-width: 0`
+   annule : sans elle, la plus longue phrase de la légende élargit tout le bloc. */
+.bloc {
+  border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px 11px;
+  margin: 0; flex: none; display: flex; flex-direction: column; gap: 7px;
+  min-width: 0; max-width: 100%;
+}
+.bloc legend {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .05em; font-weight: 700; padding: 0 4px;
+}
+.bloc .champ + .champ { margin-top: 2px; }
+
+.radio, .check-large {
+  display: flex; gap: 8px; align-items: flex-start; cursor: pointer; min-width: 0;
+}
+.radio > span, .check-large > span { min-width: 0; }
+.radio input, .check-large input { margin-top: 2px; flex: none; }
+.radio strong, .check-large strong { display: block; font-size: 13px; font-weight: 600; }
+.radio em, .check-large em {
+  display: block; font-size: 11px; color: var(--muted);
+  font-style: normal; line-height: 1.35; margin-top: 1px; overflow-wrap: anywhere;
+}
+
+/* Un élément documenté se signale discrètement : pointillé sous le libellé. */
+.aidable { cursor: help; text-decoration: underline dotted var(--line); text-underline-offset: 3px; }
+/* Une pastille porte déjà sa couleur : le pointillé l'alourdirait. */
+.badge.aidable { text-decoration: none; }
+.aidable:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+.aide-bulle {
+  position: fixed; z-index: 60; max-width: 360px;
+  background: var(--ink); color: #fff; padding: 9px 12px; border-radius: 9px;
+  font-size: 12px; line-height: 1.45; box-shadow: var(--shadow);
+}
+
+/* ── Où sont les fichiers ─────────────────────────────────────────────────── */
+.chemins summary {
+  cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--muted);
+}
+.chemins summary:hover { color: var(--ink); }
+.chemin-ligne {
+  display: flex; gap: 10px; align-items: baseline; padding: 3px 0;
+  border-bottom: 1px solid #f1f4f5; font-size: 12px;
+}
+.chemin-nom { min-width: 160px; color: var(--muted); flex: none; }
+.chemin-ligne code { font-size: 11px; word-break: break-all; }
+.chemin-ligne code.manquant { background: #fdeceb; color: #9c3a33; }
+
+/* La famille retenue par la sélection, mise en avant sans couleur de série :
+   c'est un état de la ligne, pas une catégorie de données. */
+.table tr.retenu { background: #f4faf8; font-weight: 600; }
+
+/* Un avertissement méthodologique : visible, sans crier. */
+.hint.avertissement {
+  border-left: 3px solid var(--amber); padding-left: 10px; background: #fffaf1;
+  border-radius: 0 6px 6px 0; padding-top: 6px; padding-bottom: 6px;
+}
+
+/* Légende d'une figure : la couleur ne porte jamais seule une distinction. */
+.chart-legende {
+  display: flex; flex-wrap: wrap; gap: 12px; margin: 2px 0 6px;
+  font-size: 11px; color: var(--muted);
+}
+.chart-cle { display: inline-flex; align-items: center; gap: 5px; }
+.chart-cle .pastille {
+  width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex: none;
+}
+
+/* ── Réglage des chemins extérieurs ─────────────────────────────────────── */
+.reglages {
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 9px;
+}
+.reglages h4 { margin: 0; font-size: 13px; }
+.reglages .champ input[type=text] { width: 100%; max-width: 100%; min-width: 0; }
+.reglage-etat { font-size: 11px; margin-top: 2px; overflow-wrap: anywhere; }
+.reglage-etat.ok { color: var(--teal-dark); }
+.reglage-etat.ko { color: var(--coral); }
+.reglages .tree-actions { position: static; background: none; padding: 0; margin: 0; }
+
+/* L'ancre absolue se distingue des chemins qui lui sont relatifs. */
+.chemin-ligne.ancre code { background: #eef4f3; color: var(--teal-dark); font-weight: 600; }

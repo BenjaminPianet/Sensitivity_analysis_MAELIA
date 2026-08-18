@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MAELIA — analyse de sensibilité</title>
+  <link rel="stylesheet" href="/ui/static/styles.css?v=18">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div>
+          <h1>Analyse de sensibilité</h1>
+          <p id="spec-name">Chargement…</p>
+        </div>
+      </div>
+
+      <!-- Le choix fondateur : les simulations existent-elles déjà ? Tout le reste
+           en découle, y compris ce qui est modifiable dans l'arborescence. -->
+      <fieldset class="bloc" id="bloc-mode">
+        <legend data-aide="mode">Que voulez-vous faire ?</legend>
+        <label class="radio">
+          <input type="radio" name="mode" value="donnees" checked>
+          <span><strong>Analyser des données existantes</strong></span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="mode" value="sur_mesure">
+          <span><strong>Construire un plan sur mesure</strong></span>
+        </label>
+      </fieldset>
+
+      <!-- Mode « données » : où sont les simulations à analyser. -->
+      <fieldset class="bloc" id="bloc-donnees">
+        <legend data-aide="donnees">Données à analyser</legend>
+        <label class="champ">
+          <span>Jeu préchargé</span>
+          <select id="jeu-select"></select>
+        </label>
+        <label class="champ">
+          <span data-aide="dossier">Ou un dossier de votre choix</span>
+          <input id="dossier-input" type="text" spellcheck="false" autocomplete="off"
+                 placeholder="/chemin/vers/le/dossier">
+        </label>
+        <p class="aide-inline" id="dossier-etat"></p>
+      </fieldset>
+
+      <!-- Mode « sur mesure » : les strates du milieu, et ce qu'elles impliquent.
+           Elles ne sont pas tirées mais portées par la parcelle, d'où la construction
+           d'un terrain. -->
+      <fieldset class="bloc" id="bloc-sur-mesure" hidden>
+        <legend data-aide="strates">Milieu</legend>
+        <label class="check-large">
+          <input type="checkbox" id="climat-check">
+          <span>
+            <strong>Explorer les huit types de climat</strong>
+            <em>L'application construira un terrain à huit emplacements, un par climat.</em>
+          </span>
+        </label>
+        <p class="aide-inline" id="climat-liste"></p>
+        <label class="check-large">
+          <input type="checkbox" id="sol-check">
+          <span>
+            <strong>Explorer les trois types de sol</strong>
+            <em>Le sol est un attribut de l'îlot : les îlots seront empilés par
+                emplacement, un par sol.</em>
+          </span>
+        </label>
+        <p class="aide-inline" id="sol-liste"></p>
+        <p class="aide-inline" id="strates-cout"></p>
+      </fieldset>
+
+      <fieldset class="bloc analyses">
+        <legend data-aide="analyses">Analyses</legend>
+        <label><input type="checkbox" value="one_factor" checked>
+          <span data-aide="one_factor">R² par paramètre</span></label>
+        <label><input type="checkbox" value="metamodel_comparison" checked>
+          <span data-aide="metamodel_comparison">Comparaison des métamodèles</span></label>
+        <label><input type="checkbox" value="hsic">
+          <span data-aide="hsic">HSIC-ANOVA</span> <span class="cout">coûteux</span></label>
+        <label><input type="checkbox" value="pdp">
+          <span data-aide="pdp">PDP par sous-espace</span> <span class="cout">coûteux</span></label>
+      </fieldset>
+
+      <div class="tree-actions">
+        <button type="button" id="reset-btn" class="ghost" data-aide="reouvrir">Tout activer</button>
+        <button type="button" id="run-btn" data-aide="lancer">Lancer l'analyse</button>
+      </div>
+
+      <!-- L'arborescence est injectée ici. -->
+      <div id="tree" class="tree" role="tree" aria-label="Espace de conception"></div>
+    </aside>
+
+    <main class="workspace">
+      <section class="coverage" id="coverage">
+        <div class="coverage-head">
+          <div>
+            <p class="eyebrow" data-aide="couverture">Couverture</p>
+            <h2><span id="cov-points">—</span> simulations disponibles</h2>
+            <p class="cov-sub" id="cov-sub">Choisissez un mode pour commencer.</p>
+          </div>
+          <div class="cov-stats" id="cov-stats"></div>
+        </div>
+        <div class="verdicts" id="verdicts"></div>
+      </section>
+
+      <div class="workspace-scroll">
+        <section class="panel" id="plan-panel" hidden>
+          <h3 data-aide="plan">Plan d'expérience correspondant</h3>
+          <div id="plan-body"></div>
+
+          <div class="generate-bar">
+            <label class="points-field" id="gen-points-field">
+              <span>Points à simuler</span>
+              <input id="gen-points" type="number" min="100" max="5000" step="100" value="500">
+            </label>
+            <span class="cost-hint" id="gen-cost"></span>
+            <button type="button" id="check-btn" class="ghost">Vérifier les calendriers</button>
+            <button type="button" id="gen-btn" disabled>Générer les fichiers</button>
+          </div>
+          <div id="gen-body"></div>
+        </section>
+
+        <section class="results" id="results">
+          <div class="empty-state">
+            <h3>Les résultats apparaîtront ici</h3>
+            <p>L'arborescence de gauche définit l'espace exploré. Le bandeau du haut
+               dit ce que les simulations disponibles permettent d'en tirer.</p>
+          </div>
+        </section>
+
+        <!-- Où l'application range ses fichiers : affiché plutôt que deviné. -->
+        <details class="panel chemins" id="chemins-panel">
+          <summary>Où sont les fichiers</summary>
+          <div id="chemins-body"></div>
+
+          <!-- MAELIA et GAMA vivent hors de l'application et changent d'une machine
+               à l'autre : leur emplacement se règle ici, pas dans le code. -->
+          <div class="reglages" id="reglages">
+            <h4 data-aide="reglages">Chemins vers MAELIA et GAMA</h4>
+            <label class="champ">
+              <span>Installation MAELIA</span>
+              <input id="reglage-maelia" type="text" spellcheck="false" autocomplete="off">
+              <span class="reglage-etat" id="etat-maelia"></span>
+            </label>
+            <label class="champ">
+              <span>Script gama-headless</span>
+              <input id="reglage-gama" type="text" spellcheck="false" autocomplete="off">
+              <span class="reglage-etat" id="etat-gama"></span>
+            </label>
+            <div class="tree-actions">
+              <button type="button" id="reglage-effacer" class="ghost">Rendre la main aux valeurs par défaut</button>
+              <button type="button" id="reglage-enregistrer">Enregistrer</button>
+            </div>
+            <p class="hint" id="reglage-fichier"></p>
+          </div>
+        </details>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/ui/static/app.js?v=18"></script>
+</body>
+</html>
