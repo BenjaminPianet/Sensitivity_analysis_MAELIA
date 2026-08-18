@@ -4,7 +4,7 @@ Analyse de sensibilité du modèle agro-écologique MAELIA sur un terrain contr�
 
 ## Organisation du dépôt
 
-**`app_maelia/`** est l'application. Elle fait tout le parcours, de la description de l'espace à explorer jusqu'aux résultats, en passant par la génération des fichiers d'entrée MAELIA et le lancement de GAMA. Elle vit dans un seul dossier et n'écrit que dedans.
+**`app_maelia/`** est l'application. Elle fait tout le parcours, de la description de l'espace à explorer jusqu'aux résultats, en passant par la génération des fichiers d'entrée MAELIA et le lancement de GAMA. Elle est située dans un seul dossier et n'écrit que dedans.
 
 Pour la prendre en main, le mieux est de suivre **[le tutoriel](app_maelia/TUTORIEL.md)**. Il part de zéro, sans aucune simulation, et va jusqu'aux résultats commentés. Chaque étape indique ce que vous devez voir à l'écran pour savoir que vous êtes sur la bonne voie. Le [README de l'application](app_maelia/README.md) détaille ensuite le fonctionnement : les deux modes de travail, la façon dont le plan est tiré, les chemins vers MAELIA et GAMA, et comment ouvrir le terrain dans QGIS.
 
@@ -18,7 +18,7 @@ Les dépendances sont dans `requirements.txt`.
 
 ## Ce que le terrain permet de voir
 
-`terrainSA` isole l'effet des paramètres techniques. C'est la parcelle `beauce_5_1`, clonée 100 fois dans le même ilot. Les clones partagent le sol, la zone météo et la géométrie, ce qui écarte l'effet confondant du contexte pédoclimatique.
+`terrainSA` isole l'effet des itinéraires techniques. C'est la parcelle `beauce_5_1`, clonée 100 fois dans le même ilot. Les clones partagent le sol, la zone météo et la géométrie, ce qui écarte l'effet confondant du contexte pédoclimatique.
 
 Le climat et le sol peuvent maintenant varier à leur tour, mais pas par le même mécanisme. MAELIA affecte le climat à l'ilot en retenant la zone météo qui le recouvre le plus, donc faire varier le climat demande des ilots séparés dans l'espace. Le sol, lui, est un simple attribut de l'ilot. Rien ne se déplace, donc plusieurs ilots peuvent tenir au même endroit avec des sols différents. Les deux se croisent alors dans un même plan.
 
@@ -64,7 +64,3 @@ Le plus pauvre n'en a que trois : dates de semis et de récolte, profondeur de s
 ![PDP et ICE, sous-espace 0 apport et sans préparation, rendement](figs/pdp_ice_sous_espace_0ferti_sansPrepa_rdt.png)
 
 Les métamodèles y sont prédictifs, avec des Q² de 0,7 à 0,99, et les courbes se lisent en agronome. Le rendement suit la réponse classique à l'azote : il croît avec chaque dose puis sature au-delà d'environ 50 kgN/ha, et baisse quand le premier apport arrive trop tard. Les profondeurs de travail et la date de semis pèsent peu. Les faisceaux ICE restent serrés autour des courbes moyennes, signe d'effets marginaux stables d'un scénario à l'autre.
-
-## Portée
-
-Ces résultats mesurent la sensibilité des sorties à la stratégie technique, sur un terrain construit pour cela. Ils ne disent pas la sensibilité de MAELIA à tous les contextes pédoclimatiques. La campagne climat élargit la portée sur un axe, celle du sol reste à faire.
